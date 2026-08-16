@@ -19,7 +19,7 @@ export default function LoginPage() {
               <Shield className="h-8 w-8" />
             </div>
             <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text">FATISDA 26</h1>
-            <p className="mt-1 text-sm text-liquid-text-secondary">Panel tugas PKKMB FATISDA UNS</p>
+            <p className="mt-1 text-sm text-liquid-text-secondary">Panel tugas FATISDA UNS 2026</p>
           </div>
 
           <div className="mt-8 flex justify-center gap-2">
@@ -29,25 +29,22 @@ export default function LoginPage() {
           </div>
 
           <button
-            onClick={() => { setLoading(true); signIn("discord", { callbackUrl: "/dashboard" }); }}
+            onClick={() => {
+              setLoading(true);
+              signIn("discord", { callbackUrl: "/dashboard" });
+            }}
             disabled={loading}
             className="mt-8 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#5865F2] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#5865F2]/20 transition-all hover:bg-[#4752C4] hover:shadow-xl hover:shadow-[#5865F2]/30 active:scale-[0.98] disabled:opacity-60"
           >
-            {loading ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            ) : (
-              <DiscordIcon />
-            )}
+            {loading ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <DiscordIcon />}
             {loading ? "Menghubungkan..." : "Lanjutkan dengan Discord"}
             {!loading && <ArrowRight className="h-4 w-4 opacity-70" />}
           </button>
 
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary">
-            Kamu perlu bergabung di server Discord yang terhubung dengan panel ini.
-          </p>
+          <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary">Kamu perlu bergabung di server Discord yang terhubung dengan panel ini.</p>
         </div>
 
-        <p className="mt-6 text-center text-[11px] text-liquid-text-tertiary">Dibangun untuk panitia PKKMB FATISDA 2026</p>
+        <p className="mt-6 text-center text-[11px] text-liquid-text-tertiary">Dibangun untuk FATISDA 2026</p>
       </div>
     </main>
   );

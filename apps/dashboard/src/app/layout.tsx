@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "FATISDA 26 — Panel Tugas",
-  description: "Panel tugas PKKMB FATISDA UNS 2026",
+  description: "Panel tugas untuk FATISDA UNS 2026",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

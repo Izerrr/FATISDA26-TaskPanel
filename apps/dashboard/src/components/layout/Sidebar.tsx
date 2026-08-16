@@ -1,62 +1,71 @@
 "use client";
 
-import { useGuild } from "@/components/providers/GuildProvider";
-import { useGuilds } from "@/hooks/useGuilds";
-import { Settings, LogOut, LayoutGrid } from "lucide-react";
+import { LayoutGrid, Users, Clock, BookOpen, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 
-export function Sidebar() {
-  const { selectedGuild, setSelectedGuild } = useGuild();
-  const { guilds, isLoading } = useGuilds();
+interface SidebarProps {
+  courses: Array<{ id: string; code: string; name: string }>;
+  // classmates: Array<User>; -> Nanti bisa ditambahkan saat API member siap
+}
 
+export function Sidebar({ courses }: SidebarProps) {
   return (
-    <aside className="flex w-[72px] flex-col items-center gap-3 border-r border-black/[0.04] bg-white/40 py-5 backdrop-blur-xl">
-      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-liquid-accent text-white shadow-md shadow-liquid-accent/20">
-        <LayoutGrid className="h-5 w-5" />
+    <aside className="w-72 border-r border-slate-200 bg-white flex flex-col h-full overflow-y-auto hidden md:flex">
+      {/* Brand Logo */}
+      <div className="p-6 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
+          <BookOpen className="w-4 h-4" />
+        </div>
+        <span className="font-bold text-slate-800 text-lg tracking-tight">TaskPanel</span>
       </div>
 
-      <div className="flex w-full flex-1 flex-col items-center gap-2 px-2">
-        {isLoading ? (
-          <div className="h-10 w-10 animate-pulse rounded-xl bg-black/5" />
-        ) : (
-          guilds.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => setSelectedGuild(g.id)}
-              title={g.name}
-              className={`
-                group relative flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold transition-all
-                ${selectedGuild === g.id
-                  ? "bg-liquid-accent text-white shadow-md shadow-liquid-accent/20"
-                  : "bg-black/[0.04] text-liquid-text-secondary hover:bg-black/[0.08] hover:text-liquid-text"}
-              `}
-            >
-              {g.icon ? (
-                <img
-                  src={`https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`}
-                  alt={g.name}
-                  className="h-full w-full rounded-xl object-cover"
-                />
-              ) : (
-                g.name.slice(0, 2).toUpperCase()
-              )}
-              {selectedGuild === g.id && (
-                <span className="absolute -right-1.5 top-1/2 h-6 w-1 -translate-y-1/2 rounded-l-full bg-liquid-accent" />
-              )}
-            </button>
-          ))
-        )}
+      {/* Courses / Projects Section */}
+      <div className="px-4 py-4">
+        <h3 className="text-xs font-semibold text-slate-800 mb-3 px-2">Mata Kuliah Aktif</h3>
+        <div className="space-y-1">
+          {courses.length > 0 ? (
+            courses.map((course) => (
+              <button key={course.id} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors text-sm text-left font-medium">
+                <LayoutGrid className="w-4 h-4 text-slate-400" />
+                <span className="truncate">{course.name}</span>
+              </button>
+            ))
+          ) : (
+            <p className="px-3 text-xs text-slate-400 italic">Menunggu sinkronisasi matkul...</p>
+          )}
+        </div>
       </div>
 
-      <div className="flex w-full flex-col items-center gap-2 border-t border-black/[0.04] px-2 pt-3">
-        <button className="flex h-9 w-9 items-center justify-center rounded-xl text-liquid-text-tertiary transition-colors hover:bg-black/[0.04] hover:text-liquid-text-secondary">
-          <Settings className="h-[18px] w-[18px]" />
-        </button>
+      {/* Team Members Section */}
+      <div className="px-4 py-4 border-t border-slate-100">
+        <h3 className="text-xs font-semibold text-slate-800 mb-3 px-2">Teman Kelas</h3>
+        <div className="space-y-1">
+          {/* Kosong untuk sementara, dirender dari API later */}
+          <p className="px-3 text-xs text-slate-400 italic">Memuat anggota kelas...</p>
+        </div>
+      </div>
+
+      {/* Time Tracker Widget */}
+      <div className="px-4 py-4 border-t border-slate-100">
+        <h3 className="text-xs font-semibold text-slate-800 mb-3 px-2 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-slate-400" /> Time
+        </h3>
+        <div className="mx-2 mt-2 border border-slate-200 rounded-xl p-4 bg-slate-50 shadow-sm">
+          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">TOTAL HOURS</p>
+          <p className="text-2xl font-bold text-slate-800">
+            -- <span className="text-sm font-medium text-slate-500">hours</span>
+          </p>
+          <p className="text-xs text-emerald-600 font-medium mt-2 flex items-center gap-1">Menunggu data aktivitas</p>
+        </div>
+      </div>
+
+      {/* Footer / Logout */}
+      <div className="mt-auto p-4 border-t border-slate-100">
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-liquid-text-tertiary transition-colors hover:bg-liquid-danger-soft hover:text-liquid-danger"
+          onClick={() => signOut()}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors text-sm font-medium"
         >
-          <LogOut className="h-[18px] w-[18px]" />
+          <LogOut className="w-4 h-4" /> Logout
         </button>
       </div>
     </aside>

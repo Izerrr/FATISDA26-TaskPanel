@@ -36,7 +36,7 @@ export function BoardHero() {
               {rc.label}
             </span>
           </div>
-          <p className="text-[13px] text-liquid-text-secondary">Kelola tugas tim PKKMB FATISDA 2026</p>
+          <p className="text-[13px] text-liquid-text-secondary">Kelola tugas FATISDA 2026</p>
         </div>
       </div>
 

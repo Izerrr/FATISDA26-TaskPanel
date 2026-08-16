@@ -1,52 +1,92 @@
-// IF26 Task Panel — Prisma Schema
-// Shared by apps/bot (VPS worker) and apps/dashboard (Vercel serverless).
-//
-// RULES.md #1 — Hybrid Security:
-// `DATABASE_URL` should point at a pooled connection (e.g. PgBouncer / Prisma Accelerate)
-// so Vercel's serverless functions don't exhaust the VPS Postgres/MySQL max-connection limit.
-// `directUrl` is used only for migrations, which need a direct (non-pooled) connection.
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model Guild {
-  id        String   @id // Discord Guild ID
-  name      String
-  icon      String?
-  tasks     Task[]
-  createdAt DateTime @default(now())
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model User {
-  id            String   @id // Discord User ID
-  username      String
-  avatar        String?
-  assignedTasks Task[]   @relation("AssignedUser")
+enum Prodi {
+  INFORMATIKA
+  SAINS_DATA
 }
 
-model Task {
-  id          String     @id @default(uuid())
-  guildId     String
-  guild       Guild      @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  title       String
-  description String?    @db.Text
-  status      TaskStatus @default(TODO)
-  assignedTo  String?
-  assignee    User?      @relation("AssignedUser", fields: [assignedTo], references: [id])
-  dueDate     DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+enum Kelas {
+  A
+  B
+  C
+  D
+  E
+}
+
+enum Role {
+  STUDENT
+  PJ_KELAS
+  PJ_MATKUL
+  ADMIN
+}
+
+enum TaskScope {
+  PERSONAL
+  CLASS
 }
 
 enum TaskStatus {
   TODO
   IN_PROGRESS
-  REVIEW
+  NEED_REVIEW
   DONE
+}
+
+model User {
+  id            String      @id // Discord User ID
+  username      String
+  avatar        String?
+  prodi         Prodi?
+  kelas         Kelas?
+  roles         Role[]      @default([STUDENT])
+  discordRoles  String[]    
+  createdTasks  Task[]      @relation("CreatedTasks")
+  assignedTasks Task[]      @relation("AssignedTasks")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  code        String    // Contoh: "IF26-101"
+  name        String    // Contoh: "Struktur Data"
+  prodi       Prodi
+  kelas       Kelas?    
+  pjMatkulId  String?
+  tasks       Task[]
+  createdAt   DateTime  @default(now())
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  scope       TaskScope  @default(PERSONAL)
+  prodi       Prodi?
+  kelas       Kelas?
+  courseId    String?
+  course      Course?    @relation(fields: [courseId], references: [id])
+  createdById String
+  createdBy   User       @relation("CreatedTasks", fields: [createdById], references: [id])
+  assignedTo  String?
+  assignee    User?      @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model ScheduleSync {
+  id            String   @id @default(cuid())
+  spreadsheetId String
+  sheetName     String
+  lastSyncedAt  DateTime @default(now())
 }
