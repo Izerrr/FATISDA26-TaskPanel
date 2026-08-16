@@ -3,40 +3,53 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    min-height: 100%;
+  }
+
   body {
-    @apply bg-liquid-bg text-liquid-text font-sans antialiased;
+    min-height: 100vh;
+    @apply bg-liquid-bg text-liquid-text antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-glass;
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 
-  .glass-strong {
-    @apply bg-white/80 backdrop-blur-2xl border border-white/60 shadow-glass-lg;
-  }
-
-  .label {
-    @apply text-[11px] font-semibold uppercase tracking-wide text-liquid-text-secondary;
+  ::selection {
+    background: rgba(0, 119, 182, 0.14);
   }
 
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.12);
-    border-radius: 100px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.20);
-    border: 2px solid transparent;
-    background-clip: padding-box;
+    background: rgba(0, 0, 0, 0.18);
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl shadow-glass;
+  }
+
+  .label {
+    @apply text-[11px] font-semibold uppercase tracking-wide text-liquid-text-secondary;
   }
 }

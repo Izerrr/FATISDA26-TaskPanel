@@ -1,21 +1,36 @@
 "use client";
-import useSWR from "swr";
 
-export interface Guild {
-  id: string;
-  name: string;
-  icon: string | null;
-  owner: boolean;
-  permissions: string;
+import useSWR from "swr";
+import type { DiscordGuild } from "@/types";
+
+interface GuildResponse {
+  guilds: DiscordGuild[];
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+async function fetcher(url: string): Promise<GuildResponse> {
+  const response = await fetch(url, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Gagal memuat server Discord.");
+  }
+
+  return response.json();
+}
 
 export function useGuilds() {
-  const { data, error, isLoading } = useSWR("/api/guilds", fetcher);
+  const { data, error, isLoading, mutate } = useSWR<GuildResponse>("/api/guilds", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+
   return {
-    guilds: (data?.guilds as Guild[]) || [],
+    guilds: data?.guilds ?? [],
     isLoading,
-    isError: !!error,
+    isError: Boolean(error),
+    error,
+    mutate,
   };
 }

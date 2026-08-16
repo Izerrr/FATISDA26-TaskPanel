@@ -1,31 +1,38 @@
 "use client";
-import useSWR from "swr";
 
-export interface Task {
-  id: string;
-  guildId: string;
-  title: string;
-  description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-  assignedTo: string | null;
-  assignee: { id: string; username: string; avatar: string | null } | null;
-  dueDate: string | null;
-  createdAt: string;
-  updatedAt: string;
+import useSWR from "swr";
+import type { Task } from "@/types";
+
+interface TaskResponse {
+  tasks: Task[];
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+async function fetcher(url: string): Promise<TaskResponse> {
+  const response = await fetch(url, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Gagal memuat tugas.");
+  }
+
+  return response.json();
+}
 
 export function useTasks(guildId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR(
-    guildId ? `/api/tasks?guildId=${guildId}` : null,
-    fetcher,
-    { refreshInterval: 8000, revalidateOnFocus: true }
-  );
+  const url = guildId ? `/api/tasks?guildId=${encodeURIComponent(guildId)}` : null;
+
+  const { data, error, isLoading, mutate } = useSWR<TaskResponse>(url, fetcher, {
+    revalidateOnFocus: true,
+    refreshInterval: 10000,
+  });
+
   return {
-    tasks: (data?.tasks as Task[]) || [],
+    tasks: data?.tasks ?? [],
     isLoading,
-    isError: !!error,
+    isError: Boolean(error),
+    error,
     mutate,
   };
 }

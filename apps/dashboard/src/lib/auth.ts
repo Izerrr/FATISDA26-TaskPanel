@@ -7,46 +7,70 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
-      authorization: { params: { scope: "identify guilds email" } },
+      authorization: {
+        params: {
+          scope: "identify guilds email",
+        },
+      },
     }),
   ],
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
-  pages: { signIn: "/login", error: "/login" },
+
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
+
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.discordId = account.providerAccountId;
+        const discordId = account.providerAccountId;
+
+        const username = (profile as { username?: string }).username ?? "pengguna";
+
+        const avatar = (profile as { image_url?: string; avatar?: string }).image_url ?? (profile as { avatar?: string }).avatar ?? null;
+
+        token.discordId = discordId;
+        token.username = username;
+        token.avatar = avatar;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
-        token.username = (profile as any).username ?? "pengguna";
-        token.avatar = (profile as any).image_url ?? (profile as any).avatar ?? null;
-        try {
-          await prisma.user.upsert({
-            where: { id: account.providerAccountId },
-            create: {
-              id: account.providerAccountId,
-              username: (profile as any).username ?? "pengguna",
-              avatar: (profile as any).image_url ?? (profile as any).avatar ?? null,
-            },
-            update: {
-              username: (profile as any).username ?? "pengguna",
-              avatar: (profile as any).image_url ?? (profile as any).avatar ?? null,
-            },
-          });
-        } catch (err) {
-          console.error("[Auth] Gagal menyimpan user:", err);
-        }
+
+        await prisma.user.upsert({
+          where: {
+            id: discordId,
+          },
+          create: {
+            id: discordId,
+            username,
+            avatar,
+            roles: ["STUDENT"],
+            discordRoles: [],
+          },
+          update: {
+            username,
+            avatar,
+          },
+        });
       }
+
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.discordId as string;
-        session.user.name = token.username as string;
-        session.user.image = token.avatar as string | null;
+        session.user.id = token.discordId ?? "";
+        session.user.name = token.username ?? null;
+        session.user.image = token.avatar ?? null;
       }
+
       return session;
     },
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -1,34 +1,32 @@
 "use client";
-import { useSession } from "next-auth/react";
-import { useGuild } from "@/components/providers/GuildProvider";
-import { useGuilds } from "./useGuilds";
 
-export type Role = "admin" | "moderator" | "member";
+import useSWR from "swr";
+import type { User, Role } from "@/types";
+
+async function fetcher(url: string) {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Gagal mengambil user");
+  }
+
+  return response.json();
+}
 
 export function useRole() {
-  const { data: session } = useSession();
-  const { selectedGuild } = useGuild();
-  const { guilds } = useGuilds();
+  const { data, error, isLoading } = useSWR<{ user: User }>("/api/me", fetcher);
 
-  if (!session?.user?.id || !selectedGuild) {
-    return { role: "member" as Role, isAdmin: false, isModerator: false, isMember: true };
-  }
+  const roles = data?.user.roles ?? ["STUDENT"];
 
-  const guild = guilds.find((g) => g.id === selectedGuild);
-  if (!guild) {
-    return { role: "member" as Role, isAdmin: false, isModerator: false, isMember: true };
-  }
-
-  if (guild.owner) {
-    return { role: "admin" as Role, isAdmin: true, isModerator: true, isMember: true };
-  }
-
-  const perms = parseInt(guild.permissions);
-  const isAdmin = (perms & 0x8) === 0x8;
-  const isMod = (perms & 0x20) === 0x20;
-
-  if (isAdmin) return { role: "admin" as Role, isAdmin: true, isModerator: true, isMember: true };
-  if (isMod) return { role: "moderator" as Role, isAdmin: false, isModerator: true, isMember: true };
-
-  return { role: "member" as Role, isAdmin: false, isModerator: false, isMember: true };
+  return {
+    role: roles[0] as Role,
+    roles,
+    isAdmin: roles.includes("ADMIN"),
+    isPJKelas: roles.includes("PJ_KELAS"),
+    isPJMatkul: roles.includes("PJ_MATKUL"),
+    isStudent: roles.includes("STUDENT"),
+    user: data?.user ?? null,
+    isLoading,
+    isError: Boolean(error),
+  };
 }

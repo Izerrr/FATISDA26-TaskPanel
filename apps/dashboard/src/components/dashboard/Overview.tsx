@@ -1,78 +1,145 @@
 "use client";
 
-import { Clock, Calendar as CalendarIcon, CheckCircle2, AlertCircle } from "lucide-react";
-import { SCHEDULE_DATA } from "../../lib/schedule-data";
+import { AlertCircle, CheckCircle2, Clock3, ListTodo } from "lucide-react";
+import type { Task } from "@/types";
 
-export function Overview() {
-  // Simulasi: Filter jadwal untuk hari "Senin" dan "Selasa" sebagai contoh "terdekat"
-  // Di real app, kamu bisa bandingkan dengan new Date().getDay()
-  const upcomingSchedules = SCHEDULE_DATA.filter((s) => s.day === "Senin" || s.day === "Selasa").slice(0, 4);
+interface OverviewProps {
+  tasks: Task[];
+}
+
+export function Overview({ tasks }: OverviewProps) {
+  const now = new Date();
+
+  const done = tasks.filter((task) => task.status === "DONE").length;
+
+  const inProgress = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+
+  const overdue = tasks.filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) < now).length;
+
+  const personal = tasks.filter((task) => task.scope === "PERSONAL").length;
+
+  const stats = [
+    {
+      label: "Total Tugas",
+      value: tasks.length,
+      icon: ListTodo,
+      tone: "bg-blue-50 text-blue-600",
+    },
+    {
+      label: "Selesai",
+      value: done,
+      icon: CheckCircle2,
+      tone: "bg-emerald-50 text-emerald-600",
+    },
+    {
+      label: "Berjalan",
+      value: inProgress,
+      icon: Clock3,
+      tone: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Terlambat",
+      value: overdue,
+      icon: AlertCircle,
+      tone: "bg-red-50 text-red-600",
+    },
+  ];
+
+  const upcoming = [...tasks]
+    .filter((task) => task.dueDate && new Date(task.dueDate) >= now)
+    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: "Personal Tasks Done", val: "12", icon: CheckCircle2, bg: "bg-emerald-50", color: "text-emerald-600" },
-          { label: "Active Class Tasks", val: "3", icon: Clock, bg: "bg-blue-50", color: "text-blue-600" },
-          { label: "Nearing Deadline", val: "1", icon: AlertCircle, bg: "bg-rose-50", color: "text-rose-600" },
-        ].map((stat, i) => (
-          <div key={i} className="p-6 rounded-2xl border border-slate-100 bg-white shadow-sm flex items-center gap-5">
-            <div className={`p-4 rounded-xl ${stat.bg} ${stat.color}`}>
-              <stat.icon className="w-6 h-6" />
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <div key={stat.label} className="rounded-2xl border border-liquid-border bg-white p-5 shadow-glass">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-liquid-text-secondary">{stat.label}</p>
+
+                  <p className="mt-1 text-3xl font-bold text-liquid-text">{stat.value}</p>
+                </div>
+
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.tone}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-3xl font-bold text-slate-800">{stat.val}</p>
-              <p className="text-sm font-medium text-slate-500 mt-1">{stat.label}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Hardcoded Schedule List */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-100 bg-white shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">Upcoming Schedule</h3>
-            <span className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full">Semester Gasal 2024/2025</span>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="lg:col-span-2 rounded-2xl border border-liquid-border bg-white p-6 shadow-glass">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-bold text-liquid-text">Deadline Terdekat</h2>
+
+              <p className="mt-1 text-xs text-liquid-text-secondary">Berdasarkan tugas yang memiliki deadline.</p>
+            </div>
+
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-600">{upcoming.length} tugas</span>
           </div>
 
-          <div className="space-y-4">
-            {upcomingSchedules.map((schedule) => (
-              <div key={schedule.id} className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-blue-200 transition-all flex justify-between items-center group">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{schedule.courseName}</p>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500">
-                      {schedule.prodi} KLS {schedule.kelas}
-                    </span>
+          <div className="mt-5 space-y-3">
+            {upcoming.length === 0 ? (
+              <div className="rounded-xl bg-slate-50 p-5 text-sm text-liquid-text-secondary">Belum ada deadline yang tersedia.</div>
+            ) : (
+              upcoming.map((task) => (
+                <div key={task.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-liquid-text">{task.title}</p>
+
+                    <p className="mt-1 text-xs text-liquid-text-secondary">{task.course?.name ?? "Tanpa mata kuliah"}</p>
                   </div>
-                  <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5" /> {schedule.time} <span className="text-slate-300">•</span> {schedule.room}
-                  </p>
-                </div>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full ${schedule.day === "Senin" ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-600"}`}>{schedule.day}</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Global/Class Announcements */}
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-6 flex flex-col">
-          <h3 className="font-bold text-slate-800 text-lg mb-6">Class Notes</h3>
-          <div className="flex-1 flex flex-col gap-3">
-            <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="font-semibold text-blue-700">@SainsData-A</span> Jangan lupa besok ada kuis Pengantar Sains Data di R. Sidang 2.
-              </p>
+                  <div className="ml-4 shrink-0 text-right">
+                    <p className="text-xs font-semibold text-liquid-text">
+                      {new Date(task.dueDate!).toLocaleDateString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </p>
+
+                    <p className="text-[11px] text-liquid-text-secondary">
+                      {new Date(task.dueDate!).toLocaleTimeString("id-ID", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-liquid-border bg-white p-6 shadow-glass">
+          <h2 className="font-bold text-liquid-text">Ringkasan</h2>
+
+          <div className="mt-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-liquid-text-secondary">Personal</span>
+
+              <span className="font-semibold text-liquid-text">{personal}</span>
             </div>
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="font-semibold text-slate-700">@Informatika-B</span> Modul praktikum Jarkom sudah diupload di e-learning.
-              </p>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-liquid-text-secondary">Kelas</span>
+
+              <span className="font-semibold text-liquid-text">{tasks.filter((task) => task.scope === "CLASS").length}</span>
+            </div>
+
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-xs leading-5 text-liquid-text-secondary">Statistik di atas berasal dari data task aktual pada server yang sedang dipilih.</p>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

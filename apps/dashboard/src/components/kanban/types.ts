@@ -1,21 +1,40 @@
-export interface Task {
-  id: string;
-  guildId: string;
-  title: string;
-  description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
-  assignedTo: string | null;
-  assignee: { id: string; username: string; avatar: string | null } | null;
-  dueDate: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { TaskStatus, Task } from "@/types";
 
-export const COLUMNS = ["TODO", "IN_PROGRESS", "REVIEW", "DONE"] as const;
+export const KANBAN_COLUMNS: readonly TaskStatus[] = [
+  "TODO",
+  "IN_PROGRESS",
+  "NEED_REVIEW",
+  "DONE",
+];
 
-export const COLUMN_META: Record<string, { label: string; badge: string; border: string }> = {
-  TODO: { label: "Belum Dimulai", badge: "bg-black/[0.04] text-liquid-text-secondary", border: "border-black/[0.04]" },
-  IN_PROGRESS: { label: "Dikerjakan", badge: "bg-liquid-accent/10 text-liquid-accent", border: "border-liquid-accent/20" },
-  REVIEW: { label: "Menunggu Review", badge: "bg-liquid-warning/10 text-liquid-warning", border: "border-liquid-warning/20" },
-  DONE: { label: "Selesai", badge: "bg-liquid-success/10 text-liquid-success", border: "border-liquid-success/20" },
+export const KANBAN_META: Record<
+  TaskStatus,
+  {
+    label: string;
+    badge: string;
+    border: string;
+  }
+> = {
+  TODO: {
+    label: "Belum Dimulai",
+    badge: "bg-slate-100 text-slate-600",
+    border: "border-slate-200",
+  },
+  IN_PROGRESS: {
+    label: "Dikerjakan",
+    badge: "bg-blue-50 text-blue-600",
+    border: "border-blue-100",
+  },
+  NEED_REVIEW: {
+    label: "Perlu Review",
+    badge: "bg-amber-50 text-amber-600",
+    border: "border-amber-100",
+  },
+  DONE: {
+    label: "Selesai",
+    badge: "bg-emerald-50 text-emerald-600",
+    border: "border-emerald-100",
+  },
 };
+
+export type KanbanTask = Task;

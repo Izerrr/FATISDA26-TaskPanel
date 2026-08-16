@@ -1,20 +1,42 @@
-export type Urgency = "none" | "normal" | "soon" | "late";
-
-const SOON_MS = 1000 * 60 * 60 * 24 * 2;
+export type DueUrgency =
+  | "none"
+  | "onTrack"
+  | "dueSoon"
+  | "overdue";
 
 export function getUrgency(
-  dueDate: string | null,
-  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE"
-): Urgency {
-  if (!dueDate || status === "DONE") return "normal";
+  dueDate: string | Date | null,
+  status?: "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE"
+): DueUrgency {
+  if (!dueDate) return "none";
+
   const due = new Date(dueDate).getTime();
-  const now = Date.now();
-  if (due < now) return "late";
-  if (due - now <= SOON_MS) return "soon";
-  return "normal";
+  if (Number.isNaN(due)) return "none";
+
+  if (status === "DONE") return "onTrack";
+
+  const diff = due - Date.now();
+  if (diff < 0) return "overdue";
+  if (diff <= 48 * 60 * 60 * 1000) return "dueSoon";
+  return "onTrack";
 }
 
-export function fmtDate(d: string | null): string {
-  if (!d) return "Tanpa tenggat";
-  return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+export function formatDueDate(
+  dueDate: string | Date | null
+): string {
+  if (!dueDate) return "Tanpa deadline";
+
+  const date = new Date(dueDate);
+  if (Number.isNaN(date.getTime())) {
+    return "Tanggal tidak valid";
+  }
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
+
+export const fmtDate = formatDueDate;
+export const getDueUrgency = getUrgency;

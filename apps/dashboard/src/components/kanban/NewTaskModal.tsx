@@ -1,144 +1,109 @@
 "use client";
 
 import { useState } from "react";
-import { useGuild } from "@/components/providers/GuildProvider";
-import { useMembers } from "@/hooks/useMembers";
-import { useRole } from "@/hooks/useRole";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
+import type { Course, Role } from "@/types";
 
 interface Props {
+  open: boolean;
+  guildId: string;
+  courses: Course[];
+  roles: Role[];
+  userId: string;
   onClose: () => void;
+  onCreated: () => Promise<unknown>;
 }
 
-export function NewTaskModal({ onClose }: Props) {
-  const { selectedGuild } = useGuild();
-  const { members } = useMembers(selectedGuild);
-  const { isAdmin, isModerator } = useRole();
+export function NewTaskModal({ open, guildId, courses, roles, onClose, onCreated }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "REVIEW" | "DONE">("TODO");
-  const [submitting, setSubmitting] = useState(false);
+  const [scope, setScope] = useState<"PERSONAL" | "CLASS">("PERSONAL");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const canCreate = isAdmin || isModerator;
-  if (!canCreate) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div className="bg-fsd-card rounded-lg border border-fsd-border-light/50 p-6 text-center">
-          <p className="text-fsd-alert text-sm">Kamu tidak punya izin untuk membuat tugas.</p>
-          <button onClick={onClose} className="mt-4 text-xs text-fsd-text-secondary hover:text-fsd-text">
-            Tutup
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!open) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedGuild || !title.trim()) return;
-    setSubmitting(true);
+  const canCreateClass = roles.some((role) => ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role));
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!title.trim()) return setError("Judul tugas wajib diisi.");
+    if (scope === "CLASS" && !canCreateClass) return setError("Kamu tidak memiliki izin membuat tugas kelas.");
+
     try {
-      await fetch("/api/tasks", {
+      setLoading(true);
+      setError("");
+      const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          guildId: selectedGuild,
-          title: title.trim(),
-          description: description.trim() || null,
-          assignedTo: assignedTo || null,
-          dueDate: dueDate || null,
-          status,
-        }),
+        body: JSON.stringify({ guildId, title, description, courseId: courseId || null, dueDate: dueDate || null, scope, status: "TODO" }),
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Gagal membuat tugas.");
+      await onCreated();
+      setTitle(""); setDescription(""); setCourseId(""); setDueDate(""); setScope("PERSONAL");
       onClose();
-      window.location.reload();
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : "Gagal membuat tugas.");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-fsd-card rounded-lg border border-fsd-border-light/50 shadow-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-fsd-text">Tugas Baru</h2>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-fsd-surface text-fsd-muted">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl bg-white shadow-float">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+          <div>
+            <h2 className="font-bold text-liquid-text">Tugas Baru</h2>
+            <p className="mt-1 text-xs text-liquid-text-secondary">Tambahkan tugas ke workspace saat ini.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X className="h-4 w-4" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">JUDUL</label>
-            <input
-              type="text"
-              placeholder="Judul tugas..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text placeholder:text-fsd-muted focus:border-fsd-accent focus:ring-1 focus:ring-fsd-accent/20 outline-none transition-all"
-              required
-            />
-          </div>
-          <div>
-            <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">DESKRIPSI</label>
-            <textarea
-              placeholder="Deskripsi tugas..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text placeholder:text-fsd-muted focus:border-fsd-accent focus:ring-1 focus:ring-fsd-accent/20 outline-none transition-all h-24 resize-none"
-            />
-          </div>
+
+        <form onSubmit={submit} className="space-y-5 p-6">
+          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">{error}</div>}
+
           <div className="grid grid-cols-2 gap-3">
+            {(["PERSONAL", "CLASS"] as const).map((value) => {
+              const disabled = value === "CLASS" && !canCreateClass;
+              return (
+                <button key={value} type="button" disabled={disabled} onClick={() => setScope(value)} className={`rounded-xl border px-4 py-3 text-sm font-semibold ${scope === value ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}>
+                  {value === "PERSONAL" ? "Personal" : "Kelas"}
+                </button>
+              );
+            })}
+          </div>
+
+          <div>
+            <label className="label mb-2 block">Judul</label>
+            <input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Contoh: Laporan Praktikum" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">PENANGGUNG JAWAB</label>
-              <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text focus:border-fsd-accent outline-none">
-                <option value="">Belum ditugaskan</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.username}
-                  </option>
-                ))}
+              <label className="label mb-2 block">Mata Kuliah</label>
+              <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent">
+                <option value="">Tanpa mata kuliah</option>
+                {courses.map((course) => <option key={course.id} value={course.id}>{course.code} — {course.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">TENGAT WAKTU</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text focus:border-fsd-accent outline-none"
-              />
+              <label className="label mb-2 block">Deadline</label>
+              <input type="datetime-local" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
             </div>
           </div>
+
           <div>
-            <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">STATUS AWAL</label>
-            <div className="flex gap-2">
-              {(["TODO", "IN_PROGRESS", "REVIEW", "DONE"] as const).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStatus(s)}
-                  className={`flex-1 py-2 text-[10px] fsd-meta rounded-md border transition-all ${status === s ? "bg-fsd-accent text-fsd-bg border-fsd-accent" : "bg-fsd-surface text-fsd-text-secondary border-fsd-border-light/30 hover:border-fsd-accent/40"}`}
-                >
-                  {s === "TODO" ? "BELUM" : s === "IN_PROGRESS" ? "PROSES" : s === "REVIEW" ? "REVIEW" : "SELESAI"}
-                </button>
-              ))}
-            </div>
+            <label className="label mb-2 block">Deskripsi</label>
+            <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} placeholder="Detail tugas..." className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2.5 text-xs font-medium text-fsd-text-secondary hover:text-fsd-text transition-colors">
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || !title.trim()}
-              className="flex items-center gap-2 px-5 py-2.5 text-xs font-medium bg-fsd-accent text-fsd-bg rounded-md hover:bg-fsd-accent-hover transition-colors disabled:opacity-50"
-            >
-              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Buat Tugas
-            </button>
+
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Batal</button>
+            <button type="submit" disabled={loading} className="rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Menyimpan..." : "Simpan Tugas"}</button>
           </div>
         </form>
       </div>

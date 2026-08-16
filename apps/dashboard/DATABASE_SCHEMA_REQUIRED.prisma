@@ -45,16 +45,15 @@ model Guild {
   name      String
   icon      String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 
   tasks Task[]
 }
 
 model User {
-  id       String  @id
-  username String
-  avatar   String?
-
+  id           String   @id
+  username     String
+  avatar       String?
   prodi        Prodi?
   kelas        Kelas?
   roles        Role[]   @default([STUDENT])
@@ -64,39 +63,18 @@ model User {
   assignedTasks Task[] @relation("AssignedTasks")
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-}
-
-model Schedule {
-  id        String   @id @default(cuid())
-  prodi     Prodi
-  kelas     Kelas
-  courseId  String?
-  course    Course?  @relation(fields: [courseId], references: [id])
-
-  day       Int
-  startTime String
-  endTime   String
-  room      String?
-  lecturer  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  @@index([prodi, kelas])
-  @@index([courseId])
+  updatedAt DateTime @updatedAt
 }
 
 model Course {
-  id         String   @id @default(cuid())
+  id         String @id @default(cuid())
   code       String
   name       String
   prodi      Prodi
   kelas      Kelas?
   pjMatkulId String?
 
-  tasks      Task[]
-  schedules  Schedule[]
+  tasks Task[]
 
   createdAt DateTime @default(now())
 
@@ -119,10 +97,10 @@ model Task {
   course   Course? @relation(fields: [courseId], references: [id])
 
   createdById String
-  createdBy   User   @relation("CreatedTasks", fields: [createdById], references: [id])
+  createdBy   User @relation("CreatedTasks", fields: [createdById], references: [id])
 
   assignedTo String?
-  assignee   User?   @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  assignee   User? @relation("AssignedTasks", fields: [assignedTo], references: [id])
 
   dueDate DateTime?
 
