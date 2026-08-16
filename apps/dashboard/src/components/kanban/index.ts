@@ -1,6 +1,8 @@
-export { SteamTaskCard } from "./SteamTaskCard";
-export { SteamKanbanColumn } from "./SteamKanbanColumn";
-export { TaskDueBadge } from "./TaskDueBadge";
+export { FATISDAKanbanBoard } from "./FATISDAKanbanBoard";
+export { FATISDAKanbanColumn } from "./FATISDAKanbanColumn";
+export { FATISDATaskCard } from "./FATISDATaskCard";
+export { NewTaskModal } from "./NewTaskModal";
+export { EditTaskModal } from "./EditTaskModal";
 export { AssigneeAvatar } from "./AssigneeAvatar";
-export { COLUMN_ORDER, COLUMN_LABELS } from "./types";
-export type { TaskCardData } from "./types";
+export { TaskDueBadge } from "./TaskDueBadge";
+export type { Task } from "./types";

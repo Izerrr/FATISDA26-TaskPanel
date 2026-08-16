@@ -1,51 +1,49 @@
-import { prisma } from "@if26/database";
-
-interface DiscordGuildMember {
-  user: { id: string; username: string; avatar: string | null };
+export interface DiscordMember {
+  user: {
+    id: string;
+    username: string;
+    avatar: string | null;
+    discriminator?: string;
+  };
   nick: string | null;
+  roles: string[];
 }
 
-/**
- * Pulls the member list for a guild using the BOT's token (not the
- * signed-in user's) — the user's OAuth token only has `guilds` scope,
- * which doesn't include member lists. The bot is already in every guild
- * this dashboard manages, so its token has that access.
- */
-export async function fetchGuildMembers(guildId: string): Promise<DiscordGuildMember[]> {
+export async function fetchGuildMembers(guildId: string): Promise<DiscordMember[]> {
   const res = await fetch(`https://discord.com/api/guilds/${guildId}/members?limit=1000`, {
     headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
   });
-
   if (!res.ok) return [];
-  return (await res.json()) as DiscordGuildMember[];
+  return (await res.json()) as DiscordMember[];
 }
 
-/** Upserts every fetched member into our User table so tasks can be assigned to them. */
-export async function syncGuildMembers(guildId: string): Promise<DiscordGuildMember[]> {
-  const members = await fetchGuildMembers(guildId);
+export async function fetchUserGuilds(accessToken: string) {
+  const res = await fetch("https://discord.com/api/users/@me/guilds", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) return [];
+  return await res.json();
+}
 
-  await Promise.all(
-    members
-      .filter((m) => !!m.user)
-      .map((m) =>
-        prisma.user.upsert({
-          where: { id: m.user.id },
-          create: {
-            id: m.user.id,
-            username: m.nick ?? m.user.username,
-            avatar: m.user.avatar
-              ? `https://cdn.discordapp.com/avatars/${m.user.id}/${m.user.avatar}.png`
-              : null,
-          },
-          update: {
-            username: m.nick ?? m.user.username,
-            avatar: m.user.avatar
-              ? `https://cdn.discordapp.com/avatars/${m.user.id}/${m.user.avatar}.png`
-              : null,
-          },
-        })
-      )
-  );
-
-  return members;
+export async function sendDiscordNotification(guildId: string, content: string) {
+  const url = process.env.DISCORD_WEBHOOK_URL;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: "FATISDA Task",
+        avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
+        embeds: [{
+          title: "📋 Panel Tugas",
+          description: content,
+          color: 0x0077B6,
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    });
+  } catch (e) {
+    console.error("[Webhook] Gagal:", e);
+  }
 }

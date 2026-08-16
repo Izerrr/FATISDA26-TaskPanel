@@ -1,49 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { prisma } from "@if26/database";
+"use client";
 
-export async function POST(req: NextRequest) {
-  try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+import { useState } from "react";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { TopNav } from "@/components/layout/TopNav";
+import { BoardHero } from "@/components/layout/BoardHero";
+import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+import { NewTaskSheet } from "@/components/kanban/NewTaskSheet";
 
-    const body = await req.json();
-    const { guildId, title, description, assignedTo, dueDate } = body;
+export function DashboardShell() {
+  const [showNewTask, setShowNewTask] = useState(false);
 
-    if (!guildId || !title) {
-      return NextResponse.json({ error: "guildId and title are required" }, { status: 400 });
-    }
-
-    // 💡 FIX UTAMA P2003: Pastikan Guild ID terdaftar dulu di Supabase!
-    await prisma.guild.upsert({
-      where: { id: guildId },
-      create: {
-        id: guildId,
-        name: "Discord Workspace", // Fallback name
-      },
-      update: {},
-    });
-
-    // 🚀 Buat Task baru
-    const task = await prisma.task.create({
-      data: {
-        guildId,
-        title,
-        description: description || null,
-        assignedTo: assignedTo || null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        status: "TODO",
-      },
-      include: {
-        assignee: true,
-      },
-    });
-
-    return NextResponse.json({ task }, { status: 201 });
-  } catch (err) {
-    console.error("[POST /api/tasks Error]:", err);
-    return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
-  }
+  return (
+    <div className="flex h-screen overflow-hidden bg-liquid-bg">
+      <Sidebar />
+      <div className="flex flex-1 flex-col min-w-0">
+        <TopNav onNewTask={() => setShowNewTask(true)} />
+        <main className="flex-1 overflow-hidden flex flex-col">
+          <BoardHero />
+          <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 pb-6">
+            <KanbanBoard />
+          </div>
+        </main>
+      </div>
+      {showNewTask && <NewTaskSheet onClose={() => setShowNewTask(false)} />}
+    </div>
+  );
 }

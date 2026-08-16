@@ -4,11 +4,39 @@
 
 @layer base {
   body {
-    @apply bg-steam-bg text-steam-text font-sans antialiased;
+    @apply bg-liquid-bg text-liquid-text font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Uppercase font-mono for metadata, tags, task IDs, status badges — design.md #3 */
-  .steam-meta {
-    @apply font-mono uppercase tracking-wide text-xs;
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-glass;
+  }
+
+  .glass-strong {
+    @apply bg-white/80 backdrop-blur-2xl border border-white/60 shadow-glass-lg;
+  }
+
+  .label {
+    @apply text-[11px] font-semibold uppercase tracking-wide text-liquid-text-secondary;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.12);
+    border-radius: 100px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.20);
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 }

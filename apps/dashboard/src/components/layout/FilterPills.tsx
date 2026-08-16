@@ -1,45 +1,26 @@
 "use client";
 
-import clsx from "clsx";
+import { useState } from "react";
 
-export interface FilterAssignee {
-  id: string;
-  username: string;
-}
+const FILTERS = ["SEMUA", "MILIKKU", "TERLAMBAT", "7 HARI"];
 
-interface FilterPillsProps {
-  assignees: FilterAssignee[];
-  selected: string | null;
-  onSelect: (id: string | null) => void;
-}
+export function FilterPills() {
+  const [active, setActive] = useState("SEMUA");
 
-export function FilterPills({ assignees, selected, onSelect }: FilterPillsProps) {
   return (
-    <div className="flex items-center gap-2 px-6 pb-4">
-      <span className="steam-meta mr-1 text-steam-text/30">FILTER BY</span>
-      <button
-        onClick={() => onSelect(null)}
-        className={clsx(
-          "steam-meta rounded-sm border px-3 py-1.5 transition-colors",
-          selected === null
-            ? "border-steam-accent bg-steam-accent/10 text-steam-accent"
-            : "border-steam-surface text-steam-text/50 hover:border-steam-text/30 hover:text-steam-text"
-        )}
-      >
-        All
-      </button>
-      {assignees.map((a) => (
+    <div className="flex items-center gap-2">
+      {FILTERS.map((f) => (
         <button
-          key={a.id}
-          onClick={() => onSelect(a.id)}
-          className={clsx(
-            "steam-meta rounded-sm border px-3 py-1.5 transition-colors",
-            selected === a.id
-              ? "border-steam-accent bg-steam-accent/10 text-steam-accent"
-              : "border-steam-surface text-steam-text/50 hover:border-steam-text/30 hover:text-steam-text"
-          )}
+          key={f}
+          onClick={() => setActive(f)}
+          className={`
+            fsd-meta px-3 py-1.5 rounded-md text-[10px] transition-all border
+            ${active === f
+              ? "bg-fsd-accent text-fsd-bg border-fsd-accent"
+              : "bg-fsd-card text-fsd-text-secondary border-fsd-border-light/30 hover:border-fsd-accent/40"}
+          `}
         >
-          {a.username}
+          {f}
         </button>
       ))}
     </div>

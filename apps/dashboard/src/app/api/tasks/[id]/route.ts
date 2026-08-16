@@ -1,56 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma, TaskStatus } from "@if26/database";
+import { prisma } from "@/lib/prisma";
+import { sendDiscordNotification } from "@/lib/discord";
 
-interface RouteParams {
-  params: { id: string };
-}
-
-interface UpdateTaskBody {
-  status?: TaskStatus;
-  title?: string;
-  description?: string | null;
-  assignedTo?: string | null;
-  dueDate?: string | null;
-}
-
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  const token = await getToken({ req });
-  if (!token) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-  const body = (await req.json()) as UpdateTaskBody;
-
-  if (body.status && !Object.values(TaskStatus).includes(body.status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-  }
-
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
+
+    const body = await req.json();
+    const { status, assignedTo, dueDate, title, description } = body;
+
+    const existing = await prisma.task.findUnique({ where: { id: params.id } });
+    if (!existing) return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
+
     const task = await prisma.task.update({
       where: { id: params.id },
       data: {
-        ...(body.status && { status: body.status }),
-        ...(body.title !== undefined && { title: body.title }),
-        ...(body.description !== undefined && { description: body.description }),
-        ...(body.assignedTo !== undefined && { assignedTo: body.assignedTo }),
-        ...(body.dueDate !== undefined && { dueDate: body.dueDate ? new Date(body.dueDate) : null }),
+        ...(status && { status }),
+        ...(assignedTo !== undefined && { assignedTo: assignedTo || null }),
+        ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+        ...(title && { title }),
+        ...(description !== undefined && { description }),
       },
       include: { assignee: true },
     });
 
+    if (status && status !== existing.status) {
+      await sendDiscordNotification(
+        task.guildId,
+        `**${task.title}**\nStatus diubah: ${existing.status} → **${status}**\nOleh: <@${token.discordId}>`
+      );
+    }
+
     return NextResponse.json({ task });
-  } catch {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  } catch (err) {
+    console.error("[Task PATCH]", err);
+    return NextResponse.json({ error: "Gagal memperbarui tugas" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  const token = await getToken({ req });
-  if (!token) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
+
+    const task = await prisma.task.findUnique({ where: { id: params.id } });
+    if (!task) return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
+
     await prisma.task.delete({ where: { id: params.id } });
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    await sendDiscordNotification(
+      task.guildId,
+      `**${task.title}** telah dihapus oleh <@${token.discordId}>`
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[Task DELETE]", err);
+    return NextResponse.json({ error: "Gagal menghapus tugas" }, { status: 500 });
   }
 }

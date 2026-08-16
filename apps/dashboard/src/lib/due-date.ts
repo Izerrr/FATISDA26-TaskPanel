@@ -1,29 +1,20 @@
-export type DueUrgency = "none" | "onTrack" | "dueSoon" | "overdue";
+export type Urgency = "none" | "normal" | "soon" | "late";
 
-const DUE_SOON_WINDOW_MS = 1000 * 60 * 60 * 24 * 2; // 2 days
+const SOON_MS = 1000 * 60 * 60 * 24 * 2;
 
-/**
- * Maps a task's dueDate + status to the Steam status palette:
- * success (#a3e035) / warning (#feab2d) / alert (#f04747) — design.md.
- */
-export function getDueUrgency(
+export function getUrgency(
   dueDate: string | null,
   status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE"
-): DueUrgency {
-  if (!dueDate) return "none";
-  if (status === "DONE") return "onTrack";
-
+): Urgency {
+  if (!dueDate || status === "DONE") return "normal";
   const due = new Date(dueDate).getTime();
   const now = Date.now();
-
-  if (due < now) return "overdue";
-  if (due - now <= DUE_SOON_WINDOW_MS) return "dueSoon";
-  return "onTrack";
+  if (due < now) return "late";
+  if (due - now <= SOON_MS) return "soon";
+  return "normal";
 }
 
-export function formatDueDate(dueDate: string | null): string {
-  if (!dueDate) return "NO DEADLINE";
-  return new Date(dueDate)
-    .toLocaleDateString("en-US", { month: "short", day: "2-digit" })
-    .toUpperCase();
+export function fmtDate(d: string | null): string {
+  if (!d) return "Tanpa tenggat";
+  return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }

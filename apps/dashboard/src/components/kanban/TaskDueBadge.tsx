@@ -1,30 +1,24 @@
-import clsx from "clsx";
-import { formatDueDate, getDueUrgency, type DueUrgency } from "../../lib/due-date";
-import type { TaskCardData } from "./types";
+import { getDueUrgency, formatDueDate } from "@/lib/due-date";
 
-const URGENCY_STYLES: Record<DueUrgency, string> = {
-  none: "text-steam-text/50 border-steam-text/20",
-  onTrack: "text-steam-success border-steam-success/40",
-  dueSoon: "text-steam-warning border-steam-warning/40",
-  overdue: "text-steam-alert border-steam-alert/40",
-};
-
-interface TaskDueBadgeProps {
-  dueDate: TaskCardData["dueDate"];
-  status: TaskCardData["status"];
+interface Props {
+  dueDate: string | null;
+  status: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
 }
 
-export function TaskDueBadge({ dueDate, status }: TaskDueBadgeProps) {
+export function TaskDueBadge({ dueDate, status }: Props) {
   const urgency = getDueUrgency(dueDate, status);
+  const label = formatDueDate(dueDate);
+
+  const styles = {
+    none: "bg-fsd-surface text-fsd-muted",
+    onTrack: "bg-fsd-accent/20 text-fsd-accent",
+    dueSoon: "bg-fsd-gold/20 text-fsd-gold",
+    overdue: "bg-fsd-alert/20 text-fsd-alert",
+  };
 
   return (
-    <span
-      className={clsx(
-        "steam-meta rounded-sm border px-1.5 py-0.5",
-        URGENCY_STYLES[urgency]
-      )}
-    >
-      {formatDueDate(dueDate)}
+    <span className={`fsd-meta px-2 py-0.5 rounded-sm text-[10px] ${styles[urgency]}`}>
+      {label}
     </span>
   );
 }

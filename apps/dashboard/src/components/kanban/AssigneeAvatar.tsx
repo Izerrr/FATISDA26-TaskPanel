@@ -1,36 +1,23 @@
-import type { TaskCardData } from "./types";
-
-interface AssigneeAvatarProps {
-  assignee: TaskCardData["assignee"];
+interface Props {
+  user: { id: string; username: string; avatar: string | null };
+  size?: "sm" | "md";
 }
 
-export function AssigneeAvatar({ assignee }: AssigneeAvatarProps) {
-  if (!assignee) {
-    return (
-      <div
-        className="h-6 w-6 rounded-sm border border-dashed border-steam-text/30"
-        title="Unassigned"
-      />
-    );
-  }
-
-  if (assignee.avatar) {
+export function AssigneeAvatar({ user, size = "sm" }: Props) {
+  const cls = size === "sm" ? "h-6 w-6 text-[10px]" : "h-8 w-8 text-xs";
+  if (user.avatar) {
     return (
       <img
-        src={assignee.avatar}
-        alt={assignee.username}
-        title={assignee.username}
-        className="h-6 w-6 rounded-sm border border-steam-surface object-cover"
+        src={user.avatar}
+        alt={user.username}
+        title={user.username}
+        className={`${cls} rounded-lg object-cover ring-1 ring-black/[0.06]`}
       />
     );
   }
-
   return (
-    <div
-      title={assignee.username}
-      className="flex h-6 w-6 items-center justify-center rounded-sm border border-steam-surface bg-steam-surface text-[10px] font-mono uppercase text-steam-accent"
-    >
-      {assignee.username.slice(0, 2)}
+    <div title={user.username} className={`${cls} flex items-center justify-center rounded-lg bg-liquid-accent font-bold text-white`}>
+      {user.username.charAt(0).toUpperCase()}
     </div>
   );
 }

@@ -4,29 +4,31 @@ import { useState } from "react";
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useMembers } from "@/hooks/useMembers";
 import { useRole } from "@/hooks/useRole";
+import { Task } from "./types";
 import { X, Loader2 } from "lucide-react";
 
 interface Props {
+  task: Task;
   onClose: () => void;
 }
 
-export function NewTaskModal({ onClose }: Props) {
+export function EditTaskModal({ task, onClose }: Props) {
   const { selectedGuild } = useGuild();
   const { members } = useMembers(selectedGuild);
   const { isAdmin, isModerator } = useRole();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [status, setStatus] = useState<"TODO" | "IN_PROGRESS" | "REVIEW" | "DONE">("TODO");
+  const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description || "");
+  const [assignedTo, setAssignedTo] = useState(task.assignedTo || "");
+  const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.split("T")[0] : "");
+  const [status, setStatus] = useState<Task["status"]>(task.status);
   const [submitting, setSubmitting] = useState(false);
 
-  const canCreate = isAdmin || isModerator;
-  if (!canCreate) {
+  const canEdit = isAdmin || isModerator;
+  if (!canEdit) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <div className="bg-fsd-card rounded-lg border border-fsd-border-light/50 p-6 text-center">
-          <p className="text-fsd-alert text-sm">Kamu tidak punya izin untuk membuat tugas.</p>
+          <p className="text-fsd-alert text-sm">Kamu tidak punya izin untuk edit tugas.</p>
           <button onClick={onClose} className="mt-4 text-xs text-fsd-text-secondary hover:text-fsd-text">Tutup</button>
         </div>
       </div>
@@ -35,14 +37,12 @@ export function NewTaskModal({ onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedGuild || !title.trim()) return;
     setSubmitting(true);
     try {
-      await fetch("/api/tasks", {
-        method: "POST",
+      await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guildId: selectedGuild,
           title: title.trim(),
           description: description.trim() || null,
           assignedTo: assignedTo || null,
@@ -63,7 +63,7 @@ export function NewTaskModal({ onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="w-full max-w-md bg-fsd-card rounded-lg border border-fsd-border-light/50 shadow-2xl p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-fsd-text">Tugas Baru</h2>
+          <h2 className="text-lg font-bold text-fsd-text">Edit Tugas</h2>
           <button onClick={onClose} className="p-1 rounded-md hover:bg-fsd-surface text-fsd-muted">
             <X className="w-5 h-5" />
           </button>
@@ -71,13 +71,13 @@ export function NewTaskModal({ onClose }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">JUDUL</label>
-            <input type="text" placeholder="Judul tugas..." value={title} onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text placeholder:text-fsd-muted focus:border-fsd-accent focus:ring-1 focus:ring-fsd-accent/20 outline-none transition-all" required />
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text focus:border-fsd-accent outline-none" required />
           </div>
           <div>
             <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">DESKRIPSI</label>
-            <textarea placeholder="Deskripsi tugas..." value={description} onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text placeholder:text-fsd-muted focus:border-fsd-accent focus:ring-1 focus:ring-fsd-accent/20 outline-none transition-all h-24 resize-none" />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-fsd-surface border border-fsd-border-light/30 rounded-md px-3 py-2.5 text-sm text-fsd-text focus:border-fsd-accent outline-none h-24 resize-none" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -97,7 +97,7 @@ export function NewTaskModal({ onClose }: Props) {
             </div>
           </div>
           <div>
-            <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">STATUS AWAL</label>
+            <label className="fsd-meta text-[10px] text-fsd-text-secondary mb-1.5 block">STATUS</label>
             <div className="flex gap-2">
               {(["TODO", "IN_PROGRESS", "REVIEW", "DONE"] as const).map((s) => (
                 <button key={s} type="button" onClick={() => setStatus(s)}
@@ -109,9 +109,9 @@ export function NewTaskModal({ onClose }: Props) {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2.5 text-xs font-medium text-fsd-text-secondary hover:text-fsd-text transition-colors">Batal</button>
-            <button type="submit" disabled={submitting || !title.trim()}
+            <button type="submit" disabled={submitting}
               className="flex items-center gap-2 px-5 py-2.5 text-xs font-medium bg-fsd-accent text-fsd-bg rounded-md hover:bg-fsd-accent-hover transition-colors disabled:opacity-50">
-              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Buat Tugas
+              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Simpan Perubahan
             </button>
           </div>
         </form>

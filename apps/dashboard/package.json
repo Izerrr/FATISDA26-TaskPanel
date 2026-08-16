@@ -1,6 +1,6 @@
 {
-  "name": "@if26/dashboard",
-  "version": "1.0.0",
+  "name": "fatisda-dashboard",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,14 +10,13 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
-    "@if26/database": "workspace:*",
     "@prisma/client": "^5.20.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^1.27.0",
+    "lucide-react": "^0.400.0",
     "next": "^14.2.0",
     "next-auth": "^4.24.0",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "swr": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
