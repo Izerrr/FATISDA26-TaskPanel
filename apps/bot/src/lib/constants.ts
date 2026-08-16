@@ -1,4 +1,4 @@
-export const BRAND_COLOR = "#00afef" as const;
+export const BRAND_COLOR = "#1a99e2" as const;
 
 // NOTE: these are signed Discord CDN URLs (ex/is/hm query params) and
 // WILL expire — Discord rotates the signature periodically. Re-upload
