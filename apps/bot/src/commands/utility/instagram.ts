@@ -7,8 +7,8 @@ const command: Command = {
   name: "instagram",
   aliases: ["insta"],
   category: "info",
-  description: "Instagram link IF26",
-  data: new SlashCommandBuilder().setName("instagram").setDescription("Menampilkan link Instagram resmi IF26"),
+  description: "Instagram link FATISDA26",
+  data: new SlashCommandBuilder().setName("instagram").setDescription("Menampilkan link Instagram resmi FATISDA26"),
 
   async run(client, context) {
     const author = getAuthor(context);
@@ -17,8 +17,8 @@ const command: Command = {
       .setColor(BRAND_COLOR)
       .setTitle("Hello There! ")
       .setAuthor({ name: AUTHOR_NAME, iconURL: AUTHOR_ICON })
-      .setDescription("Link Instagram IF26, Yaitu:")
-      .addFields({ name: "Link", value: "https://instagram.com/IF26" })
+      .setDescription("Link Instagram FATISDA26, Yaitu:")
+      .addFields({ name: "Link", value: "https://instagram.com/FATISDA26" })
       .setImage(FOOTER_ICON)
       .setTimestamp()
       .setFooter({ text: `${FOOTER_TEXT} | Command requested by: ${author.tag}`, iconURL: FOOTER_ICON });
