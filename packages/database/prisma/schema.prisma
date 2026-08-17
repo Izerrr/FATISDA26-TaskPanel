@@ -24,9 +24,11 @@ enum Kelas {
 
 enum Role {
   STUDENT
-  PJ_KELAS
   PJ_MATKUL
+  PJ_KELAS
+  KETUA_ANGKATAN
   ADMIN
+  OWNER
 }
 
 enum TaskScope {

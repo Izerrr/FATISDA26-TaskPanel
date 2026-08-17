@@ -8,6 +8,7 @@ import { useGuilds } from "@/hooks/useGuilds";
 import { useRole } from "@/hooks/useRole";
 import { useTasks } from "@/hooks/useTasks";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { TopNav } from "@/components/layout/TopNav";
 import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
@@ -292,12 +293,12 @@ export function DashboardShell() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-liquid-bg">
-      <Sidebar courses={courses} user={user} guildId={effectiveGuild} />
+      <Sidebar user={user} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopNav onNewTask={() => setCreateOpen(true)} search={search} onSearchChange={setSearch} />
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="min-h-0 flex-1 overflow-y-auto pb-20 md:pb-0">
           <div className="mx-auto max-w-[1500px] space-y-6">
             <section>
               <p className="text-xs font-medium uppercase tracking-wider text-liquid-text-secondary">Konteks</p>
@@ -339,6 +340,7 @@ export function DashboardShell() {
             )}
           </div>
         </main>
+        <MobileNav />
       </div>
 
       <CreateTaskModal open={createOpen} guildId={effectiveGuild} courses={courses} roles={roles.map((role) => String(role))} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />

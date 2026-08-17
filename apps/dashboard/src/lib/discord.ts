@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
+export type TaskPanelRole = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "ADMIN" | "OWNER";
+
 export interface DiscordMember {
   user: {
     id: string;
@@ -19,29 +21,32 @@ export interface DiscordGuild {
   permissions: string;
 }
 
-export async function fetchGuildMembers(
-  guildId: string
-): Promise<DiscordMember[]> {
+interface DiscordGuildDetails {
+  id: string;
+  name: string;
+  icon: string | null;
+  owner_id: string;
+}
+
+export async function fetchGuildMembers(guildId: string): Promise<DiscordMember[]> {
   const botToken = process.env.DISCORD_BOT_TOKEN;
-  if (!botToken) return [];
+
+  if (!botToken) {
+    console.error("[Discord] DISCORD_BOT_TOKEN belum tersedia");
+    return [];
+  }
 
   try {
-    const response = await fetch(
-      `https://discord.com/api/v10/guilds/${guildId}/members?limit=1000`,
-      {
-        headers: {
-          Authorization: `Bot ${botToken}`,
-        },
-        cache: "no-store",
-      }
-    );
+    const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members?limit=1000`, {
+      headers: {
+        Authorization: `Bot ${botToken}`,
+      },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      console.error(
-        "[Discord] fetchGuildMembers",
-        response.status,
-        await response.text()
-      );
+      console.error("[Discord] fetchGuildMembers", response.status, await response.text());
+
       return [];
     }
 
@@ -52,26 +57,47 @@ export async function fetchGuildMembers(
   }
 }
 
-export async function fetchUserGuilds(
-  accessToken: string
-): Promise<DiscordGuild[]> {
+export async function fetchGuildDetails(guildId: string): Promise<DiscordGuildDetails | null> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error("[Discord] DISCORD_BOT_TOKEN belum tersedia");
+    return null;
+  }
+
   try {
-    const response = await fetch(
-      "https://discord.com/api/v10/users/@me/guilds",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        cache: "no-store",
-      }
-    );
+    const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}`, {
+      headers: {
+        Authorization: `Bot ${botToken}`,
+      },
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      console.error(
-        "[Discord] fetchUserGuilds",
-        response.status,
-        await response.text()
-      );
+      console.error("[Discord] fetchGuildDetails", response.status, await response.text());
+
+      return null;
+    }
+
+    return (await response.json()) as DiscordGuildDetails;
+  } catch (error) {
+    console.error("[Discord] fetchGuildDetails", error);
+    return null;
+  }
+}
+
+export async function fetchUserGuilds(accessToken: string): Promise<DiscordGuild[]> {
+  try {
+    const response = await fetch("https://discord.com/api/v10/users/@me/guilds", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("[Discord] fetchUserGuilds", response.status, await response.text());
+
       return [];
     }
 
@@ -84,20 +110,27 @@ export async function fetchUserGuilds(
 
 function roleId(name: string): string | null {
   const value = process.env[name];
+
   return value?.trim() ? value.trim() : null;
 }
 
-function hasRole(roles: string[], target: string | null) {
+function hasRole(roles: string[], target: string | null): boolean {
   return Boolean(target && roles.includes(target));
 }
 
-function mappedRoles(discordRoles: string[]) {
-  const roles: Array<
-    "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "ADMIN"
-  > = [];
+function mappedRoles(discordRoles: string[], isGuildOwner: boolean): TaskPanelRole[] {
+  const roles: TaskPanelRole[] = [];
+
+  if (isGuildOwner) {
+    roles.push("OWNER");
+  }
 
   if (hasRole(discordRoles, roleId("DISCORD_ROLE_ADMIN"))) {
     roles.push("ADMIN");
+  }
+
+  if (hasRole(discordRoles, roleId("DISCORD_ROLE_KETUA_ANGKATAN"))) {
+    roles.push("KETUA_ANGKATAN");
   }
 
   if (hasRole(discordRoles, roleId("DISCORD_ROLE_PJ_KELAS"))) {
@@ -108,12 +141,18 @@ function mappedRoles(discordRoles: string[]) {
     roles.push("PJ_MATKUL");
   }
 
-  if (roles.length === 0) roles.push("STUDENT");
+  if (roles.length === 0) {
+    roles.push("STUDENT");
+  }
 
   return roles;
 }
 
 function mappedProdi(discordRoles: string[]) {
+  if (hasRole(discordRoles, roleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN"))) {
+    return "INFORMATIKA_PSDKU_KEBUMEN" as const;
+  }
+
   if (hasRole(discordRoles, roleId("DISCORD_ROLE_INFORMATIKA"))) {
     return "INFORMATIKA" as const;
   }
@@ -143,33 +182,42 @@ function mappedKelas(discordRoles: string[]) {
   return null;
 }
 
-export async function syncGuildMembers(
-  guildId: string
-): Promise<DiscordMember[]> {
-  const members = await fetchGuildMembers(guildId);
+export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]> {
+  const [members, guild] = await Promise.all([fetchGuildMembers(guildId), fetchGuildDetails(guildId)]);
+
+  if (!guild) {
+    console.error(`[Discord] Tidak dapat mengambil detail guild ${guildId}`);
+  }
 
   for (const member of members) {
     const discordRoles = member.roles ?? [];
-    const avatar = member.user.avatar
-      ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png`
-      : null;
+
+    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+
+    const isGuildOwner = guild?.owner_id === member.user.id;
+
+    const roles = mappedRoles(discordRoles, isGuildOwner);
 
     await prisma.user.upsert({
-      where: { id: member.user.id },
+      where: {
+        id: member.user.id,
+      },
+
       create: {
         id: member.user.id,
         username: member.nick ?? member.user.username,
         avatar,
         discordRoles,
-        roles: mappedRoles(discordRoles),
+        roles,
         prodi: mappedProdi(discordRoles),
         kelas: mappedKelas(discordRoles),
       },
+
       update: {
         username: member.nick ?? member.user.username,
         avatar,
         discordRoles,
-        roles: mappedRoles(discordRoles),
+        roles,
         prodi: mappedProdi(discordRoles),
         kelas: mappedKelas(discordRoles),
       },
@@ -179,12 +227,12 @@ export async function syncGuildMembers(
   return members;
 }
 
-export async function sendDiscordNotification(
-  _guildId: string,
-  content: string
-) {
+export async function sendDiscordNotification(_guildId: string, content: string) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhookUrl) return;
+
+  if (!webhookUrl) {
+    return;
+  }
 
   try {
     const response = await fetch(webhookUrl, {
@@ -194,8 +242,7 @@ export async function sendDiscordNotification(
       },
       body: JSON.stringify({
         username: "FATISDA Task",
-        avatar_url:
-          "https://cdn.discordapp.com/embed/avatars/0.png",
+        avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
         embeds: [
           {
             title: "📋 Panel Tugas",
@@ -208,11 +255,7 @@ export async function sendDiscordNotification(
     });
 
     if (!response.ok) {
-      console.error(
-        "[Discord Webhook]",
-        response.status,
-        await response.text()
-      );
+      console.error("[Discord Webhook]", response.status, await response.text());
     }
   } catch (error) {
     console.error("[Discord Webhook]", error);
