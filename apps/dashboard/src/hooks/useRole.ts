@@ -16,10 +16,10 @@ async function fetcher(url: string) {
 export function useRole() {
   const { data, error, isLoading } = useSWR<{ user: User }>("/api/me", fetcher);
 
-  const roles = data?.user.roles ?? ["STUDENT"];
+  const roles: Role[] = data?.user.roles ?? ["STUDENT"];
 
   return {
-    role: roles[0] as Role,
+    role: roles[0],
     roles,
     isAdmin: roles.includes("ADMIN"),
     isPJKelas: roles.includes("PJ_KELAS"),

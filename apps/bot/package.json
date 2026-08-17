@@ -8,10 +8,14 @@
     "start": "pm2 start dist/index.js --name if26-bot"
   },
   "dependencies": {
+    "@discordjs/voice": "^0.19.2",
     "@if26/database": "workspace:*",
+    "axios": "^1.19.0",
     "discord.js": "^14.16.0",
     "dotenv": "^17.4.2",
-    "opusscript": "^0.1.1"
+    "opusscript": "^0.1.1",
+    "yt-search": "^2.13.1",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "@types/figlet": "^1.7.0",

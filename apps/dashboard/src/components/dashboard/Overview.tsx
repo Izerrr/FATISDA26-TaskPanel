@@ -1,13 +1,15 @@
 "use client";
 
 import { AlertCircle, CheckCircle2, Clock3, ListTodo } from "lucide-react";
-import type { Task } from "@/types";
+import type { Schedule, Task } from "@/types";
+import { OverviewSchedule } from "./OverviewSchedule";
 
 interface OverviewProps {
   tasks: Task[];
+  schedules: Schedule[];
 }
 
-export function Overview({ tasks }: OverviewProps) {
+export function Overview({ tasks, schedules }: OverviewProps) {
   const now = new Date();
 
   const done = tasks.filter((task) => task.status === "DONE").length;
@@ -79,7 +81,6 @@ export function Overview({ tasks }: OverviewProps) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-liquid-text">Deadline Terdekat</h2>
-
               <p className="mt-1 text-xs text-liquid-text-secondary">Berdasarkan tugas yang memiliki deadline.</p>
             </div>
 
@@ -119,28 +120,23 @@ export function Overview({ tasks }: OverviewProps) {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-liquid-border bg-white p-6 shadow-glass">
-          <h2 className="font-bold text-liquid-text">Ringkasan</h2>
-
-          <div className="mt-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-liquid-text-secondary">Personal</span>
-
-              <span className="font-semibold text-liquid-text">{personal}</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-liquid-text-secondary">Kelas</span>
-
-              <span className="font-semibold text-liquid-text">{tasks.filter((task) => task.scope === "CLASS").length}</span>
-            </div>
-
-            <div className="border-t border-slate-100 pt-4">
-              <p className="text-xs leading-5 text-liquid-text-secondary">Statistik di atas berasal dari data task aktual pada server yang sedang dipilih.</p>
-            </div>
-          </div>
-        </section>
+        <OverviewSchedule schedules={schedules} />
       </div>
+
+      <section className="rounded-2xl border border-liquid-border bg-white p-6 shadow-glass">
+        <h2 className="font-bold text-liquid-text">Ringkasan</h2>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-liquid-text-secondary">Personal</span>
+            <span className="font-semibold text-liquid-text">{personal}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-liquid-text-secondary">Kelas</span>
+            <span className="font-semibold text-liquid-text">{tasks.filter((task) => task.scope === "CLASS").length}</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

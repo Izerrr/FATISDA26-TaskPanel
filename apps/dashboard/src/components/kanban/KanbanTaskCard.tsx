@@ -2,7 +2,7 @@
 
 import { CalendarClock, CheckCircle2, Clock3, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import type { Task } from "@/types";
+import type { Task, TaskStatus } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
 
 interface KanbanTaskCardProps {
@@ -12,19 +12,19 @@ interface KanbanTaskCardProps {
   onDelete?: (task: Task) => void;
 }
 
-const statusLabel = {
+const statusLabel: Record<TaskStatus, string> = {
   TODO: "Todo",
   IN_PROGRESS: "In Progress",
   NEED_REVIEW: "Need Review",
   DONE: "Done",
-} as const;
+};
 
-const statusIcon = {
+const statusIcon: Record<TaskStatus, typeof Clock3> = {
   TODO: Clock3,
   IN_PROGRESS: Clock3,
   NEED_REVIEW: CalendarClock,
   DONE: CheckCircle2,
-} as const;
+};
 
 export function KanbanTaskCard({ task, index, onEdit, onDelete }: KanbanTaskCardProps) {
   const StatusIcon = statusIcon[task.status];

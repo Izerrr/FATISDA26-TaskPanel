@@ -11,6 +11,7 @@ datasource db {
 enum Prodi {
   INFORMATIKA
   SAINS_DATA
+  INFORMATIKA_PSDKU_KEBUMEN
 }
 
 enum Kelas {
@@ -68,11 +69,11 @@ model User {
 }
 
 model Schedule {
-  id        String   @id @default(cuid())
-  prodi     Prodi
-  kelas     Kelas
-  courseId  String?
-  course    Course?  @relation(fields: [courseId], references: [id])
+  id       String  @id @default(cuid())
+  prodi    Prodi
+  kelas    Kelas
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
 
   day       Int
   startTime String
@@ -88,15 +89,15 @@ model Schedule {
 }
 
 model Course {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   code       String
   name       String
   prodi      Prodi
   kelas      Kelas?
   pjMatkulId String?
 
-  tasks      Task[]
-  schedules  Schedule[]
+  tasks     Task[]
+  schedules Schedule[]
 
   createdAt DateTime @default(now())
 

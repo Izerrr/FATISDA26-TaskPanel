@@ -1,12 +1,6 @@
-export type Prodi = "INFORMATIKA" | "SAINS_DATA";
+import type { Kelas, Prodi, Role, TaskScope, TaskStatus } from "@prisma/client";
 
-export type Kelas = "A" | "B" | "C" | "D" | "E";
-
-export type Role = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "ADMIN";
-
-export type TaskScope = "PERSONAL" | "CLASS";
-
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
+export type { Kelas, Prodi, Role, TaskScope, TaskStatus };
 
 export interface User {
   id: string;
@@ -33,6 +27,25 @@ export interface Course {
   prodi: Prodi;
   kelas: Kelas | null;
   pjMatkulId: string | null;
+}
+export interface Schedule {
+  id: string;
+  prodi: Prodi;
+  kelas: Kelas;
+  courseId: string | null;
+
+  day: number;
+  startTime: string;
+  endTime: string;
+
+  room: string | null;
+  lecturer: string | null;
+
+  course?: {
+    id: string;
+    code: string;
+    name: string;
+  } | null;
 }
 
 export interface Task {

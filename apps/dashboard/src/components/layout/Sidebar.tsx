@@ -65,14 +65,16 @@ export function Sidebar({
     return () => window.removeEventListener("hashchange", updateHash);
   }, []);
 
-  const profileLabel =
-    user?.prodi && user?.kelas
-      ? `${user.prodi === "INFORMATIKA" ? "Informatika" : "Sains Data"} · Kelas ${user.kelas}`
-      : user?.prodi === "INFORMATIKA"
-        ? "Informatika"
-        : user?.prodi === "SAINS_DATA"
-          ? "Sains Data"
-          : "Profil belum tersinkron";
+  const prodiLabel =
+    user?.prodi === "INFORMATIKA"
+      ? "Informatika"
+      : user?.prodi === "SAINS_DATA"
+        ? "Sains Data"
+        : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN"
+          ? "Informatika PSDKU Kebumen"
+          : null;
+
+  const profileLabel = prodiLabel ? `${prodiLabel}${user?.kelas ? ` · Kelas ${user.kelas}` : ""}` : "Profil belum tersinkron";
 
   const roleLabel = user?.roles?.includes("ADMIN")
     ? "Administrator"

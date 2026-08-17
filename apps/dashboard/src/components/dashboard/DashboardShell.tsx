@@ -11,6 +11,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { TopNav } from "@/components/layout/TopNav";
 import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+import { useSchedule } from "@/hooks/useSchedule";
 import type { Course } from "@/types";
 
 interface CreateTaskModalProps {
@@ -22,14 +23,7 @@ interface CreateTaskModalProps {
   onCreated: () => void;
 }
 
-function CreateTaskModal({
-  open,
-  guildId,
-  courses,
-  roles,
-  onClose,
-  onCreated,
-}: CreateTaskModalProps) {
+function CreateTaskModal({ open, guildId, courses, roles, onClose, onCreated }: CreateTaskModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [courseId, setCourseId] = useState("");
@@ -38,9 +32,7 @@ function CreateTaskModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const canCreateClass = roles.some((role) =>
-    ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role)
-  );
+  const canCreateClass = roles.some((role) => ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role));
 
   useEffect(() => {
     if (!open) {
@@ -101,9 +93,7 @@ function CreateTaskModal({
       onCreated();
       onClose();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal membuat tugas."
-      );
+      setError(err instanceof Error ? err.message : "Gagal membuat tugas.");
     } finally {
       setLoading(false);
     }
@@ -115,16 +105,9 @@ function CreateTaskModal({
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
             <h2 className="text-lg font-bold text-liquid-text">Tugas Baru</h2>
-            <p className="mt-1 text-xs text-liquid-text-secondary">
-              Tambahkan tugas ke workspace yang sedang dipilih.
-            </p>
+            <p className="mt-1 text-xs text-liquid-text-secondary">Tambahkan tugas ke workspace yang sedang dipilih.</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Tutup"
-          >
+          <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -134,11 +117,7 @@ function CreateTaskModal({
             <button
               type="button"
               onClick={() => setScope("PERSONAL")}
-              className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                scope === "PERSONAL"
-                  ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent"
-                  : "border-slate-200 text-slate-500"
-              }`}
+              className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${scope === "PERSONAL" ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500"}`}
             >
               Personal
             </button>
@@ -147,20 +126,14 @@ function CreateTaskModal({
               disabled={!canCreateClass}
               onClick={() => setScope("CLASS")}
               className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
-                scope === "CLASS"
-                  ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent"
-                  : "border-slate-200 text-slate-500"
+                scope === "CLASS" ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500"
               } ${!canCreateClass ? "cursor-not-allowed opacity-40" : ""}`}
             >
               Kelas
             </button>
           </div>
 
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
 
           <div>
             <label className="label mb-2 block">Judul</label>
@@ -176,11 +149,7 @@ function CreateTaskModal({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="label mb-2 block">Mata Kuliah</label>
-              <select
-                value={courseId}
-                onChange={(event) => setCourseId(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent"
-              >
+              <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent">
                 <option value="">Tanpa mata kuliah</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
@@ -192,12 +161,7 @@ function CreateTaskModal({
 
             <div>
               <label className="label mb-2 block">Deadline</label>
-              <input
-                type="datetime-local"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent"
-              />
+              <input type="datetime-local" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
             </div>
           </div>
 
@@ -213,18 +177,10 @@ function CreateTaskModal({
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100"
-            >
+            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">
               Batal
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading} className="flex items-center gap-2 rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
               <Plus className="h-4 w-4" />
               {loading ? "Menyimpan..." : "Simpan Tugas"}
             </button>
@@ -239,6 +195,8 @@ export function DashboardShell() {
   const { guilds, isLoading: guildsLoading, isError: guildsError } = useGuilds();
   const { selectedGuild, setSelectedGuild } = useGuild();
   const { roles, user } = useRole();
+  const { schedules, isLoading: schedulesLoading, isError: schedulesError } = useSchedule();
+
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -296,12 +254,7 @@ export function DashboardShell() {
     const query = search.trim().toLowerCase();
     if (!query) return tasks;
 
-    return tasks.filter((task) =>
-      [task.title, task.description ?? "", task.course?.name ?? ""]
-        .join(" ")
-        .toLowerCase()
-        .includes(query)
-    );
+    return tasks.filter((task) => [task.title, task.description ?? "", task.course?.name ?? ""].join(" ").toLowerCase().includes(query));
   }, [tasks, search]);
 
   if (guildsLoading) {
@@ -316,16 +269,9 @@ export function DashboardShell() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-liquid-bg p-6">
         <div className="max-w-md rounded-2xl border border-red-200 bg-white p-6 text-center shadow-glass">
-          <h1 className="text-lg font-bold text-liquid-text">
-            Gagal memuat workspace
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-liquid-text-secondary">
-            TaskPanel tidak dapat memverifikasi koneksi workspace FATISDA 2026.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-5 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white"
-          >
+          <h1 className="text-lg font-bold text-liquid-text">Gagal memuat workspace</h1>
+          <p className="mt-2 text-sm leading-6 text-liquid-text-secondary">TaskPanel tidak dapat memverifikasi koneksi workspace FATISDA 2026.</p>
+          <button onClick={() => window.location.reload()} className="mt-5 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white">
             Muat Ulang
           </button>
         </div>
@@ -337,12 +283,8 @@ export function DashboardShell() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-liquid-bg p-6">
         <div className="max-w-md rounded-2xl border border-liquid-border bg-white p-6 text-center shadow-glass">
-          <h1 className="text-lg font-bold text-liquid-text">
-            Workspace belum terhubung
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-liquid-text-secondary">
-            Akun Discord ini belum terhubung ke workspace FATISDA 2026 yang dapat dikelola TaskPanel.
-          </p>
+          <h1 className="text-lg font-bold text-liquid-text">Workspace belum terhubung</h1>
+          <p className="mt-2 text-sm leading-6 text-liquid-text-secondary">Akun Discord ini belum terhubung ke workspace FATISDA 2026 yang dapat dikelola TaskPanel.</p>
         </div>
       </div>
     );
@@ -350,73 +292,48 @@ export function DashboardShell() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-liquid-bg">
-      <Sidebar
-        courses={courses}
-        user={user}
-        guildId={effectiveGuild}
-      />
+      <Sidebar courses={courses} user={user} guildId={effectiveGuild} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopNav
-          onNewTask={() => setCreateOpen(true)}
-          search={search}
-          onSearchChange={setSearch}
-        />
+        <TopNav onNewTask={() => setCreateOpen(true)} search={search} onSearchChange={setSearch} />
 
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="mx-auto max-w-[1500px] space-y-6">
             <section>
-              <p className="text-xs font-medium uppercase tracking-wider text-liquid-text-secondary">
-                Konteks
-              </p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-liquid-text">
-                FATISDA 2026
-              </h1>
+              <p className="text-xs font-medium uppercase tracking-wider text-liquid-text-secondary">Konteks</p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-liquid-text">FATISDA 2026</h1>
               <p className="mt-1 text-sm text-liquid-text-secondary">
-                {user?.prodi === "INFORMATIKA"
-                  ? "Informatika"
-                  : user?.prodi === "SAINS_DATA"
-                    ? "Sains Data"
-                    : "Prodi belum tersinkron"}
+                {user?.prodi === "INFORMATIKA" ? "Informatika" : user?.prodi === "SAINS_DATA" ? "Sains Data" : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Informatika PSDKU Kebumen" : "Prodi belum tersinkron"}
                 {user?.kelas ? ` · Kelas ${user.kelas}` : ""}
               </p>
             </section>
 
-            {tasksLoading || coursesLoading ? (
+            {tasksLoading || coursesLoading || schedulesLoading ? (
               <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-liquid-border bg-white shadow-glass">
                 <div className="flex items-center gap-2 text-sm text-liquid-text-secondary">
                   <Loader2 className="h-5 w-5 animate-spin text-liquid-accent" />
                   Memuat dashboard...
                 </div>
               </div>
-            ) : tasksError ? (
+            ) : tasksError || schedulesError ? (
               <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-glass">
-                <h2 className="font-bold text-liquid-text">Gagal memuat tugas</h2>
-                <p className="mt-1 text-sm text-liquid-text-secondary">
-                  Periksa koneksi dan endpoint task.
-                </p>
+                <h2 className="font-bold text-liquid-text">Gagal memuat dashboard</h2>
+                <p className="mt-1 text-sm text-liquid-text-secondary">Periksa koneksi dan coba muat ulang halaman.</p>
               </div>
             ) : (
               <>
-                <Overview tasks={visibleTasks} />
+                <Overview tasks={tasks} schedules={schedules} />
 
                 <section id="tasks" className="rounded-2xl border border-liquid-border bg-white/70 p-4 shadow-glass md:p-6">
                   <div className="mb-5 flex items-end justify-between gap-4">
                     <div>
                       <h2 className="font-bold text-liquid-text">Papan Tugas</h2>
-                      <p className="mt-1 text-xs text-liquid-text-secondary">
-                        Seret tugas untuk memperbarui status pengerjaan.
-                      </p>
+                      <p className="mt-1 text-xs text-liquid-text-secondary">Seret tugas untuk memperbarui status pengerjaan.</p>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      {visibleTasks.length} tugas
-                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{visibleTasks.length} tugas</span>
                   </div>
 
-                  <KanbanBoard
-                    tasks={visibleTasks}
-                    onMutated={() => void mutate()}
-                  />
+                  <KanbanBoard tasks={visibleTasks} onMutated={() => void mutate()} />
                 </section>
               </>
             )}
@@ -424,14 +341,7 @@ export function DashboardShell() {
         </main>
       </div>
 
-      <CreateTaskModal
-        open={createOpen}
-        guildId={effectiveGuild}
-        courses={courses}
-        roles={roles.map((role) => String(role))}
-        onClose={() => setCreateOpen(false)}
-        onCreated={() => void mutate()}
-      />
+      <CreateTaskModal open={createOpen} guildId={effectiveGuild} courses={courses} roles={roles.map((role) => String(role))} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
     </div>
   );
 }
