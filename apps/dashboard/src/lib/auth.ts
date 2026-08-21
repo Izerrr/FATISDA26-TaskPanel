@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import { prisma } from "./prisma";
+import { fetchUserGuilds, syncCurrentUser } from "./discord";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -30,9 +31,26 @@ export const authOptions: NextAuthOptions = {
       if (account && profile) {
         const discordId = account.providerAccountId;
 
-        const username = (profile as { username?: string }).username ?? "pengguna";
+        const username =
+          (
+            profile as {
+              username?: string;
+            }
+          ).username ?? "pengguna";
 
-        const avatar = (profile as { image_url?: string; avatar?: string }).image_url ?? (profile as { avatar?: string }).avatar ?? null;
+        const avatar =
+          (
+            profile as {
+              image_url?: string;
+              avatar?: string;
+            }
+          ).image_url ??
+          (
+            profile as {
+              avatar?: string;
+            }
+          ).avatar ??
+          null;
 
         token.discordId = discordId;
         token.username = username;
@@ -40,22 +58,54 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
 
-        await prisma.user.upsert({
+        /*
+         * Pastikan user memang berada di
+         * server FATISDA yang dikonfigurasi.
+         */
+        const accessToken = account.access_token;
+
+        const guildId = process.env.DISCORD_GUILD_ID;
+
+        if (!guildId) {
+          throw new Error("DISCORD_GUILD_ID belum dikonfigurasi.");
+        }
+
+        if (accessToken) {
+          const guilds = await fetchUserGuilds(accessToken);
+
+          const isFatisdaMember = guilds.some((guild) => guild.id === guildId);
+
+          if (!isFatisdaMember) {
+            throw new Error("Akun Discord kamu belum menjadi anggota server FATISDA 2026.");
+          }
+        }
+
+        /*
+         * Sync role, prodi, kelas, dan Discord
+         * roles ke database.
+         */
+        await syncCurrentUser(discordId);
+
+        /*
+         * Ambil data terbaru setelah sync supaya
+         * JWT memiliki informasi role terbaru.
+         */
+        const user = await prisma.user.findUnique({
           where: {
             id: discordId,
           },
-          create: {
-            id: discordId,
-            username,
-            avatar,
-            roles: ["STUDENT"],
-            discordRoles: [],
-          },
-          update: {
-            username,
-            avatar,
+          select: {
+            roles: true,
+            prodi: true,
+            kelas: true,
           },
         });
+
+        token.roles = user?.roles ?? ["STUDENT"];
+
+        token.prodi = user?.prodi ?? null;
+
+        token.kelas = user?.kelas ?? null;
       }
 
       return token;
@@ -64,7 +114,9 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.discordId ?? "";
+
         session.user.name = token.username ?? null;
+
         session.user.image = token.avatar ?? null;
       }
 

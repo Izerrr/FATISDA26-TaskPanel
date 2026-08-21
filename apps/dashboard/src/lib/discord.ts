@@ -21,11 +21,21 @@ export interface DiscordGuild {
   permissions: string;
 }
 
-interface DiscordGuildDetails {
+export interface DiscordGuildDetails {
   id: string;
   name: string;
   icon: string | null;
   owner_id: string;
+}
+
+function getRoleId(envKey: string): string | null {
+  const value = process.env[envKey];
+
+  return value?.trim() ? value.trim() : null;
+}
+
+function hasRole(discordRoles: string[], targetRoleId: string | null): boolean {
+  return Boolean(targetRoleId && discordRoles.includes(targetRoleId));
 }
 
 export async function fetchGuildMembers(guildId: string): Promise<DiscordMember[]> {
@@ -33,6 +43,7 @@ export async function fetchGuildMembers(guildId: string): Promise<DiscordMember[
 
   if (!botToken) {
     console.error("[Discord] DISCORD_BOT_TOKEN belum tersedia");
+
     return [];
   }
 
@@ -53,7 +64,43 @@ export async function fetchGuildMembers(guildId: string): Promise<DiscordMember[
     return (await response.json()) as DiscordMember[];
   } catch (error) {
     console.error("[Discord] fetchGuildMembers", error);
+
     return [];
+  }
+}
+
+export async function fetchGuildMember(guildId: string, userId: string): Promise<DiscordMember | null> {
+  const botToken = process.env.DISCORD_BOT_TOKEN;
+
+  if (!botToken) {
+    console.error("[Discord] DISCORD_BOT_TOKEN belum tersedia");
+
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${userId}`, {
+      headers: {
+        Authorization: `Bot ${botToken}`,
+      },
+      cache: "no-store",
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error("[Discord] fetchGuildMember", response.status, await response.text());
+
+      return null;
+    }
+
+    return (await response.json()) as DiscordMember;
+  } catch (error) {
+    console.error("[Discord] fetchGuildMember", error);
+
+    return null;
   }
 }
 
@@ -62,6 +109,7 @@ export async function fetchGuildDetails(guildId: string): Promise<DiscordGuildDe
 
   if (!botToken) {
     console.error("[Discord] DISCORD_BOT_TOKEN belum tersedia");
+
     return null;
   }
 
@@ -82,6 +130,7 @@ export async function fetchGuildDetails(guildId: string): Promise<DiscordGuildDe
     return (await response.json()) as DiscordGuildDetails;
   } catch (error) {
     console.error("[Discord] fetchGuildDetails", error);
+
     return null;
   }
 }
@@ -104,18 +153,9 @@ export async function fetchUserGuilds(accessToken: string): Promise<DiscordGuild
     return (await response.json()) as DiscordGuild[];
   } catch (error) {
     console.error("[Discord] fetchUserGuilds", error);
+
     return [];
   }
-}
-
-function roleId(name: string): string | null {
-  const value = process.env[name];
-
-  return value?.trim() ? value.trim() : null;
-}
-
-function hasRole(roles: string[], target: string | null): boolean {
-  return Boolean(target && roles.includes(target));
 }
 
 function mappedRoles(discordRoles: string[], isGuildOwner: boolean): TaskPanelRole[] {
@@ -125,19 +165,19 @@ function mappedRoles(discordRoles: string[], isGuildOwner: boolean): TaskPanelRo
     roles.push("OWNER");
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_ADMIN"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_ADMIN"))) {
     roles.push("ADMIN");
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_KETUA_ANGKATAN"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_KETUA_ANGKATAN"))) {
     roles.push("KETUA_ANGKATAN");
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_PJ_KELAS"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_PJ_KELAS"))) {
     roles.push("PJ_KELAS");
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_PJ_MATKUL"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_PJ_MATKUL"))) {
     roles.push("PJ_MATKUL");
   }
 
@@ -149,15 +189,15 @@ function mappedRoles(discordRoles: string[], isGuildOwner: boolean): TaskPanelRo
 }
 
 function mappedProdi(discordRoles: string[]) {
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN"))) {
     return "INFORMATIKA_PSDKU_KEBUMEN" as const;
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_INFORMATIKA"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_INFORMATIKA"))) {
     return "INFORMATIKA" as const;
   }
 
-  if (hasRole(discordRoles, roleId("DISCORD_ROLE_SAINS_DATA"))) {
+  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_SAINS_DATA"))) {
     return "SAINS_DATA" as const;
   }
 
@@ -174,12 +214,61 @@ function mappedKelas(discordRoles: string[]) {
   ] as const;
 
   for (const [kelas, envKey] of candidates) {
-    if (hasRole(discordRoles, roleId(envKey))) {
+    if (hasRole(discordRoles, getRoleId(envKey))) {
       return kelas;
     }
   }
 
   return null;
+}
+
+export async function syncCurrentUser(userId: string): Promise<void> {
+  const guildId = process.env.DISCORD_GUILD_ID;
+
+  if (!guildId) {
+    throw new Error("DISCORD_GUILD_ID belum dikonfigurasi.");
+  }
+
+  const [member, guild] = await Promise.all([fetchGuildMember(guildId, userId), fetchGuildDetails(guildId)]);
+
+  if (!member) {
+    throw new Error("Akun Discord kamu tidak ditemukan di server FATISDA 2026.");
+  }
+
+  if (!guild) {
+    throw new Error("Server Discord FATISDA 2026 tidak dapat diakses oleh bot.");
+  }
+
+  const discordRoles = member.roles ?? [];
+
+  const isGuildOwner = guild.owner_id === member.user.id;
+
+  const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+
+  await prisma.user.upsert({
+    where: {
+      id: member.user.id,
+    },
+
+    create: {
+      id: member.user.id,
+      username: member.nick ?? member.user.username,
+      avatar,
+      discordRoles,
+      roles: mappedRoles(discordRoles, isGuildOwner),
+      prodi: mappedProdi(discordRoles),
+      kelas: mappedKelas(discordRoles),
+    },
+
+    update: {
+      username: member.nick ?? member.user.username,
+      avatar,
+      discordRoles,
+      roles: mappedRoles(discordRoles, isGuildOwner),
+      prodi: mappedProdi(discordRoles),
+      kelas: mappedKelas(discordRoles),
+    },
+  });
 }
 
 export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]> {
@@ -192,11 +281,9 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
   for (const member of members) {
     const discordRoles = member.roles ?? [];
 
-    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
-
     const isGuildOwner = guild?.owner_id === member.user.id;
 
-    const roles = mappedRoles(discordRoles, isGuildOwner);
+    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
 
     await prisma.user.upsert({
       where: {
@@ -208,7 +295,7 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
         username: member.nick ?? member.user.username,
         avatar,
         discordRoles,
-        roles,
+        roles: mappedRoles(discordRoles, isGuildOwner),
         prodi: mappedProdi(discordRoles),
         kelas: mappedKelas(discordRoles),
       },
@@ -217,7 +304,7 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
         username: member.nick ?? member.user.username,
         avatar,
         discordRoles,
-        roles,
+        roles: mappedRoles(discordRoles, isGuildOwner),
         prodi: mappedProdi(discordRoles),
         kelas: mappedKelas(discordRoles),
       },

@@ -4,7 +4,7 @@ import { Bell, Plus, Search } from "lucide-react";
 import { ProfileMenu } from "./ProfileMenu";
 
 interface TopNavProps {
-  onNewTask: () => void;
+  onNewTask?: () => void;
   search: string;
   onSearchChange: (value: string) => void;
 }
@@ -24,11 +24,12 @@ export function TopNav({ onNewTask, search, onSearchChange }: TopNavProps) {
 
           <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Cari tugas..." className="w-48 bg-transparent text-sm text-liquid-text outline-none placeholder:text-liquid-text-tertiary" />
         </div>
-
-        <button onClick={onNewTask} className="flex items-center gap-2 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Tugas Baru</span>
-        </button>
+        {onNewTask && (
+          <button onClick={onNewTask} className="flex items-center gap-2 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-95">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Tugas Baru</span>
+          </button>
+        )}
 
         <button className="relative flex h-10 w-10 items-center justify-center rounded-xl text-liquid-text-secondary hover:bg-black/[0.04]" aria-label="Notifikasi">
           <Bell className="h-[18px] w-[18px]" />

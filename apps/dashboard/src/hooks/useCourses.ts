@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+
 import type { Course } from "@/types";
 
 interface CoursesResponse {
@@ -8,10 +9,12 @@ interface CoursesResponse {
 }
 
 const fetcher = async (url: string): Promise<CoursesResponse> => {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
-    throw new Error("Gagal memuat mata kuliah");
+    throw new Error("Gagal memuat mata kuliah.");
   }
 
   return response.json();

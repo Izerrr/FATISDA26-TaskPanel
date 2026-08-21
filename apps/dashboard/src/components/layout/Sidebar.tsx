@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, LogOut, MessageSquare, RefreshCw } from "lucide-react";
 import { signOut } from "next-auth/react";
-import type { User } from "@/types";
+
+import type { Course, User } from "@/types";
 
 interface SidebarProps {
+  courses: Course[];
   user: User | null;
+  guildId: string | null;
 }
 
 const navItems = [
@@ -18,7 +21,7 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    href: "/dashboard#tasks",
+    href: "/dashboard/tasks",
     label: "Tugas",
     icon: ClipboardList,
   },
@@ -39,40 +42,88 @@ const navItems = [
   },
 ] as const;
 
-export function Sidebar({ user }: SidebarProps) {
+function getProdiLabel(prodi: User["prodi"]) {
+  switch (prodi) {
+    case "INFORMATIKA":
+      return "Informatika";
+
+    case "SAINS_DATA":
+      return "Sains Data";
+
+    case "INFORMATIKA_PSDKU_KEBUMEN":
+      return "Informatika PSDKU Kebumen";
+
+    default:
+      return null;
+  }
+}
+
+function getRoleLabels(user: User | null) {
+  if (!user) {
+    return ["Mahasiswa"];
+  }
+
+  const roles = user.roles ?? [];
+
+  const labels: string[] = [];
+
+  if (roles.includes("ADMIN")) {
+    labels.push("Administrator");
+  }
+
+  if (roles.includes("PJ_KELAS")) {
+    labels.push("PJ Kelas");
+  }
+
+  if (roles.includes("PJ_MATKUL")) {
+    labels.push("PJ Mata Kuliah");
+  }
+
+  if (labels.length === 0) {
+    labels.push("Mahasiswa");
+  }
+
+  return labels;
+}
+
+export function Sidebar({ courses, user, guildId }: SidebarProps) {
   const pathname = usePathname();
-  const [hash, setHash] = useState("");
 
-  useEffect(() => {
-    const updateHash = () => {
-      setHash(window.location.hash);
-    };
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
 
-    updateHash();
+  const prodiLabel = getProdiLabel(user?.prodi ?? null);
 
-    window.addEventListener("hashchange", updateHash);
+  const profileLabel = [prodiLabel, user?.kelas ? `Kelas ${user.kelas}` : null].filter(Boolean).join(" · ");
 
-    return () => {
-      window.removeEventListener("hashchange", updateHash);
-    };
-  }, []);
+  const roleLabels = getRoleLabels(user);
 
-  const prodiLabel = user?.prodi === "INFORMATIKA" ? "Informatika" : user?.prodi === "SAINS_DATA" ? "Sains Data" : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Informatika PSDKU Kebumen" : null;
+  async function handleSync() {
+    if (!guildId || syncing) {
+      return;
+    }
 
-  const profileLabel = prodiLabel ? `${prodiLabel}${user?.kelas ? ` · Kelas ${user.kelas}` : ""}` : "Profil belum tersinkron";
+    try {
+      setSyncing(true);
+      setSyncMessage("");
 
-  const roleLabel = user?.roles?.includes("ADMIN") ? "Administrator" : user?.roles?.includes("PJ_KELAS") ? "PJ Kelas" : user?.roles?.includes("PJ_MATKUL") ? "PJ Mata Kuliah" : "Mahasiswa";
+      const response = await fetch(`/api/guilds/${guildId}/sync`, {
+        method: "POST",
+      });
 
-  function isNavItemActive(label: string, href: string) {
-    switch (label) {
-      case "Overview":
-        return pathname === "/dashboard" && hash !== "#tasks";
+      const data = await response.json();
 
-      case "Tugas":
-        return pathname === "/dashboard" && hash === "#tasks";
+      if (!response.ok) {
+        throw new Error(data.error ?? "Sinkronisasi gagal.");
+      }
 
-      default:
-        return pathname.startsWith(href);
+      setSyncMessage(`${data.syncedMembers ?? 0} anggota disinkronkan.`);
+
+      window.location.reload();
+    } catch (error) {
+      setSyncMessage(error instanceof Error ? error.message : "Sinkronisasi gagal.");
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -85,83 +136,112 @@ export function Sidebar({ user }: SidebarProps) {
             <BookOpen className="h-4 w-4" />
           </div>
 
-          <div className="min-w-0">
+          <div>
             <p className="font-bold text-liquid-text">TaskPanel</p>
+
             <p className="text-[11px] text-liquid-text-secondary">FATISDA 2026</p>
           </div>
         </div>
       </div>
 
-      {/* Workspace */}
+      {/* Context */}
       <div className="px-4 pt-5">
-        <p className="label px-2">Workspace</p>
+        <p className="label px-2">Konteks</p>
 
         <div className="mt-2 rounded-2xl bg-liquid-accent/5 px-3 py-3">
           <p className="text-sm font-semibold text-liquid-text">FATISDA 2026</p>
 
-          <p className="mt-1 truncate text-xs text-liquid-text-secondary">{profileLabel}</p>
+          <p className="mt-1 text-xs text-liquid-text-secondary">{profileLabel || "Profil belum tersinkron"}</p>
+
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {roleLabels.map((role) => (
+              <span key={role} className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-liquid-accent shadow-sm">
+                {role}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="px-4 pt-5">
-        <p className="label px-2">Akademik</p>
+        <p className="label px-2">Menu</p>
 
         <div className="mt-2 space-y-1">
-          {navItems.slice(0, 4).map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = isNavItemActive(item.label, item.href);
+
+            const isActive = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
 
             return (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? "bg-liquid-accent/10 text-liquid-accent" : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text"}`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
+
+                {item.label}
               </Link>
             );
           })}
         </div>
       </nav>
 
-      {/* Other */}
-      <nav className="px-4 pt-5">
-        <p className="label px-2">Lainnya</p>
+      {/* Courses */}
+      <div className="px-4 py-5">
+        <div className="flex items-center justify-between px-2">
+          <p className="label">Mata Kuliah</p>
+
+          <span className="text-[10px] font-semibold text-liquid-text-tertiary">{courses.length}</span>
+        </div>
 
         <div className="mt-2 space-y-1">
-          {navItems.slice(4).map((item) => {
-            const Icon = item.icon;
-            const isActive = isNavItemActive(item.label, item.href);
+          {courses.length === 0 ? (
+            <p className="px-3 text-xs italic text-liquid-text-secondary">Belum ada data mata kuliah.</p>
+          ) : (
+            courses.map((course) => (
+              <div key={course.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-liquid-text-secondary">
+                <BookOpen className="h-4 w-4 shrink-0 text-liquid-text-tertiary" />
 
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? "bg-liquid-accent/10 text-liquid-accent" : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text"}`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-liquid-text">{course.name}</p>
+
+                  <p className="text-[11px] text-liquid-text-secondary">{course.code}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-      </nav>
+      </div>
 
-      {/* User */}
+      {/* Bottom */}
       <div className="mt-auto border-t border-liquid-border p-4">
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={!guildId || syncing}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-liquid-accent/30 hover:bg-liquid-accent/5 hover:text-liquid-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+
+          {syncing ? "Sinkronisasi..." : "Sync Discord"}
+        </button>
+
+        {syncMessage && <p className="mb-3 px-2 text-[11px] leading-4 text-liquid-text-secondary">{syncMessage}</p>}
+
+        {/* User */}
         <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3">
           {user?.avatar ? (
             <img src={user.avatar} alt={user.username} className="h-9 w-9 rounded-xl object-cover" />
           ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
           )}
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-liquid-text">{user?.username ?? "Pengguna"}</p>
 
-            <p className="truncate text-[11px] text-liquid-text-secondary">{roleLabel}</p>
+            <p className="truncate text-[11px] text-liquid-text-secondary">{roleLabels.join(" · ")}</p>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -48,7 +48,7 @@ model Guild {
   name      String
   icon      String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 
   tasks Task[]
 }
@@ -58,8 +58,10 @@ model User {
   username String
   avatar   String?
 
-  prodi        Prodi?
-  kelas        Kelas?
+  prodi    Prodi?
+  kelas    Kelas?
+  semester Int?
+
   roles        Role[]   @default([STUDENT])
   discordRoles String[] @default([])
 
@@ -67,15 +69,20 @@ model User {
   assignedTasks Task[] @relation("AssignedTasks")
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  updatedAt DateTime @updatedAt
 }
 
 model Schedule {
-  id       String  @id @default(cuid())
+  id       String @id @default(cuid())
+
   prodi    Prodi
   kelas    Kelas
+  semester Int?
+
   courseId String?
   course   Course? @relation(fields: [courseId], references: [id])
+
+  courseName String
 
   day       Int
   startTime String
@@ -83,10 +90,14 @@ model Schedule {
   room      String?
   lecturer  String?
 
+  rawClassCode String?
+  markers      String[] @default([])
+  sourceSlots  Int[]    @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  @@index([prodi, kelas])
+  @@index([prodi, kelas, semester])
   @@index([courseId])
 }
 
@@ -122,10 +133,10 @@ model Task {
   course   Course? @relation(fields: [courseId], references: [id])
 
   createdById String
-  createdBy   User   @relation("CreatedTasks", fields: [createdById], references: [id])
+  createdBy   User @relation("CreatedTasks", fields: [createdById], references: [id])
 
   assignedTo String?
-  assignee   User?   @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  assignee   User? @relation("AssignedTasks", fields: [assignedTo], references: [id])
 
   dueDate DateTime?
 
@@ -143,8 +154,19 @@ model Task {
 }
 
 model ScheduleSync {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
+
+  prodi Prodi
+
   spreadsheetId String
+  sheetGid      String
   sheetName     String
-  lastSyncedAt  DateTime @default(now())
+
+  rawEntries        Int @default(0)
+  normalizedEntries Int @default(0)
+
+  lastSyncedAt DateTime @default(now())
+
+  @@unique([prodi, spreadsheetId, sheetGid])
+  @@index([prodi])
 }
