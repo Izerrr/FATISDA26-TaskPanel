@@ -256,7 +256,7 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
 
         classCode: parsed.classCode,
 
-        marker: parsed.marker,
+        markers: parsed.markers,
       });
     }
   }

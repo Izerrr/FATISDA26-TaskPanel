@@ -6,7 +6,7 @@ export interface ParsedCell {
   semester: number;
   rawClassCode: string;
   classCode: Kelas | null;
-  marker: string | null;
+  markers: string[];
 }
 
 function isIgnoredCell(value: string): boolean {
@@ -63,6 +63,6 @@ export function parseScheduleCell(input: string): ParsedCell | null {
     semester,
     rawClassCode,
     classCode: normalizeClassCode(rawClassCode),
-    marker: trailing,
+    markers: trailing ? [trailing] : [],
   };
 }

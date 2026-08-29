@@ -33,6 +33,27 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
   const rawEntries = parseScheduleCsv(csv, prodi);
 
   const normalizedEntries = normalizeScheduleEntries(rawEntries);
+  const seen = new Map<string, number>();
+
+  for (const entry of normalizedEntries) {
+    const key = [entry.prodi, entry.classCode, entry.semester, entry.day, entry.startTime, entry.endTime, entry.room, entry.courseName].join("|");
+
+    seen.set(key, (seen.get(key) ?? 0) + 1);
+  }
+
+  const duplicates = Array.from(seen.entries())
+    .filter(([, count]) => count > 1)
+    .map(([key, count]) => ({
+      key,
+      count,
+    }));
+
+  console.log("========== SCHEDULE DEBUG ==========");
+  console.log("rawEntries:", rawEntries.length);
+  console.log("normalizedEntries:", normalizedEntries.length);
+  console.log("duplicate groups:", duplicates.length);
+  console.log("duplicates:", duplicates);
+  console.log("====================================");
 
   const databaseEntries = normalizedEntries.filter(
     (
@@ -72,7 +93,9 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
       seen.set(key, (seen.get(key) ?? 0) + 1);
     }
 
-    const duplicates = [...seen.entries()].filter(([, count]) => count > 1).map(([key, count]) => ({ key, count }));
+    const duplicates = Array.from(seen.entries())
+      .filter(([, count]) => count > 1)
+      .map(([key, count]) => ({ key, count }));
 
     console.log("[SCHEDULE DUPLICATES]", duplicates);
 

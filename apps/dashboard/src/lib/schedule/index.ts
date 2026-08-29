@@ -10,3 +10,5 @@ export * from "./normalize";
 export * from "./constants";
 export * from "./sources";
 export * from "./fetch-csv";
+export { syncSchedule } from "./schedule-sync";
+export type { ScheduleSyncResult } from "./schedule-sync";

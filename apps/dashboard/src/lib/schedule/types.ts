@@ -30,5 +30,5 @@ export interface ParsedScheduleEntry {
 
   classCode: Kelas | null;
 
-  marker: string | null;
+  markers: string[];
 }

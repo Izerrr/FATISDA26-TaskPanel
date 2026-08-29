@@ -31,7 +31,7 @@ function createNormalizedEntry(entries: ParsedScheduleEntry[]): NormalizedSchedu
   const first = entries[0];
   const last = entries[entries.length - 1];
 
-  const markers = Array.from(new Set(entries.map((entry) => entry.marker).filter((marker): marker is string => Boolean(marker))));
+  const markers = Array.from(new Set(entries.flatMap((entry) => entry.markers)));
 
   return {
     prodi: first.prodi,
