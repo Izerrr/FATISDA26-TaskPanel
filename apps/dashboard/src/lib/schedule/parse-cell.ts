@@ -1,12 +1,13 @@
-import type { Kelas } from "@/types";
-import { CLASS_MAPPING, IGNORED_CELL_PREFIXES } from "./constants";
+import type { Kelas, Prodi } from "@/types";
+import { CLASS_MAPPING, IGNORED_CELL_PREFIXES, MARKERS_BY_PRODI } from "./constants";
 
 export interface ParsedCell {
   courseName: string;
   semester: number;
-  rawClassCode: string;
+  rawClassCode: string | null;
   classCode: Kelas | null;
   markers: string[];
+  lecturer: string | null;
 }
 
 function isIgnoredCell(value: string): boolean {
@@ -25,7 +26,11 @@ export function normalizeClassCode(rawClassCode: string): Kelas | null {
   return mapping[normalized] ?? null;
 }
 
-export function parseScheduleCell(input: string): ParsedCell | null {
+function isKnownMarker(value: string, prodi: Prodi): boolean {
+  return MARKERS_BY_PRODI[prodi].some((marker) => marker.toLowerCase() === value.toLowerCase());
+}
+
+export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | null {
   const value = input.replace(/\s+/g, " ").trim();
 
   if (!value) {
@@ -64,5 +69,6 @@ export function parseScheduleCell(input: string): ParsedCell | null {
     rawClassCode,
     classCode: normalizeClassCode(rawClassCode),
     markers: trailing ? [trailing] : [],
+    lecturer: null,
   };
 }

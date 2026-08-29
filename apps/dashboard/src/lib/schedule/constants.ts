@@ -21,6 +21,12 @@ export const CLASS_MAPPING = {
   B2: "D",
 } as const;
 
+export const MARKERS_BY_PRODI = {
+  INFORMATIKA: ["P"],
+  SAINS_DATA: ["*", "MKWK"],
+  INFORMATIKA_PSDKU_KEBUMEN: ["MKU"],
+} as const;
+
 export const IGNORED_CELL_PREFIXES = ["Digunakan S-1 Sains Data"];
 
 export const SCHEDULE_HEADER_ROW = 3;

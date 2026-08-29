@@ -227,7 +227,7 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
         continue;
       }
 
-      const parsed = parseScheduleCell(rawValue);
+      const parsed = parseScheduleCell(rawValue, prodi);
 
       if (!parsed) {
         continue;
@@ -257,6 +257,8 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
         classCode: parsed.classCode,
 
         markers: parsed.markers,
+
+        lecturer: parsed.lecturer,
       });
     }
   }

@@ -26,9 +26,11 @@ export interface ParsedScheduleEntry {
 
   semester: number;
 
-  rawClassCode: string;
+  rawClassCode: string | null;
 
   classCode: Kelas | null;
 
   markers: string[];
+
+  lecturer: string | null;
 }

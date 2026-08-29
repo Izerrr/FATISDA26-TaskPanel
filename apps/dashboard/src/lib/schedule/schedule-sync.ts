@@ -116,7 +116,7 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
           endTime: entry.endTime,
 
           room: entry.room || null,
-          lecturer: null,
+          lecturer: entry.lecturer,
 
           rawClassCode: entry.rawClassCode || null,
 

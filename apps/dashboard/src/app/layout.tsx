@@ -4,7 +4,7 @@ import { GuildProvider } from "@/components/providers/GuildProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FATISDA 26 — TaskPanel",
+  title: "FATISDA 26 | TaskPanel",
   description: "Task management dashboard untuk FATISDA UNS 2026.",
 };
 

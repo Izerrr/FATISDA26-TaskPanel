@@ -14,11 +14,13 @@ export interface NormalizedScheduleEntry {
   semester: number;
 
   classCode: ParsedScheduleEntry["classCode"];
-  rawClassCode: string;
+  rawClassCode: string | null;
 
   markers: string[];
 
   sourceSlots: number[];
+
+  lecturer: string | null;
 }
 
 type ScheduleGroupKey = string;
@@ -55,6 +57,8 @@ function createNormalizedEntry(entries: ParsedScheduleEntry[]): NormalizedSchedu
     markers,
 
     sourceSlots: entries.map((entry) => entry.session),
+
+    lecturer: first.lecturer,
   };
 }
 
