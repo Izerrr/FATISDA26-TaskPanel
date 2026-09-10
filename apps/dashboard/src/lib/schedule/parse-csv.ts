@@ -89,11 +89,6 @@ function isDay(value: string): value is SourceDay {
   return KNOWN_DAYS.includes(value as (typeof KNOWN_DAYS)[number]);
 }
 
-/**
- * Membaca tabel waktu yang tersedia di spreadsheet.
- *
- * Parser sengaja tidak meng-hardcode jam kuliah.
- */
 function parseSessionTimes(rows: CsvRow[]): {
   weekday: SessionTimeMap;
   friday: SessionTimeMap;
@@ -229,6 +224,16 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
 
       const parsed = parseScheduleCell(rawValue, prodi);
 
+      if (rawValue.toLowerCase().includes("agama")) {
+        console.log("AGAMA DEBUG:", {
+          rawValue,
+          parsed,
+          day: currentDay,
+          session,
+          room,
+        });
+      }
+
       if (!parsed) {
         continue;
       }
@@ -262,6 +267,11 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
       });
     }
   }
+
+  console.log({
+    prodi,
+    totalParsed: result.length,
+  });
 
   return result;
 }

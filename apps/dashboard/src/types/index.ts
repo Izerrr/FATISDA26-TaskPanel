@@ -14,6 +14,7 @@ export interface User {
   avatar: string | null;
   prodi: Prodi | null;
   kelas: Kelas | null;
+  semester: number | null;
   roles: Role[];
   discordRoles: string[];
 }
@@ -38,7 +39,9 @@ export interface Schedule {
   id: string;
   prodi: Prodi;
   kelas: Kelas;
+  semester?: number | null;
   courseId: string | null;
+  courseName?: string;
 
   day: number;
   startTime: string;

@@ -30,12 +30,42 @@ function isKnownMarker(value: string, prodi: Prodi): boolean {
   return MARKERS_BY_PRODI[prodi].some((marker) => marker.toLowerCase() === value.toLowerCase());
 }
 
+function isMkuCode(value: string): boolean {
+  return /^[AB][12]$/i.test(value);
+}
+
+function extractParenthesizedTokens(value: string): string[] {
+  const matches = value.match(/\(([^)]+)\)/g);
+
+  if (!matches) {
+    return [];
+  }
+
+  return matches.map((match) => match.slice(1, -1).trim());
+}
+
+function isSemesterToken(value: string): boolean {
+  return /^\d+$/.test(value);
+}
+
+function isClassToken(value: string): boolean {
+  return normalizeClassCode(value) !== null;
+}
+
 export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | null {
-  const value = input.replace(/\s+/g, " ").trim();
+  const value = input
+    .replace(/\s*\*\s*/g, " * ")
+    .replace(/\s+/g, " ")
+    .trim();
 
   if (!value) {
     return null;
   }
+
+  console.log("IGNORED CHECK:", {
+    value,
+    ignored: isIgnoredCell(value),
+  });
 
   if (isIgnoredCell(value)) {
     return null;
@@ -49,26 +79,50 @@ export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | nul
    * Pendidikan Agama Islam(1) (B2)
    * Sistem Digital (1) (A) P
    */
-  const match = value.match(/^(.+?)\s*\((\d+)\)\s*\(([A-Za-z0-9]+)\)(?:\s+(.+))?$/);
+  const match = value.match(/^(.+?)\s*\((\d+)\)(?:\s*\(([A-Za-z0-9]+)\))?(?:\s+(.+))?$/);
 
   if (!match) {
     return null;
   }
 
+  const parenthesizedTokens = extractParenthesizedTokens(value);
+
+  const tokensAfterSemester = parenthesizedTokens.filter((token) => !isSemesterToken(token));
+
+  const classToken = tokensAfterSemester.find(isClassToken);
+
   const courseName = match[1].trim().replace(/\s+/g, " ");
 
   const semester = Number(match[2]);
 
-  const rawClassCode = match[3].trim().toUpperCase();
+  const rawClassCode = classToken?.trim().toUpperCase() || null;
 
   const trailing = match[4]?.trim() || null;
+
+  const lecturerText =
+    trailing
+      ?.replace(/\([^)]+\)/g, "")
+      .replace(/\s+/g, " ")
+      .trim() || null;
+
+  let lecturer: string | null = null;
+
+  const markers: string[] = [];
+
+  if (lecturerText) {
+    if (isKnownMarker(lecturerText, prodi)) {
+      markers.push(lecturerText);
+    } else {
+      lecturer = lecturerText;
+    }
+  }
 
   return {
     courseName,
     semester,
     rawClassCode,
-    classCode: normalizeClassCode(rawClassCode),
-    markers: trailing ? [trailing] : [],
-    lecturer: null,
+    classCode: rawClassCode ? normalizeClassCode(rawClassCode) : null,
+    markers,
+    lecturer,
   };
 }

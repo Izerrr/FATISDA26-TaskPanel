@@ -88,7 +88,7 @@ export function SchedulePreview() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-liquid-text">{schedule.course?.name ?? "Mata kuliah"}</p>
+                <p className="truncate text-sm font-semibold text-liquid-text">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
 
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-liquid-text-secondary">
                   <span>

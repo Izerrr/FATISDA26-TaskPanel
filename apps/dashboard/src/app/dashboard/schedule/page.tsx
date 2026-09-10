@@ -114,7 +114,7 @@ export default function SchedulePage() {
                   </div>
 
                   <div className="min-w-0 flex-1 border-l border-slate-100 pl-4">
-                    <p className="text-sm font-semibold text-liquid-text">{schedule.course?.name ?? "Mata kuliah"}</p>
+                    <p className="text-sm font-semibold text-liquid-text">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
 
                     {schedule.course?.code && <p className="mt-1 text-[11px] text-liquid-text-secondary">{schedule.course.code}</p>}
 

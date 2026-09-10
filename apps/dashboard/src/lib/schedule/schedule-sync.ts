@@ -66,6 +66,11 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
     } => entry.startTime !== null && entry.endTime !== null && entry.semester !== null && entry.classCode !== null,
   );
 
+  console.log(
+    "NO TIME:",
+    normalizedEntries.filter((entry) => entry.startTime === null || entry.endTime === null || entry.semester === null || entry.classCode === null),
+  );
+
   const syncedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
