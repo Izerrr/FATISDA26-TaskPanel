@@ -330,6 +330,7 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
   const taskChannelId =
     (prodi && kelas ? process.env[`DISCORD_CHANNEL_ID_${prodi}_${kelas}`] : null) ||
     (prodi ? process.env[`DISCORD_CHANNEL_ID_${prodi}`] : null) ||
+    (prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? process.env.DISCORD_CHANNEL_ID_PSDKU || process.env.DISCORD_CHANNEL_ID_PSDKU_KEBUMEN : null) ||
     process.env.DISCORD_CHANNEL_ID_TUGAS ||
     process.env.TASK_CHANNEL_ID ||
     null;
@@ -338,6 +339,7 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
   const webhookUrl =
     (prodi && kelas ? process.env[`DISCORD_WEBHOOK_URL_${prodi}_${kelas}`] : null) ||
     (prodi ? process.env[`DISCORD_WEBHOOK_URL_${prodi}`] : null) ||
+    (prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? process.env.DISCORD_WEBHOOK_URL_PSDKU || process.env.DISCORD_WEBHOOK_URL_PSDKU_KEBUMEN : null) ||
     process.env.DISCORD_WEBHOOK_URL ||
     null;
 
