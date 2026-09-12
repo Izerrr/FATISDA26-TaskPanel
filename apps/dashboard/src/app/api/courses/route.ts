@@ -38,31 +38,86 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
-    const courses = await prisma.course.findMany({
+    const { searchParams } = new URL(req.url);
+    const semesterParam = searchParams.get("semester");
+    const targetSemester = semesterParam ? parseInt(semesterParam, 10) : (user.semester ?? 2);
+
+    /*
+     * Ambil courses resmi dari tabel Course
+     */
+    const dbCourses = await prisma.course.findMany({
       where: {
-        ...(user.prodi
-          ? {
-              prodi: user.prodi,
-            }
-          : {}),
-        ...(user.kelas
-          ? {
-              OR: [{ kelas: user.kelas }, { kelas: null }],
-            }
-          : {}),
+        ...(user.prodi ? { prodi: user.prodi } : {}),
+        ...(user.kelas ? { OR: [{ kelas: user.kelas }, { kelas: null }] } : {}),
       },
-      orderBy: [
-        {
-          code: "asc",
+      include: {
+        schedules: {
+          where: {
+            semester: targetSemester,
+          },
+          select: {
+            day: true,
+            startTime: true,
+            endTime: true,
+            room: true,
+            lecturer: true,
+          },
         },
-        {
-          name: "asc",
-        },
-      ],
+      },
+      orderBy: [{ code: "asc" }, { name: "asc" }],
     });
 
+    /*
+     * Jika tabel Course masih sedikit, sinkronkan juga dengan
+     * daftar mata kuliah unik yang ada di tabel Schedule untuk semester ini.
+     */
+    const activeSchedules = await prisma.schedule.findMany({
+      where: {
+        ...(user.prodi ? { prodi: user.prodi } : {}),
+        ...(user.kelas ? { kelas: user.kelas } : {}),
+        semester: targetSemester,
+      },
+      select: {
+        courseId: true,
+        courseName: true,
+        room: true,
+        lecturer: true,
+        day: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    // Buat map agar unik per nama mata kuliah
+    const combinedCourses = [...dbCourses];
+    const existingNames = new Set(dbCourses.map((c) => c.name.toLowerCase().trim()));
+
+    for (const schedule of activeSchedules) {
+      if (!existingNames.has(schedule.courseName.toLowerCase().trim())) {
+        existingNames.add(schedule.courseName.toLowerCase().trim());
+        combinedCourses.push({
+          id: schedule.courseId ?? `sched-${encodeURIComponent(schedule.courseName)}`,
+          code: "MK",
+          name: schedule.courseName,
+          prodi: user.prodi ?? ("INFORMATIKA" as Prodi),
+          kelas: user.kelas ?? null,
+          pjMatkulId: null,
+          schedules: [
+            {
+              day: schedule.day,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              room: schedule.room,
+              lecturer: schedule.lecturer,
+            },
+          ],
+        } as unknown as (typeof dbCourses)[number]);
+      }
+    }
+
     return NextResponse.json({
-      courses,
+      courses: combinedCourses,
+      semester: targetSemester,
     });
   } catch (error) {
     console.error("[GET /api/courses]", error);

@@ -314,7 +314,13 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
   return members;
 }
 
-export async function sendDiscordNotification(_guildId: string, content: string) {
+export interface DiscordNotificationOptions {
+  content?: string;
+  roleIdToMention?: string | null;
+  mentionText?: string | null;
+}
+
+export async function sendDiscordNotification(_guildId: string, embedDescription: string, options?: DiscordNotificationOptions) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
 
   if (!webhookUrl) {
@@ -322,18 +328,21 @@ export async function sendDiscordNotification(_guildId: string, content: string)
   }
 
   try {
+    const mentionPrefix = options?.roleIdToMention ? `<@&${options.roleIdToMention}> ${options.mentionText ?? "Ada tugas kelas baru!"}\n` : (options?.content ?? "");
+
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: "FATISDA Task",
+        content: mentionPrefix.trim() || undefined,
+        username: "FATISDA TaskPanel",
         avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
         embeds: [
           {
-            title: "📋 Panel Tugas",
-            description: content,
+            title: "📋 Pengumuman Tugas Kuliah",
+            description: embedDescription,
             color: 0x0077b6,
             timestamp: new Date().toISOString(),
           },

@@ -77,20 +77,21 @@ export default function CoursesPage() {
               <p className="mt-1 text-xs text-liquid-text-secondary">Belum ada data mata kuliah yang sesuai dengan profil kamu.</p>
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {filteredCourses.map((course: Course) => (
-                <div key={course.id} className="rounded-xl border border-slate-100 p-4 transition hover:border-liquid-accent/20 hover:bg-liquid-accent/[0.02]">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent/10 text-liquid-accent">
+                <div key={course.id} className="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-md">
+                  <div className="flex items-start gap-3.5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent/10 text-liquid-accent transition-transform duration-200 group-hover:scale-105">
                       <BookOpen className="h-4 w-4" />
                     </div>
 
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-liquid-text">{course.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-liquid-text transition-colors group-hover:text-liquid-accent">{course.name}</p>
 
-                      <p className="mt-1 text-xs font-medium text-liquid-accent">{course.code}</p>
-
-                      {course.kelas && <p className="mt-2 text-[11px] text-liquid-text-secondary">Kelas {course.kelas}</p>}
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{course.code}</span>
+                        {course.kelas && <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">Kelas {course.kelas}</span>}
+                      </div>
                     </div>
                   </div>
                 </div>

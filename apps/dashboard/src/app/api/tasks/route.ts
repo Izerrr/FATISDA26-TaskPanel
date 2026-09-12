@@ -6,7 +6,6 @@ type TaskScope = "PERSONAL" | "CLASS";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
-
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({
@@ -142,7 +141,41 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await sendDiscordNotification(guildId, ["**Tugas baru dibuat**", "", `**${task.title}**`, `Status: ${task.status}`, `Scope: ${task.scope}`, `Dibuat oleh: <@${user.id}>`].join("\n"));
+    /*
+     * Jika tugas bertipe CLASS, cari role ID Discord kelas terkait
+     * agar seluruh mahasiswa di kelas tersebut mendapat mention/ping.
+     */
+    let roleIdToMention: string | null = null;
+    const targetKelas = task.kelas ?? user.kelas;
+
+    if (task.scope === "CLASS" && targetKelas) {
+      const envKey = `DISCORD_ROLE_KELAS_${targetKelas}`;
+      roleIdToMention = process.env[envKey]?.trim() || null;
+    }
+
+    const dueDateFormatted = task.dueDate
+      ? new Date(task.dueDate).toLocaleString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "Tidak ada deadline";
+
+    const embedLines = [
+      `### 📌 ${task.title}`,
+      task.description ? `> ${task.description}\n` : "",
+      `📚 **Mata Kuliah:** ${task.course ? `${task.course.code} (${task.course.name})` : "Umum"}`,
+      `⏰ **Deadline:** ${dueDateFormatted}`,
+      `🏷️ **Tipe:** ${task.scope === "CLASS" ? `Tugas Kelas (${targetKelas ?? "-"})` : "Tugas Personal"}`,
+      `👤 **Dibuat oleh:** <@${user.id}>`,
+    ].filter(Boolean);
+
+    await sendDiscordNotification(guildId, embedLines.join("\n"), {
+      roleIdToMention,
+      mentionText: `📢 Pengumuman tugas baru untuk Kelas ${targetKelas ?? ""}!`,
+    });
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {
