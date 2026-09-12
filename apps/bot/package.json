@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "prisma generate --schema=../../packages/database/prisma/schema.prisma && tsc -p tsconfig.json",
+    "build": "pnpm --filter @if26/database prisma generate && tsc -p tsconfig.json",
     "start": "pm2 start dist/index.js --name if26-bot"
   },
   "dependencies": {
