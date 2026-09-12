@@ -1,4 +1,10 @@
-import "dotenv/config";
+import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), "packages/database/.env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
 import { GatewayIntentBits } from "discord.js";
 import { ExtendedClient } from "./types.js";
 import { loadEvents } from "./handlers/eventHandler.js";
