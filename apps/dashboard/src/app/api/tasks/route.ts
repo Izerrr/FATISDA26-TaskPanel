@@ -146,11 +146,19 @@ export async function POST(req: NextRequest) {
      * agar seluruh mahasiswa di kelas tersebut mendapat mention/ping.
      */
     let roleIdToMention: string | null = null;
+    const targetProdi = task.prodi ?? user.prodi;
     const targetKelas = task.kelas ?? user.kelas;
 
     if (task.scope === "CLASS" && targetKelas) {
-      const envKey = `DISCORD_ROLE_KELAS_${targetKelas}`;
-      roleIdToMention = process.env[envKey]?.trim() || null;
+      if (targetProdi) {
+        const specificRoleKey = `DISCORD_ROLE_${targetProdi}_${targetKelas}`;
+        roleIdToMention = process.env[specificRoleKey]?.trim() || null;
+      }
+
+      if (!roleIdToMention) {
+        const fallbackRoleKey = `DISCORD_ROLE_KELAS_${targetKelas}`;
+        roleIdToMention = process.env[fallbackRoleKey]?.trim() || null;
+      }
     }
 
     const dueDateFormatted = task.dueDate
@@ -163,18 +171,22 @@ export async function POST(req: NextRequest) {
         })
       : "Tidak ada deadline";
 
+    const prodiNameFormatted = targetProdi ? targetProdi.replace(/_/g, " ") : "";
+
     const embedLines = [
       `### 📌 ${task.title}`,
       task.description ? `> ${task.description}\n` : "",
       `📚 **Mata Kuliah:** ${task.course ? `${task.course.code} (${task.course.name})` : "Umum"}`,
       `⏰ **Deadline:** ${dueDateFormatted}`,
-      `🏷️ **Tipe:** ${task.scope === "CLASS" ? `Tugas Kelas (${targetKelas ?? "-"})` : "Tugas Personal"}`,
+      `🏷️ **Tipe:** ${task.scope === "CLASS" ? `Tugas Kelas (${prodiNameFormatted} ${targetKelas ?? "-"})` : "Tugas Personal"}`,
       `👤 **Dibuat oleh:** <@${user.id}>`,
     ].filter(Boolean);
 
     await sendDiscordNotification(guildId, embedLines.join("\n"), {
       roleIdToMention,
-      mentionText: `📢 Pengumuman tugas baru untuk Kelas ${targetKelas ?? ""}!`,
+      mentionText: `📢 Pengumuman tugas baru untuk ${prodiNameFormatted} Kelas ${targetKelas ?? ""}!`,
+      prodi: targetProdi,
+      kelas: targetKelas,
     });
 
     return NextResponse.json({ task }, { status: 201 });

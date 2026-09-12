@@ -318,16 +318,32 @@ export interface DiscordNotificationOptions {
   content?: string;
   roleIdToMention?: string | null;
   mentionText?: string | null;
+  prodi?: string | null;
+  kelas?: string | null;
 }
 
 export async function sendDiscordNotification(_guildId: string, embedDescription: string, options?: DiscordNotificationOptions) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  const taskChannelId = process.env.DISCORD_CHANNEL_ID_TUGAS || process.env.TASK_CHANNEL_ID;
+  const prodi = options?.prodi;
+  const kelas = options?.kelas;
+
+  // 1. Resolusi Target Channel ID (jika kirim via Bot)
+  const taskChannelId =
+    (prodi && kelas ? process.env[`DISCORD_CHANNEL_ID_${prodi}_${kelas}`] : null) ||
+    (prodi ? process.env[`DISCORD_CHANNEL_ID_${prodi}`] : null) ||
+    process.env.DISCORD_CHANNEL_ID_TUGAS ||
+    process.env.TASK_CHANNEL_ID ||
+    null;
+
+  // 2. Resolusi Webhook URL (jika kirim via Webhook)
+  const webhookUrl =
+    (prodi && kelas ? process.env[`DISCORD_WEBHOOK_URL_${prodi}_${kelas}`] : null) ||
+    (prodi ? process.env[`DISCORD_WEBHOOK_URL_${prodi}`] : null) ||
+    process.env.DISCORD_WEBHOOK_URL ||
+    null;
+
   const botToken = process.env.DISCORD_BOT_TOKEN;
 
-  const mentionPrefix = options?.roleIdToMention
-    ? `<@&${options.roleIdToMention}> ${options.mentionText ?? "Ada tugas kelas baru!"}\n`
-    : (options?.content ?? "");
+  const mentionPrefix = options?.roleIdToMention ? `<@&${options.roleIdToMention}> ${options.mentionText ?? "Ada tugas kelas baru!"}\n` : (options?.content ?? "");
 
   const embedPayload = {
     title: "📋 Pengumuman Tugas Kuliah",
