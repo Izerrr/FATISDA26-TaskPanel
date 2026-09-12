@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../types.js";
 import { reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
@@ -14,9 +8,7 @@ const command: Command = {
   name: "panel",
   category: "academic",
   description: "Tautan cepat dan ringkasan status FATISDA26 TaskPanel",
-  data: new SlashCommandBuilder()
-    .setName("panel")
-    .setDescription("Tautan cepat dan ringkasan status FATISDA26 TaskPanel"),
+  data: new SlashCommandBuilder().setName("panel").setDescription("Tautan cepat dan ringkasan status FATISDA26 TaskPanel"),
 
   async run(_client, context) {
     try {
@@ -32,10 +24,7 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setTitle("🎓 FATISDA26 TaskPanel Web")
         .setColor(BRAND_COLOR)
-        .setDescription(
-          "TaskPanel adalah platform akademik terintegrasi untuk mahasiswa Informatika & Sains Data FATISDA UNS Angkatan 2024.\n" +
-            "Kelola tugas, sinkronisasi jadwal kuliah otomatis, dan kolaborasi dalam satu tempat."
-        )
+        .setDescription("TaskPanel adalah platform akademik terintegrasi untuk mahasiswa Informatika & Sains Data FATISDA UNS Angkatan 2024.\n" + "Kelola tugas, sinkronisasi jadwal kuliah otomatis, dan kolaborasi dalam satu tempat.")
         .addFields(
           {
             name: "📌 Tugas Aktif",
@@ -51,20 +40,14 @@ const command: Command = {
             name: "🌐 Web Dashboard",
             value: "[taskpanel.ftsduaenam.web.id](https://taskpanel.ftsduaenam.web.id)",
             inline: false,
-          }
+          },
         )
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
-      const dashboardBtn = new ButtonBuilder()
-        .setLabel("Buka Dashboard")
-        .setStyle(ButtonStyle.Link)
-        .setURL("https://taskpanel.ftsduaenam.web.id");
+      const dashboardBtn = new ButtonBuilder().setLabel("Buka Dashboard").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id");
 
-      const scheduleBtn = new ButtonBuilder()
-        .setLabel("Lihat Jadwal Kuliah")
-        .setStyle(ButtonStyle.Link)
-        .setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
+      const scheduleBtn = new ButtonBuilder().setLabel("Lihat Jadwal Kuliah").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(dashboardBtn, scheduleBtn);
 

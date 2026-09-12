@@ -1,12 +1,4 @@
-import {
-  Client,
-  Collection,
-  SlashCommandBuilder,
-  SlashCommandOptionsOnlyBuilder,
-  SlashCommandSubcommandsOnlyBuilder,
-  ChatInputCommandInteraction,
-  Message,
-} from "discord.js";
+import { Client, Collection, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder, ChatInputCommandInteraction, Message } from "discord.js";
 
 /**
  * Every command in this bot is hybrid: it responds to both a slash

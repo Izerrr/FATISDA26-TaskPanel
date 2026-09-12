@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command, Kelas, TaskScope, TaskStatus } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
@@ -24,13 +18,7 @@ const command: Command = {
         .setName("kelas")
         .setDescription("Filter berdasarkan kelas (A/B/C/D/E)")
         .setRequired(false)
-        .addChoices(
-          { name: "Kelas A", value: "A" },
-          { name: "Kelas B", value: "B" },
-          { name: "Kelas C", value: "C" },
-          { name: "Kelas D", value: "D" },
-          { name: "Kelas E", value: "E" }
-        )
+        .addChoices({ name: "Kelas A", value: "A" }, { name: "Kelas B", value: "B" }, { name: "Kelas C", value: "C" }, { name: "Kelas D", value: "D" }, { name: "Kelas E", value: "E" }),
     )
     .addStringOption((option) =>
       option
@@ -43,33 +31,19 @@ const command: Command = {
           { name: "In Progress", value: "IN_PROGRESS" },
           { name: "Need Review", value: "NEED_REVIEW" },
           { name: "Selesai (Done)", value: "DONE" },
-          { name: "Semua Status", value: "ALL" }
-        )
+          { name: "Semua Status", value: "ALL" },
+        ),
     )
     .addStringOption((option) =>
-      option
-        .setName("scope")
-        .setDescription("Filter tipe tugas")
-        .setRequired(false)
-        .addChoices(
-          { name: "Semua Tugas", value: "ALL" },
-          { name: "Tugas Kelas", value: "CLASS" },
-          { name: "Tugas Personal", value: "PERSONAL" }
-        )
+      option.setName("scope").setDescription("Filter tipe tugas").setRequired(false).addChoices({ name: "Semua Tugas", value: "ALL" }, { name: "Tugas Kelas", value: "CLASS" }, { name: "Tugas Personal", value: "PERSONAL" }),
     ),
 
   async run(_client, context, args) {
-    const selectedKelas = isSlash(context)
-      ? context.options.getString("kelas")
-      : args[0]?.toUpperCase();
+    const selectedKelas = isSlash(context) ? context.options.getString("kelas") : args[0]?.toUpperCase();
 
-    const selectedStatus = isSlash(context)
-      ? context.options.getString("status") ?? "ACTIVE"
-      : "ACTIVE";
+    const selectedStatus = isSlash(context) ? (context.options.getString("status") ?? "ACTIVE") : "ACTIVE";
 
-    const selectedScope = isSlash(context)
-      ? context.options.getString("scope") ?? "ALL"
-      : "ALL";
+    const selectedScope = isSlash(context) ? (context.options.getString("scope") ?? "ALL") : "ALL";
 
     try {
       const whereClause: any = {};
@@ -104,10 +78,7 @@ const command: Command = {
 
       const totalCount = await prisma.task.count({ where: whereClause });
 
-      const linkButton = new ButtonBuilder()
-        .setLabel("Buka TaskPanel Web")
-        .setStyle(ButtonStyle.Link)
-        .setURL("https://taskpanel.ftsduaenam.web.id");
+      const linkButton = new ButtonBuilder().setLabel("Buka TaskPanel Web").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id");
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(linkButton);
 
@@ -136,20 +107,14 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setTitle("📋 TaskPanel — Daftar Tugas Kuliah")
         .setColor(BRAND_COLOR)
-        .setDescription(
-          `Menampilkan **${tasks.length}** dari **${totalCount}** tugas ${
-            selectedKelas ? `(Kelas ${selectedKelas})` : ""
-          }\n`
-        )
+        .setDescription(`Menampilkan **${tasks.length}** dari **${totalCount}** tugas ${selectedKelas ? `(Kelas ${selectedKelas})` : ""}\n`)
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
       for (const t of tasks) {
         const icon = statusIcons[t.status] || "📌";
         const courseStr = t.course ? `\`${t.course.code}\` ${t.course.name}` : "Umum";
-        const deadlineStr = t.dueDate
-          ? `<t:${Math.floor(t.dueDate.getTime() / 1000)}:R> (<t:${Math.floor(t.dueDate.getTime() / 1000)}:d>)`
-          : "Tidak ada deadline";
+        const deadlineStr = t.dueDate ? `<t:${Math.floor(t.dueDate.getTime() / 1000)}:R> (<t:${Math.floor(t.dueDate.getTime() / 1000)}:d>)` : "Tidak ada deadline";
         const scopeStr = t.scope === "CLASS" ? `Kelas ${t.kelas ?? "Semua"}` : "Personal";
 
         embed.addFields({

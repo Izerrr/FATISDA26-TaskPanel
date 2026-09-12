@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command, Kelas, Prodi } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
@@ -40,34 +34,22 @@ const command: Command = {
           { name: "Rabu", value: "3" },
           { name: "Kamis", value: "4" },
           { name: "Jumat", value: "5" },
-          { name: "Sabtu", value: "6" }
-        )
+          { name: "Sabtu", value: "6" },
+        ),
     )
     .addStringOption((option) =>
       option
         .setName("kelas")
         .setDescription("Filter berdasarkan kelas (A/B/C/D)")
         .setRequired(false)
-        .addChoices(
-          { name: "Kelas A", value: "A" },
-          { name: "Kelas B", value: "B" },
-          { name: "Kelas C", value: "C" },
-          { name: "Kelas D", value: "D" }
-        )
+        .addChoices({ name: "Kelas A", value: "A" }, { name: "Kelas B", value: "B" }, { name: "Kelas C", value: "C" }, { name: "Kelas D", value: "D" }),
     )
-    .addIntegerOption((option) =>
-      option
-        .setName("semester")
-        .setDescription("Semester perkuliahan (1-8, default: 2)")
-        .setRequired(false)
-        .setMinValue(1)
-        .setMaxValue(8)
-    ),
+    .addIntegerOption((option) => option.setName("semester").setDescription("Semester perkuliahan (1-8, default: 2)").setRequired(false).setMinValue(1).setMaxValue(8)),
 
   async run(_client, context, args) {
     const hariOpt = isSlash(context) ? context.options.getString("hari") : args[0]?.toUpperCase();
     const kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
-    const semesterOpt = isSlash(context) ? context.options.getInteger("semester") ?? 2 : 2;
+    const semesterOpt = isSlash(context) ? (context.options.getInteger("semester") ?? 2) : 2;
 
     try {
       // Hitung hari saat ini dalam zona waktu WIB (UTC+7)
@@ -118,10 +100,7 @@ const command: Command = {
         orderBy: [{ startTime: "asc" }, { kelas: "asc" }],
       });
 
-      const scheduleButton = new ButtonBuilder()
-        .setLabel("Buka Jadwal Lengkap Web")
-        .setStyle(ButtonStyle.Link)
-        .setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
+      const scheduleButton = new ButtonBuilder().setLabel("Buka Jadwal Lengkap Web").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(scheduleButton);
 
@@ -129,11 +108,7 @@ const command: Command = {
         const emptyEmbed = new EmbedBuilder()
           .setTitle(`📅 Jadwal Kuliah — ${dayLabel}`)
           .setColor(BRAND_COLOR)
-          .setDescription(
-            `🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** (Semester ${semesterOpt}${
-              kelasOpt ? `, Kelas ${kelasOpt}` : ""
-            }). Selamat beristirahat!`
-          )
+          .setDescription(`🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""}). Selamat beristirahat!`)
           .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
           .setTimestamp();
 
@@ -147,11 +122,7 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setTitle(`📅 Jadwal Perkuliahan — ${DAY_NAMES[targetDayNumber]} (Semester ${semesterOpt})`)
         .setColor(BRAND_COLOR)
-        .setDescription(
-          `Ditemukan **${schedules.length}** sesi kuliah ${
-            kelasOpt ? `untuk Kelas ${kelasOpt}` : ""
-          }\n`
-        )
+        .setDescription(`Ditemukan **${schedules.length}** sesi kuliah ${kelasOpt ? `untuk Kelas ${kelasOpt}` : ""}\n`)
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
