@@ -34,9 +34,7 @@ export default function TasksPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
 
-  const canTestNotify = roles.some((role) =>
-    ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(role),
-  );
+  const canTestNotify = roles.some((role) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(role));
 
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -236,26 +234,10 @@ export default function TasksPage() {
       </div>
 
       {/* Create Task */}
-      {selectedGuild && user && (
-        <NewTaskModal
-          open={createOpen}
-          guildId={selectedGuild}
-          courses={courses}
-          roles={roles}
-          userId={user.id}
-          onClose={() => setCreateOpen(false)}
-          onCreated={handleCreated}
-        />
-      )}
+      {selectedGuild && user && <NewTaskModal open={createOpen} guildId={selectedGuild} courses={courses} roles={roles} userId={user.id} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />}
 
       {/* Admin Testing Environment: Notifikasi Discord */}
-      {canTestNotify && (
-        <TaskNotificationTestModal
-          open={testOpen}
-          onClose={() => setTestOpen(false)}
-          currentUser={user}
-        />
-      )}
+      {canTestNotify && <TaskNotificationTestModal open={testOpen} onClose={() => setTestOpen(false)} currentUser={user} />}
     </DashboardFrame>
   );
 }

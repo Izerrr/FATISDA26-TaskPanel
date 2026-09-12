@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { syncCurrentUser } from "@/lib/discord";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,26 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: {
         id: token.discordId as string,
       },
     });
+
+    // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord
+    const forceSync = req.nextUrl.searchParams.get("sync") === "true";
+    if (forceSync || (user && !user.prodi)) {
+      try {
+        await syncCurrentUser(token.discordId as string);
+        user = await prisma.user.findUnique({
+          where: {
+            id: token.discordId as string,
+          },
+        });
+      } catch (syncErr) {
+        console.warn("[GET /api/me] Auto-sync profil gagal:", syncErr);
+      }
+    }
 
     if (!user) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });

@@ -101,7 +101,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   const roleLabels = getRoleLabels(user);
 
   async function handleSync() {
-    if (!guildId || syncing) {
+    if (syncing) {
       return;
     }
 
@@ -109,17 +109,30 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       setSyncing(true);
       setSyncMessage("");
 
-      const response = await fetch(`/api/guilds/${guildId}/sync`, {
+      // 1. Sync akun profil sendiri langsung dari Discord
+      const meResponse = await fetch("/api/me/sync", {
         method: "POST",
       });
 
-      const data = await response.json();
+      const meData = await meResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.error ?? "Sinkronisasi gagal.");
+      // 2. Jika ada guildId, coba sync seluruh member server juga
+      if (guildId) {
+        await fetch(`/api/guilds/${guildId}/sync`, {
+          method: "POST",
+        }).catch(() => null);
       }
 
-      setSyncMessage(`${data.syncedMembers ?? 0} anggota disinkronkan.`);
+      if (!meResponse.ok) {
+        throw new Error(meData.error ?? "Sinkronisasi gagal.");
+      }
+
+      const prodiName = meData.user?.prodi ? meData.user.prodi.replace(/_/g, " ") : null;
+      if (prodiName) {
+        setSyncMessage(`Profil tersinkron: ${prodiName}${meData.user.kelas ? ` Kelas ${meData.user.kelas}` : ""}`);
+      } else {
+        setSyncMessage("Profil diperbarui dari Discord.");
+      }
 
       window.location.reload();
     } catch (error) {
@@ -222,7 +235,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         <button
           type="button"
           onClick={handleSync}
-          disabled={!guildId || syncing}
+          disabled={syncing}
           className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-liquid-accent/30 hover:bg-liquid-accent/5 hover:text-liquid-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />

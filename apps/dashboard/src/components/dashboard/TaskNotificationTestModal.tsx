@@ -54,9 +54,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
   const [prodi, setProdi] = useState<Prodi>((currentUser?.prodi as Prodi) || "INFORMATIKA");
   const [kelas, setKelas] = useState<string>(currentUser?.kelas || "A");
   const [title, setTitle] = useState("Simulasi Pengujian Notifikasi Tugas");
-  const [description, setDescription] = useState(
-    "Ini adalah pesan pengujian dari Admin Testing Environment untuk memastikan routing notifikasi Discord dan mention role berjalan dengan sempurna.",
-  );
+  const [description, setDescription] = useState("Ini adalah pesan pengujian dari Admin Testing Environment untuk memastikan routing notifikasi Discord dan mention role berjalan dengan sempurna.");
   const [includePing, setIncludePing] = useState(true);
 
   const [loading, setLoading] = useState(false);
@@ -109,20 +107,12 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-bold text-liquid-text">Admin Testing Environment</h2>
-                <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
-                  Simulasi
-                </span>
+                <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">Simulasi</span>
               </div>
-              <p className="mt-0.5 text-xs text-liquid-text-secondary">
-                Uji coba perutean notifikasi Discord & mention role tanpa membuat entri di database.
-              </p>
+              <p className="mt-0.5 text-xs text-liquid-text-secondary">Uji coba perutean notifikasi Discord & mention role tanpa membuat entri di database.</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          >
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -132,9 +122,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
           <form id="test-notify-form" onSubmit={handleSendTest} className="space-y-4">
             {/* Target Program Studi */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-liquid-text">
-                Target Program Studi
-              </label>
+              <label className="mb-1.5 block text-xs font-semibold text-liquid-text">Target Program Studi</label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {PRODI_LIST.map((item) => {
                   const isSelected = prodi === item.value;
@@ -144,9 +132,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                       type="button"
                       onClick={() => setProdi(item.value)}
                       className={`rounded-xl border px-3 py-2.5 text-left text-xs font-semibold transition ${
-                        isSelected
-                          ? "border-violet-600 bg-violet-50/70 text-violet-700 shadow-sm"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        isSelected ? "border-violet-600 bg-violet-50/70 text-violet-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
                       {item.label}
@@ -158,9 +144,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
 
             {/* Target Kelas */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-liquid-text">
-                Target Kelas
-              </label>
+              <label className="mb-1.5 block text-xs font-semibold text-liquid-text">Target Kelas</label>
               <div className="flex flex-wrap gap-2">
                 {KELAS_LIST.map((k) => {
                   const isSelected = kelas === k;
@@ -169,11 +153,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                       key={k}
                       type="button"
                       onClick={() => setKelas(k)}
-                      className={`h-9 w-12 rounded-xl text-xs font-bold transition ${
-                        isSelected
-                          ? "bg-violet-600 text-white shadow-sm"
-                          : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      }`}
+                      className={`h-9 w-12 rounded-xl text-xs font-bold transition ${isSelected ? "bg-violet-600 text-white shadow-sm" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
                     >
                       {k}
                     </button>
@@ -214,17 +194,10 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
             {/* Role Mention Toggle */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5">
               <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includePing}
-                  onChange={(e) => setIncludePing(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
-                />
+                <input type="checkbox" checked={includePing} onChange={(e) => setIncludePing(e.target.checked)} className="mt-0.5 h-4 w-4 rounded text-violet-600 focus:ring-violet-500" />
                 <div className="text-xs">
                   <span className="font-semibold text-liquid-text">Mention / Ping Role Discord Kelas</span>
-                  <p className="mt-0.5 text-liquid-text-secondary">
-                    Jika dicentang, pengujian akan mencoba men-tag role spesifik kelas tersebut (misal role Kelas {kelas}) di Discord.
-                  </p>
+                  <p className="mt-0.5 text-liquid-text-secondary">Jika dicentang, pengujian akan mencoba men-tag role spesifik kelas tersebut (misal role Kelas {kelas}) di Discord.</p>
                 </div>
               </label>
             </div>
@@ -243,13 +216,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
 
           {/* Diagnostic Result */}
           {result && (
-            <div
-              className={`rounded-2xl border p-4 text-xs ${
-                result.success
-                  ? "border-emerald-200 bg-emerald-50/50 text-emerald-900"
-                  : "border-red-200 bg-red-50/50 text-red-900"
-              }`}
-            >
+            <div className={`rounded-2xl border p-4 text-xs ${result.success ? "border-emerald-200 bg-emerald-50/50 text-emerald-900" : "border-red-200 bg-red-50/50 text-red-900"}`}>
               <div className="flex items-center gap-2 font-bold">
                 {result.success ? (
                   <>
@@ -264,11 +231,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                 )}
               </div>
 
-              {result.error && (
-                <div className="mt-2 rounded-xl bg-red-100/70 p-2.5 font-mono text-[11px] text-red-800 break-words">
-                  {result.error}
-                </div>
-              )}
+              {result.error && <div className="mt-2 rounded-xl bg-red-100/70 p-2.5 font-mono text-[11px] text-red-800 break-words">{result.error}</div>}
 
               {result.diagnostics && (
                 <div className="mt-3 space-y-2 border-t border-slate-200/60 pt-3">
@@ -284,11 +247,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                       <span className="text-[10px] text-slate-400 block font-medium">Metode</span>
                       <span
                         className={`inline-block font-mono text-[11px] font-bold ${
-                          result.diagnostics.deliveryMethod === "BOT_REST_API"
-                            ? "text-blue-600"
-                            : result.diagnostics.deliveryMethod === "WEBHOOK"
-                              ? "text-violet-600"
-                              : "text-amber-600"
+                          result.diagnostics.deliveryMethod === "BOT_REST_API" ? "text-blue-600" : result.diagnostics.deliveryMethod === "WEBHOOK" ? "text-violet-600" : "text-amber-600"
                         }`}
                       >
                         {result.diagnostics.deliveryMethod}
@@ -297,16 +256,12 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
 
                     <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
                       <span className="text-[10px] text-slate-400 block font-medium">Channel ID</span>
-                      <span className="font-mono text-[11px] text-slate-700">
-                        {result.diagnostics.channel.maskedId ?? "Tidak diset"}
-                      </span>
+                      <span className="font-mono text-[11px] text-slate-700">{result.diagnostics.channel.maskedId ?? "Tidak diset"}</span>
                     </div>
 
                     <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
                       <span className="text-[10px] text-slate-400 block font-medium">Webhook URL</span>
-                      <span className="font-mono text-[11px] text-slate-700 truncate block">
-                        {result.diagnostics.webhook.maskedUrl ?? "Tidak diset"}
-                      </span>
+                      <span className="font-mono text-[11px] text-slate-700 truncate block">{result.diagnostics.webhook.maskedUrl ?? "Tidak diset"}</span>
                     </div>
                   </div>
 
@@ -335,7 +290,8 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                     <div className="rounded-xl bg-amber-50 p-2.5 text-[11px] text-amber-800 border border-amber-200">
                       💡 <strong>Panduan:</strong> Atur environment variable channel/webhook di <code>.env</code> VPS, contoh:
                       <code className="block mt-1 font-mono text-[10px] bg-white/70 p-1.5 rounded">
-                        DISCORD_CHANNEL_ID_{result.diagnostics.targetProdi}=1348...<br/>
+                        DISCORD_CHANNEL_ID_{result.diagnostics.targetProdi}=1348...
+                        <br />
                         atau DISCORD_WEBHOOK_URL_{result.diagnostics.targetProdi}=https://discord.com/api/webhooks/...
                       </code>
                     </div>
@@ -354,12 +310,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
-            >
+            <button type="button" onClick={onClose} disabled={loading} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50">
               Tutup
             </button>
 

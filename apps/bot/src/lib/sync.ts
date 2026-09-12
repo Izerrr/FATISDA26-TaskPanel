@@ -42,15 +42,27 @@ export function mappedRoles(discordRoles: string[], isGuildOwner: boolean): Task
 }
 
 export function mappedProdi(discordRoles: string[]): Prodi | null {
-  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN"))) {
+  const psdkuRoleId =
+    getRoleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN") ||
+    getRoleId("DISCORD_ROLE_PSDKU_KEBUMEN") ||
+    getRoleId("DISCORD_ROLE_PSDKU");
+  if (hasRole(discordRoles, psdkuRoleId)) {
     return "INFORMATIKA_PSDKU_KEBUMEN";
   }
 
-  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_INFORMATIKA"))) {
+  const inforRoleId =
+    getRoleId("DISCORD_ROLE_INFORMATIKA") ||
+    getRoleId("DISCORD_ROLE_INFOR") ||
+    getRoleId("DISCORD_ROLE_IF");
+  if (hasRole(discordRoles, inforRoleId)) {
     return "INFORMATIKA";
   }
 
-  if (hasRole(discordRoles, getRoleId("DISCORD_ROLE_SAINS_DATA"))) {
+  const sainsDataRoleId =
+    getRoleId("DISCORD_ROLE_SAINS_DATA") ||
+    getRoleId("DISCORD_ROLE_SAINSDATA") ||
+    getRoleId("DISCORD_ROLE_SD");
+  if (hasRole(discordRoles, sainsDataRoleId)) {
     return "SAINS_DATA";
   }
 
@@ -58,17 +70,19 @@ export function mappedProdi(discordRoles: string[]): Prodi | null {
 }
 
 export function mappedKelas(discordRoles: string[]): Kelas | null {
-  const candidates: [Kelas, string][] = [
-    ["A", "DISCORD_ROLE_KELAS_A"],
-    ["B", "DISCORD_ROLE_KELAS_B"],
-    ["C", "DISCORD_ROLE_KELAS_C"],
-    ["D", "DISCORD_ROLE_KELAS_D"],
-    ["E", "DISCORD_ROLE_KELAS_E"],
+  const candidates: [Kelas, string[]][] = [
+    ["A", ["DISCORD_ROLE_KELAS_A", "DISCORD_ROLE_A", "DISCORD_ROLE_INFORMATIKA_A", "DISCORD_ROLE_SAINS_DATA_A"]],
+    ["B", ["DISCORD_ROLE_KELAS_B", "DISCORD_ROLE_B", "DISCORD_ROLE_INFORMATIKA_B", "DISCORD_ROLE_SAINS_DATA_B"]],
+    ["C", ["DISCORD_ROLE_KELAS_C", "DISCORD_ROLE_C", "DISCORD_ROLE_INFORMATIKA_C", "DISCORD_ROLE_SAINS_DATA_C"]],
+    ["D", ["DISCORD_ROLE_KELAS_D", "DISCORD_ROLE_D", "DISCORD_ROLE_INFORMATIKA_D", "DISCORD_ROLE_SAINS_DATA_D"]],
+    ["E", ["DISCORD_ROLE_KELAS_E", "DISCORD_ROLE_E", "DISCORD_ROLE_INFORMATIKA_E", "DISCORD_ROLE_SAINS_DATA_E"]],
   ];
 
-  for (const [kelas, envKey] of candidates) {
-    if (hasRole(discordRoles, getRoleId(envKey))) {
-      return kelas;
+  for (const [kelas, envKeys] of candidates) {
+    for (const key of envKeys) {
+      if (hasRole(discordRoles, getRoleId(key))) {
+        return kelas;
+      }
     }
   }
 
