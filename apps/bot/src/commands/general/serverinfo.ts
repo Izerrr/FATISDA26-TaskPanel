@@ -5,9 +5,9 @@ import { AUTHOR_ICON, AUTHOR_NAME, BRAND_COLOR, FOOTER_ICON, FOOTER_TEXT } from 
 
 const command: Command = {
   name: "serverinfo",
-  description: "Menampilkan statistik dan informasi server IF26",
+  description: "Menampilkan statistik dan informasi server FATISDA26",
   category: "general",
-  data: new SlashCommandBuilder().setName("serverinfo").setDescription("Menampilkan statistik dan informasi server IF26"),
+  data: new SlashCommandBuilder().setName("serverinfo").setDescription("Menampilkan statistik dan informasi server FATISDA26"),
 
   async run(client, context) {
     const guild = context.guild;

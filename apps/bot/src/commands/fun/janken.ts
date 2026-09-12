@@ -55,7 +55,7 @@ const command: Command = {
         .setAuthor({ name: AUTHOR_NAME, iconURL: AUTHOR_ICON })
         .setTitle("Hasil Janken!")
         .setThumbnail(FOOTER_ICON)
-        .addFields({ name: "Pilihan kamu", value: playerChoice }, { name: "Pilihan IF26 Helper", value: me })
+        .addFields({ name: "Pilihan kamu", value: playerChoice }, { name: "Pilihan FATISDA26 Helper", value: me })
         .setColor(BRAND_COLOR)
         .setTimestamp()
         .setFooter({ text: `${FOOTER_TEXT} | Command requested by: ${author.tag}`, iconURL: FOOTER_ICON });

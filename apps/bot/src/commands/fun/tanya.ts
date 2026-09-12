@@ -14,17 +14,17 @@ const ANSWERS = [
   "Kayaknya nggak deh...",
   "Sudah jelas iya!",
   "50/50, siapa tau?",
-  "IF26 Helper rasa iya!",
-  "IF26 Helper rasa tidak...",
+  "FATISDA26 Helper rasa iya!",
+  "FATISDA26 Helper rasa tidak...",
 ];
 
 const command: Command = {
   name: "tanya",
   category: "fun",
-  description: "Tanya IF26 Helper pertanyaan apapun!",
+  description: "Tanya FATISDA26 Helper pertanyaan apapun!",
   data: new SlashCommandBuilder()
     .setName("tanya")
-    .setDescription("Tanya IF26 Helper pertanyaan apapun!")
+    .setDescription("Tanya FATISDA26 Helper pertanyaan apapun!")
     .addStringOption((option) => option.setName("pertanyaan").setDescription("Pertanyaan yang ingin kamu tanyakan").setRequired(true)),
 
   async run(client, context, args) {
@@ -43,8 +43,8 @@ const command: Command = {
     const embed = new EmbedBuilder()
       .setColor(BRAND_COLOR)
       .setAuthor({ name: AUTHOR_NAME, iconURL: AUTHOR_ICON })
-      .setTitle("🔮 Tanya IF26 Helper")
-      .addFields({ name: "Pertanyaan", value: question }, { name: "Jawaban IF26 Helper", value: answer })
+      .setTitle("🔮 Tanya FATISDA26 Helper")
+      .addFields({ name: "Pertanyaan", value: question }, { name: "Jawaban FATISDA26 Helper", value: answer })
       .setTimestamp()
       .setFooter({ text: `${FOOTER_TEXT} | Command requested by: ${author.tag}`, iconURL: FOOTER_ICON });
 
