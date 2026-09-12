@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ClipboardList, Filter, Plus, Search } from "lucide-react";
+import { ClipboardList, Filter, FlaskConical, Plus, Search } from "lucide-react";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
+import { TaskNotificationTestModal } from "@/components/dashboard/TaskNotificationTestModal";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { NewTaskModal } from "@/components/kanban/NewTaskModal";
 
@@ -31,6 +32,11 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [courseFilter, setCourseFilter] = useState("ALL");
   const [createOpen, setCreateOpen] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
+
+  const canTestNotify = roles.some((role) =>
+    ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(role),
+  );
 
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -100,15 +106,29 @@ export default function TasksPage() {
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              disabled={!selectedGuild}
-              className="flex items-center justify-center gap-2 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-liquid-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" />
-              Tugas Baru
-            </button>
+            <div className="flex items-center gap-2.5">
+              {canTestNotify && (
+                <button
+                  type="button"
+                  onClick={() => setTestOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50/80 px-3.5 py-2.5 text-sm font-semibold text-violet-700 shadow-sm transition hover:bg-violet-100/80"
+                  title="Admin Testing Environment: Uji Notifikasi Discord"
+                >
+                  <FlaskConical className="h-4 w-4" />
+                  <span className="hidden sm:inline">Uji Notifikasi</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                disabled={!selectedGuild}
+                className="flex items-center justify-center gap-2 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-liquid-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                Tugas Baru
+              </button>
+            </div>
           </div>
         </section>
 
@@ -216,7 +236,26 @@ export default function TasksPage() {
       </div>
 
       {/* Create Task */}
-      {selectedGuild && user && <NewTaskModal open={createOpen} guildId={selectedGuild} courses={courses} roles={roles} userId={user.id} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />}
+      {selectedGuild && user && (
+        <NewTaskModal
+          open={createOpen}
+          guildId={selectedGuild}
+          courses={courses}
+          roles={roles}
+          userId={user.id}
+          onClose={() => setCreateOpen(false)}
+          onCreated={handleCreated}
+        />
+      )}
+
+      {/* Admin Testing Environment: Notifikasi Discord */}
+      {canTestNotify && (
+        <TaskNotificationTestModal
+          open={testOpen}
+          onClose={() => setTestOpen(false)}
+          currentUser={user}
+        />
+      )}
     </DashboardFrame>
   );
 }

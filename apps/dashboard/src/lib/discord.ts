@@ -322,7 +322,14 @@ export interface DiscordNotificationOptions {
   kelas?: string | null;
 }
 
-export async function sendDiscordNotification(_guildId: string, embedDescription: string, options?: DiscordNotificationOptions) {
+export interface DiscordNotificationResult {
+  success: boolean;
+  method: "BOT_REST_API" | "WEBHOOK" | "NONE";
+  status?: number;
+  error?: string;
+}
+
+export async function sendDiscordNotification(_guildId: string, embedDescription: string, options?: DiscordNotificationOptions): Promise<DiscordNotificationResult> {
   const prodi = options?.prodi;
   const kelas = options?.kelas;
 
@@ -370,11 +377,19 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
       });
 
       if (response.ok) {
-        return;
+        return { success: true, method: "BOT_REST_API", status: response.status };
       }
-      console.warn("[Discord Bot Message] Gagal kirim via bot, mencoba webhook:", response.status, await response.text());
+      const errText = await response.text();
+      console.warn("[Discord Bot Message] Gagal kirim via bot:", response.status, errText);
+
+      if (!webhookUrl) {
+        return { success: false, method: "BOT_REST_API", status: response.status, error: `Discord Bot API (${response.status}): ${errText}` };
+      }
     } catch (error) {
       console.error("[Discord Bot Message]", error);
+      if (!webhookUrl) {
+        return { success: false, method: "BOT_REST_API", error: error instanceof Error ? error.message : String(error) };
+      }
     }
   }
 
@@ -394,11 +409,21 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
         }),
       });
 
-      if (!response.ok) {
-        console.error("[Discord Webhook]", response.status, await response.text());
+      if (response.ok) {
+        return { success: true, method: "WEBHOOK", status: response.status };
       }
+      const errText = await response.text();
+      console.error("[Discord Webhook]", response.status, errText);
+      return { success: false, method: "WEBHOOK", status: response.status, error: `Discord Webhook (${response.status}): ${errText}` };
     } catch (error) {
       console.error("[Discord Webhook]", error);
+      return { success: false, method: "WEBHOOK", error: error instanceof Error ? error.message : String(error) };
     }
   }
+
+  return {
+    success: false,
+    method: "NONE",
+    error: "Tidak ada DISCORD_CHANNEL_ID (dengan DISCORD_BOT_TOKEN) atau DISCORD_WEBHOOK_URL yang terkonfigurasi untuk prodi/kelas ini.",
+  };
 }
