@@ -9,9 +9,7 @@ export const execute = async (client: ExtendedClient) => {
 
   try {
     const targetGuildId = process.env.DISCORD_GUILD_ID;
-    const guild = targetGuildId
-      ? client.guilds.cache.get(targetGuildId) ?? (await client.guilds.fetch(targetGuildId).catch(() => null))
-      : client.guilds.cache.first();
+    const guild = targetGuildId ? (client.guilds.cache.get(targetGuildId) ?? (await client.guilds.fetch(targetGuildId).catch(() => null))) : client.guilds.cache.first();
 
     if (guild) {
       console.log(`🔄 Menyinkronkan database dengan server: ${guild.name}...`);

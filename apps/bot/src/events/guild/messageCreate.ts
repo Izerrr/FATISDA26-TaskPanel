@@ -43,9 +43,7 @@ export const execute = async (message: Message, client: ExtendedClient) => {
   const cmdName = args.shift()?.toLowerCase();
   if (!cmdName) return;
 
-  const command =
-    client.commands.get(cmdName) ??
-    client.commands.find((c) => c.aliases?.includes(cmdName) ?? false);
+  const command = client.commands.get(cmdName) ?? client.commands.find((c) => c.aliases?.includes(cmdName) ?? false);
 
   if (!command) return;
 

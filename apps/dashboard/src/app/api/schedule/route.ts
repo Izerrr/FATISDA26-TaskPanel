@@ -143,6 +143,13 @@ export async function GET(request: NextRequest) {
         semester: true,
         courseId: true,
         courseName: true,
+        course: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
+        },
         day: true,
         startTime: true,
         endTime: true,

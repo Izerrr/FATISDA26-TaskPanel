@@ -7,10 +7,7 @@ const command: Command = {
   name: "sync",
   category: "academic",
   description: "Sinkronisasi seluruh data anggota, role, dan kelas Discord ke database TaskPanel",
-  data: new SlashCommandBuilder()
-    .setName("sync")
-    .setDescription("Sinkronisasi seluruh data anggota dan role Discord ke database TaskPanel")
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+  data: new SlashCommandBuilder().setName("sync").setDescription("Sinkronisasi seluruh data anggota dan role Discord ke database TaskPanel").setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async run(_client, context) {
     const guild = context.guild;

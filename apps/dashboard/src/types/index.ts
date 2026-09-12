@@ -49,6 +49,7 @@ export interface Schedule {
 
   room: string | null;
   lecturer: string | null;
+  rawClassCode?: string | null;
 
   course?: {
     id: string;

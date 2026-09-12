@@ -54,9 +54,9 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
                 </div>
 
                 <div className="min-w-0 flex-1 border-l border-slate-100 pl-4">
-                  <p className="truncate text-sm font-semibold text-liquid-text">{schedule.course?.name ?? "Mata kuliah"}</p>
+                  <p className="truncate text-sm font-semibold text-liquid-text">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
 
-                  {schedule.course?.code && <p className="mt-1 text-[11px] text-liquid-text-secondary">{schedule.course.code}</p>}
+                  {(schedule.course?.code || schedule.rawClassCode) && <p className="mt-1 text-[11px] text-liquid-text-secondary">{schedule.course?.code ?? schedule.rawClassCode}</p>}
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                     {schedule.room && (

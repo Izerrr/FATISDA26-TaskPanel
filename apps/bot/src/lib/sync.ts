@@ -100,9 +100,7 @@ export async function syncMemberToDatabase(member: GuildMember) {
   try {
     const discordRoles = member.roles.cache.map((r) => r.id);
     const isGuildOwner = member.guild.ownerId === member.user.id;
-    const avatar = member.user.avatar
-      ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png`
-      : null;
+    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
 
     await prisma.user.upsert({
       where: { id: member.user.id },
