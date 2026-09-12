@@ -49,11 +49,28 @@ export async function loadCommands(client: ExtendedClient) {
 
   const rest = new REST().setToken(process.env.DISCORD_BOT_TOKEN!);
   try {
+    const clientId = process.env.DISCORD_CLIENT_ID!;
     console.log(`🔄 Registering ${slashCommandsData.length} slash commands to Discord API...`);
-    await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
+
+    // 1. Daftarkan langsung ke server (Guilds) agar langsung muncul seketika (instant, tanpa delay 1 jam)
+    try {
+      const guilds = (await rest.get(Routes.userGuilds())) as Array<{ id: string; name: string }>;
+      for (const g of guilds) {
+        console.log(`⚡ Registering instant slash commands to guild: ${g.name} (${g.id})...`);
+        await rest.put(Routes.applicationGuildCommands(clientId, g.id), {
+          body: slashCommandsData,
+        });
+      }
+      console.log("✅ Guild Slash Commands registered instantly!");
+    } catch (guildError) {
+      console.warn("⚠️  Could not register guild-specific commands:", guildError);
+    }
+
+    // 2. Daftarkan secara Global sebagai fallback
+    await rest.put(Routes.applicationCommands(clientId), {
       body: slashCommandsData,
     });
-    console.log("✅ Slash Commands registered successfully!");
+    console.log("✅ Global Slash Commands registered successfully!");
   } catch (error) {
     console.error("❌ Failed to register commands:", error);
   }
