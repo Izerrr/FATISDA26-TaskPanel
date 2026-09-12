@@ -139,36 +139,45 @@ function CreateTaskModal({ open, guildId, courses, roles, onClose, onCreated }: 
           {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
 
           <div>
-            <label className="label mb-2 block">Judul</label>
+            <label className="label mb-2 block font-semibold text-liquid-text">Judul Tugas</label>
 
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
-              placeholder="Contoh: Laporan Praktikum"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent"
+              placeholder="Contoh: Laporan Praktikum Modul 2"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="label mb-2 block">Mata Kuliah</label>
+              <label className="label mb-2 block font-semibold text-liquid-text">Mata Kuliah</label>
 
-              <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent">
+              <select
+                value={courseId}
+                onChange={(event) => setCourseId(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
+              >
                 <option value="">Tanpa mata kuliah</option>
 
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    {course.code} — {course.name}
+                    {course.code} ({course.name})
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="label mb-2 block">Deadline</label>
+              <label className="label mb-2 block font-semibold text-liquid-text">Deadline Pengumpulan</label>
 
-              <input type="datetime-local" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
+              <input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
+              />
             </div>
           </div>
 
@@ -231,7 +240,7 @@ export function DashboardShell() {
       <section>
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <h1 className="text-2xl font-bold tracking-tight text-liquid-text">Halo, {user?.username ?? "Mahasiswa"}!</h1>
-          <p className="text-xs font-medium text-liquid-text-tertiary">Semester Aktif: {user?.semester ?? 2} · Tahun Ajaran 2024/2025</p>
+          <p className="text-xs font-medium text-liquid-text-tertiary">Semester Aktif: {user?.semester ?? 2}</p>
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">

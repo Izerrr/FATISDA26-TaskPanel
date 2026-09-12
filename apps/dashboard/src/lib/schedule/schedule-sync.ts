@@ -102,29 +102,52 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
       .filter(([, count]) => count > 1)
       .map(([key, count]) => ({ key, count }));
 
-    console.log("[SCHEDULE DUPLICATES]", duplicates);
+    /*
+     * Cari entitas Course yang sudah terdaftar untuk prodi ini
+     * agar jadwal otomatis terhubung ke detail matkul.
+     */
+    const existingCourses = await tx.course.findMany({
+      where: {
+        prodi,
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        kelas: true,
+      },
+    });
+
+    function findMatchingCourseId(courseName: string, classCode: string): string | null {
+      const normalizedTarget = courseName.trim().toLowerCase();
+
+      // Coba cari yang cocok nama dan kelasnya (jika course punya spesifikasi kelas)
+      const exactMatch = existingCourses.find((c) => c.name.trim().toLowerCase() === normalizedTarget && (c.kelas === null || c.kelas === classCode));
+
+      if (exactMatch) {
+        return exactMatch.id;
+      }
+
+      // Fallback: cari yang cocok namanya saja
+      const nameMatch = existingCourses.find((c) => c.name.trim().toLowerCase() === normalizedTarget);
+
+      return nameMatch ? nameMatch.id : null;
+    }
 
     if (databaseEntries.length > 0) {
       await tx.schedule.createMany({
         data: databaseEntries.map((entry) => ({
           prodi: entry.prodi,
           kelas: entry.classCode,
-
           semester: entry.semester,
-
           courseName: entry.courseName,
-          courseId: null,
-
+          courseId: findMatchingCourseId(entry.courseName, entry.classCode),
           day: DAY_TO_NUMBER[entry.day],
-
           startTime: entry.startTime,
           endTime: entry.endTime,
-
           room: entry.room || null,
           lecturer: entry.lecturer,
-
           rawClassCode: entry.rawClassCode || null,
-
           markers: entry.markers,
           sourceSlots: entry.sourceSlots,
         })),
