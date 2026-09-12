@@ -39,13 +39,19 @@ const command: Command = {
     ),
 
   async run(_client, context, args) {
-    const selectedKelas = isSlash(context) ? context.options.getString("kelas") : args[0]?.toUpperCase();
-
+    const authorId = isSlash(context) ? context.user.id : context.author.id;
+    let selectedKelas = isSlash(context) ? context.options.getString("kelas") : args[0]?.toUpperCase();
     const selectedStatus = isSlash(context) ? (context.options.getString("status") ?? "ACTIVE") : "ACTIVE";
-
     const selectedScope = isSlash(context) ? (context.options.getString("scope") ?? "ALL") : "ALL";
 
     try {
+      if (!selectedKelas) {
+        const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
+        if (dbUser?.kelas) {
+          selectedKelas = dbUser.kelas;
+        }
+      }
+
       const whereClause: any = {};
 
       if (selectedKelas && ["A", "B", "C", "D", "E"].includes(selectedKelas)) {

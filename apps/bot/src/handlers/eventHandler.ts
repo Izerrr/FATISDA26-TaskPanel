@@ -22,7 +22,7 @@ export async function loadEvents(client: ExtendedClient) {
       // Pengecekan ekstra lapis untuk nangkep berbagai gaya export
       const event = eventModule.default?.default || eventModule.default || eventModule.event || eventModule;
 
-      const eventName = event?.name || event?.eventName;
+      const eventName = event?.name || event?.eventName || file.replace(/\.(ts|js)$/, "");
       const execFunc = event?.execute || event?.run;
 
       if (eventName && typeof execFunc === "function") {

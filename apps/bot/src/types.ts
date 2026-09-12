@@ -29,3 +29,4 @@ export type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 export type TaskScope = "PERSONAL" | "CLASS";
 export type Kelas = "A" | "B" | "C" | "D" | "E";
 export type Prodi = "INFORMATIKA" | "SAINS_DATA" | "INFORMATIKA_PSDKU_KEBUMEN";
+export type TaskPanelRole = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "ADMIN" | "OWNER";

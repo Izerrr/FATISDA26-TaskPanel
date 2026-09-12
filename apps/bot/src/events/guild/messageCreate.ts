@@ -4,6 +4,8 @@ import { AUTHOR_ICON, AUTHOR_NAME, BRAND_COLOR, FOOTER_ICON, FOOTER_TEXT } from 
 
 const PREFIX = "a!";
 
+export const name = "messageCreate";
+
 export const execute = async (message: Message, client: ExtendedClient) => {
   if (message.author.bot) return;
 

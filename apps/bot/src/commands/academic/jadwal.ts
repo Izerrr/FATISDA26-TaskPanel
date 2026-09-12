@@ -47,11 +47,23 @@ const command: Command = {
     .addIntegerOption((option) => option.setName("semester").setDescription("Semester perkuliahan (1-8, default: 2)").setRequired(false).setMinValue(1).setMaxValue(8)),
 
   async run(_client, context, args) {
+    const authorId = isSlash(context) ? context.user.id : context.author.id;
     const hariOpt = isSlash(context) ? context.options.getString("hari") : args[0]?.toUpperCase();
-    const kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
-    const semesterOpt = isSlash(context) ? (context.options.getInteger("semester") ?? 2) : 2;
+    let kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
+    let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : null;
 
     try {
+      if (!kelasOpt || semesterOpt === null) {
+        const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
+        if (!kelasOpt && dbUser?.kelas) {
+          kelasOpt = dbUser.kelas;
+        }
+        if (semesterOpt === null && dbUser?.semester) {
+          semesterOpt = dbUser.semester;
+        }
+      }
+      semesterOpt = semesterOpt ?? 2;
+
       // Hitung hari saat ini dalam zona waktu WIB (UTC+7)
       const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
       const currentJsDay = nowWib.getUTCDay(); // 0: Minggu, 1: Senin, ..., 6: Sabtu
