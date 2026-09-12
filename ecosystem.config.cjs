@@ -8,6 +8,8 @@ module.exports = {
         NODE_ENV: "production",
         DISCORD_BOT_TOKEN: "MTUzMDM5NjMwODIzMzI0Mzc3W.GTFhcN.styfanR6FG0LFueATqm6GqqSZ9lWMynW0pS3Ik",
         DISCORD_CLIENT_ID: "1530396308232343713",
+        DATABASE_URL: "postgresql://postgres.ummznagnzlejdknwnasy:bismillahinformatika@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true",
+        DIRECT_URL: "postgresql://postgres.ummznagnzlejdknwnasy:bismillahinformatika@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres",
       },
     },
   ],
