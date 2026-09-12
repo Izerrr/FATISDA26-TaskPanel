@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import type { Prodi, Kelas } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const STALE_AFTER_MS = 30 * 60 * 1000; // 30 menit
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -47,36 +48,44 @@ export async function GET() {
     }
 
     /*
-     * Jadwal membutuhkan tiga identitas akademik:
-     * - prodi
-     * - kelas
-     * - semester
+     * Baca parameter dari query URL jika disediakan (misal saat ganti tab semester di UI).
+     * Fallback ke profil user di DB, dan fallback semester default ke 2.
      */
-    if (!user.prodi || !user.kelas || !user.semester) {
+    const { searchParams } = new URL(request.url);
+    const prodiParam = searchParams.get("prodi") as Prodi | null;
+    const kelasParam = searchParams.get("kelas") as Kelas | null;
+    const semesterParam = searchParams.get("semester");
+
+    const prodi = prodiParam || user.prodi;
+    const kelas = kelasParam || user.kelas;
+    const parsedSemester = semesterParam ? parseInt(semesterParam, 10) : NaN;
+    const semester = !Number.isNaN(parsedSemester) ? parsedSemester : (user.semester ?? 2);
+
+    if (!prodi || !kelas) {
       return NextResponse.json({
         success: true,
         profile: {
           username: user.username,
-          prodi: user.prodi,
-          kelas: user.kelas,
-          semester: user.semester,
+          prodi,
+          kelas,
+          semester,
         },
         total: 0,
         entries: [],
-        message: "Prodi, kelas, atau semester pengguna belum terdeteksi.",
+        message: "Prodi atau kelas pengguna belum terdeteksi.",
       });
     }
 
     /*
      * Pastikan source spreadsheet untuk prodi ini tersedia.
      */
-    const source = getScheduleSource(user.prodi);
+    const source = getScheduleSource(prodi);
 
     if (!source) {
       return NextResponse.json(
         {
           success: false,
-          error: `Belum ada sumber jadwal untuk prodi ${user.prodi}.`,
+          error: `Belum ada sumber jadwal untuk prodi ${prodi}.`,
         },
         { status: 503 },
       );
@@ -88,7 +97,7 @@ export async function GET() {
     const scheduleSync = await prisma.scheduleSync.findUnique({
       where: {
         prodi_spreadsheetId_sheetGid: {
-          prodi: user.prodi,
+          prodi,
           spreadsheetId: source.spreadsheetId,
           sheetGid: source.gid,
         },
@@ -107,18 +116,17 @@ export async function GET() {
      * ambil versi terbaru dari Google Sheets.
      */
     if (isStale) {
-      await syncSchedule(user.prodi);
+      await syncSchedule(prodi);
     }
 
     /*
-     * Ambil hanya jadwal yang benar-benar milik
-     * kombinasi akademik pengguna.
+     * Ambil jadwal berdasarkan prodi, kelas, dan semester yang dipilih.
      */
     const schedules = await prisma.schedule.findMany({
       where: {
-        prodi: user.prodi,
-        kelas: user.kelas,
-        semester: user.semester,
+        prodi,
+        kelas,
+        semester,
       },
       orderBy: [
         {
@@ -150,9 +158,9 @@ export async function GET() {
       success: true,
       profile: {
         username: user.username,
-        prodi: user.prodi,
-        kelas: user.kelas,
-        semester: user.semester,
+        prodi,
+        kelas,
+        semester,
       },
       sync: {
         lastSyncedAt:
@@ -160,7 +168,7 @@ export async function GET() {
             await prisma.scheduleSync.findUnique({
               where: {
                 prodi_spreadsheetId_sheetGid: {
-                  prodi: user.prodi,
+                  prodi,
                   spreadsheetId: source.spreadsheetId,
                   sheetGid: source.gid,
                 },
