@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { Prodi, Kelas } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { syncCurrentUser } from "@/lib/discord";
 
 export const dynamic = "force-dynamic";
 
@@ -32,23 +33,44 @@ function isValidKelas(value: unknown): value is Kelas {
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getAuthedUser(req);
+    let user = await getAuthedUser(req);
 
     if (!user) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
+    }
+
+    if (!user.prodi) {
+      try {
+        await syncCurrentUser(user.id);
+        const refreshed = await prisma.user.findUnique({ where: { id: user.id } });
+        if (refreshed) user = refreshed;
+      } catch (err) {
+        console.warn("[GET /api/courses] Auto-sync profil gagal:", err);
+      }
     }
 
     const { searchParams } = new URL(req.url);
     const semesterParam = searchParams.get("semester");
     const targetSemester = semesterParam ? parseInt(semesterParam, 10) : (user.semester ?? 2);
 
+    const targetProdi = user.prodi ?? "INFORMATIKA";
+    const targetKelas = user.kelas;
+
     /*
      * Ambil courses resmi dari tabel Course
      */
     const dbCourses = await prisma.course.findMany({
       where: {
-        ...(user.prodi ? { prodi: user.prodi } : {}),
-        ...(user.kelas ? { OR: [{ kelas: user.kelas }, { kelas: null }] } : {}),
+        prodi: targetProdi,
+        ...(targetKelas
+          ? {
+              OR: [
+                { kelas: targetKelas },
+                { kelas: null },
+                { name: { contains: "Olahraga", mode: "insensitive" } },
+              ],
+            }
+          : {}),
       },
       include: {
         schedules: {
@@ -73,9 +95,16 @@ export async function GET(req: NextRequest) {
      */
     const activeSchedules = await prisma.schedule.findMany({
       where: {
-        ...(user.prodi ? { prodi: user.prodi } : {}),
-        ...(user.kelas ? { kelas: user.kelas } : {}),
+        prodi: targetProdi,
         semester: targetSemester,
+        ...(targetKelas
+          ? {
+              OR: [
+                { kelas: targetKelas },
+                { courseName: { contains: "Olahraga", mode: "insensitive" } },
+              ],
+            }
+          : {}),
       },
       select: {
         courseId: true,

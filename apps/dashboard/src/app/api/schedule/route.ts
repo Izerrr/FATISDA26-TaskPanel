@@ -125,8 +125,11 @@ export async function GET(request: NextRequest) {
     const schedules = await prisma.schedule.findMany({
       where: {
         prodi,
-        kelas,
         semester,
+        OR: [
+          { kelas },
+          { courseName: { contains: "Olahraga", mode: "insensitive" } },
+        ],
       },
       orderBy: [
         {

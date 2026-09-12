@@ -42,26 +42,17 @@ export function mappedRoles(discordRoles: string[], isGuildOwner: boolean): Task
 }
 
 export function mappedProdi(discordRoles: string[]): Prodi | null {
-  const psdkuRoleId =
-    getRoleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN") ||
-    getRoleId("DISCORD_ROLE_PSDKU_KEBUMEN") ||
-    getRoleId("DISCORD_ROLE_PSDKU");
+  const psdkuRoleId = getRoleId("DISCORD_ROLE_INFORMATIKA_PSDKU_KEBUMEN") || getRoleId("DISCORD_ROLE_PSDKU_KEBUMEN") || getRoleId("DISCORD_ROLE_PSDKU");
   if (hasRole(discordRoles, psdkuRoleId)) {
     return "INFORMATIKA_PSDKU_KEBUMEN";
   }
 
-  const inforRoleId =
-    getRoleId("DISCORD_ROLE_INFORMATIKA") ||
-    getRoleId("DISCORD_ROLE_INFOR") ||
-    getRoleId("DISCORD_ROLE_IF");
+  const inforRoleId = getRoleId("DISCORD_ROLE_INFORMATIKA") || getRoleId("DISCORD_ROLE_INFOR") || getRoleId("DISCORD_ROLE_IF");
   if (hasRole(discordRoles, inforRoleId)) {
     return "INFORMATIKA";
   }
 
-  const sainsDataRoleId =
-    getRoleId("DISCORD_ROLE_SAINS_DATA") ||
-    getRoleId("DISCORD_ROLE_SAINSDATA") ||
-    getRoleId("DISCORD_ROLE_SD");
+  const sainsDataRoleId = getRoleId("DISCORD_ROLE_SAINS_DATA") || getRoleId("DISCORD_ROLE_SAINSDATA") || getRoleId("DISCORD_ROLE_SD");
   if (hasRole(discordRoles, sainsDataRoleId)) {
     return "SAINS_DATA";
   }

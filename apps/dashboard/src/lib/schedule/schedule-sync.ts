@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 import { fetchScheduleCsvByProdi, normalizeScheduleEntries, parseScheduleCsv, getScheduleSource } from "@/lib/schedule";
 
-import type { Prodi, ScheduleDay } from "@/lib/schedule/types";
+import type { Kelas, Prodi, ScheduleDay } from "@/lib/schedule/types";
 
 const DAY_TO_NUMBER: Record<ScheduleDay, number> = {
   MONDAY: 1,
@@ -135,22 +135,52 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
     }
 
     if (databaseEntries.length > 0) {
+      // Pengecualian untuk mata kuliah 1 angkatan (semua kelas), contoh: Olahraga
+      const ALL_KELAS: Kelas[] = ["A", "B", "C", "D"];
+      const recordsToInsert = [];
+
+      for (const entry of databaseEntries) {
+        const isBatchWide = entry.courseName.trim().toLowerCase().includes("olahraga");
+
+        if (isBatchWide) {
+          for (const k of ALL_KELAS) {
+            recordsToInsert.push({
+              prodi: entry.prodi,
+              kelas: k,
+              semester: entry.semester,
+              courseName: entry.courseName,
+              courseId: findMatchingCourseId(entry.courseName, k),
+              day: DAY_TO_NUMBER[entry.day],
+              startTime: entry.startTime,
+              endTime: entry.endTime,
+              room: entry.room || null,
+              lecturer: entry.lecturer,
+              rawClassCode: entry.rawClassCode || null,
+              markers: entry.markers,
+              sourceSlots: entry.sourceSlots,
+            });
+          }
+        } else {
+          recordsToInsert.push({
+            prodi: entry.prodi,
+            kelas: entry.classCode,
+            semester: entry.semester,
+            courseName: entry.courseName,
+            courseId: findMatchingCourseId(entry.courseName, entry.classCode),
+            day: DAY_TO_NUMBER[entry.day],
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            room: entry.room || null,
+            lecturer: entry.lecturer,
+            rawClassCode: entry.rawClassCode || null,
+            markers: entry.markers,
+            sourceSlots: entry.sourceSlots,
+          });
+        }
+      }
+
       await tx.schedule.createMany({
-        data: databaseEntries.map((entry) => ({
-          prodi: entry.prodi,
-          kelas: entry.classCode,
-          semester: entry.semester,
-          courseName: entry.courseName,
-          courseId: findMatchingCourseId(entry.courseName, entry.classCode),
-          day: DAY_TO_NUMBER[entry.day],
-          startTime: entry.startTime,
-          endTime: entry.endTime,
-          room: entry.room || null,
-          lecturer: entry.lecturer,
-          rawClassCode: entry.rawClassCode || null,
-          markers: entry.markers,
-          sourceSlots: entry.sourceSlots,
-        })),
+        data: recordsToInsert,
       });
     }
 

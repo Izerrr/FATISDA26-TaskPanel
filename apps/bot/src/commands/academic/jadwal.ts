@@ -101,7 +101,10 @@ const command: Command = {
       };
 
       if (kelasOpt && ["A", "B", "C", "D"].includes(kelasOpt)) {
-        whereClause.kelas = kelasOpt as Kelas;
+        whereClause.OR = [
+          { kelas: kelasOpt as Kelas },
+          { courseName: { contains: "Olahraga", mode: "insensitive" } },
+        ];
       }
 
       const schedules = await prisma.schedule.findMany({
