@@ -322,38 +322,65 @@ export interface DiscordNotificationOptions {
 
 export async function sendDiscordNotification(_guildId: string, embedDescription: string, options?: DiscordNotificationOptions) {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  const taskChannelId = process.env.DISCORD_CHANNEL_ID_TUGAS || process.env.TASK_CHANNEL_ID;
+  const botToken = process.env.DISCORD_BOT_TOKEN;
 
-  if (!webhookUrl) {
-    return;
+  const mentionPrefix = options?.roleIdToMention
+    ? `<@&${options.roleIdToMention}> ${options.mentionText ?? "Ada tugas kelas baru!"}\n`
+    : (options?.content ?? "");
+
+  const embedPayload = {
+    title: "📋 Pengumuman Tugas Kuliah",
+    description: embedDescription,
+    color: 0x0077b6,
+    timestamp: new Date().toISOString(),
+  };
+
+  // 1. Kirim langsung via Bot Token jika Channel ID tugas tersedia
+  if (taskChannelId && botToken) {
+    try {
+      const response = await fetch(`https://discord.com/api/v10/channels/${taskChannelId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${botToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: mentionPrefix.trim() || undefined,
+          embeds: [embedPayload],
+        }),
+      });
+
+      if (response.ok) {
+        return;
+      }
+      console.warn("[Discord Bot Message] Gagal kirim via bot, mencoba webhook:", response.status, await response.text());
+    } catch (error) {
+      console.error("[Discord Bot Message]", error);
+    }
   }
 
-  try {
-    const mentionPrefix = options?.roleIdToMention ? `<@&${options.roleIdToMention}> ${options.mentionText ?? "Ada tugas kelas baru!"}\n` : (options?.content ?? "");
+  // 2. Kirim via Webhook URL
+  if (webhookUrl) {
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: mentionPrefix.trim() || undefined,
+          username: "FATISDA TaskPanel",
+          avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
+          embeds: [embedPayload],
+        }),
+      });
 
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: mentionPrefix.trim() || undefined,
-        username: "FATISDA TaskPanel",
-        avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
-        embeds: [
-          {
-            title: "📋 Pengumuman Tugas Kuliah",
-            description: embedDescription,
-            color: 0x0077b6,
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      console.error("[Discord Webhook]", response.status, await response.text());
+      if (!response.ok) {
+        console.error("[Discord Webhook]", response.status, await response.text());
+      }
+    } catch (error) {
+      console.error("[Discord Webhook]", error);
     }
-  } catch (error) {
-    console.error("[Discord Webhook]", error);
   }
 }
