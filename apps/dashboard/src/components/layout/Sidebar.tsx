@@ -146,8 +146,6 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
 
       {/* Context */}
       <div className="px-4 pt-5">
-        <p className="label px-2">Konteks</p>
-
         <div className="mt-2 rounded-2xl bg-liquid-accent/5 px-3 py-3">
           <p className="text-sm font-semibold text-liquid-text">FATISDA 2026</p>
 
