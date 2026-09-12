@@ -229,20 +229,20 @@ export function DashboardShell() {
   return (
     <DashboardFrame onNewTask={() => setCreateOpen(true)}>
       <section>
-        <p className="text-xs font-medium uppercase tracking-wider text-liquid-text-secondary">Hello There!</p>
-
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-liquid-text">Main Dashboard TaskPanel</h1>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h1 className="text-2xl font-bold tracking-tight text-liquid-text">Halo, {user?.username ?? "Mahasiswa"}!</h1>
+          <p className="text-xs font-medium text-liquid-text-tertiary">Semester Aktif: {user?.semester ?? 2} · Tahun Ajaran 2024/2025</p>
+        </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-liquid-text-secondary">
+          <span className="text-sm font-medium text-liquid-text-secondary">
             {user?.prodi === "INFORMATIKA" ? "Informatika" : user?.prodi === "SAINS_DATA" ? "Sains Data" : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Informatika PSDKU Kebumen" : "Prodi belum tersinkron"}
           </span>
 
           {user?.kelas && (
             <>
               <span className="text-slate-300">·</span>
-
-              <span className="text-sm text-liquid-text-secondary">Kelas {user.kelas}</span>
+              <span className="text-sm font-medium text-liquid-text-secondary">Kelas {user.kelas}</span>
             </>
           )}
 
@@ -254,7 +254,7 @@ export function DashboardShell() {
             }
 
             return (
-              <span key={String(role)} className="rounded-full bg-liquid-accent/10 px-2.5 py-1 text-[10px] font-semibold text-liquid-accent">
+              <span key={String(role)} className="rounded-full bg-liquid-accent/10 px-2.5 py-0.5 text-[10px] font-semibold text-liquid-accent">
                 {roleText}
               </span>
             );
@@ -263,10 +263,15 @@ export function DashboardShell() {
       </section>
 
       {tasksLoading || coursesLoading || schedulesLoading ? (
-        <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-liquid-border bg-white shadow-glass">
-          <div className="flex items-center gap-2 text-sm text-liquid-text-secondary">
-            <Loader2 className="h-5 w-5 animate-spin text-liquid-accent" />
-            Memuat dashboard...
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-28 animate-pulse rounded-2xl border border-slate-100 bg-white p-5 shadow-sm" />
+            ))}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="h-72 animate-pulse rounded-2xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-2" />
+            <div className="h-72 animate-pulse rounded-2xl border border-slate-100 bg-white p-6 shadow-sm" />
           </div>
         </div>
       ) : tasksError ? (

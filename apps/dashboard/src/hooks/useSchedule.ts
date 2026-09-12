@@ -20,12 +20,18 @@ async function fetcher(url: string): Promise<ScheduleResponse> {
   return response.json();
 }
 
-export function useSchedule() {
+interface UseScheduleOptions {
+  semester?: number;
+  prodi?: string;
+  kelas?: string;
+}
+
+export function useSchedule(options: UseScheduleOptions = {}) {
   const { user } = useRole();
 
-  const prodi = user?.prodi;
-  const kelas = user?.kelas;
-  const semester = user?.semester;
+  const prodi = options.prodi ?? user?.prodi;
+  const kelas = options.kelas ?? user?.kelas;
+  const semester = options.semester ?? user?.semester ?? 2;
 
   const key = prodi && kelas && semester ? `/api/schedule?prodi=${encodeURIComponent(prodi)}&kelas=${encodeURIComponent(kelas)}&semester=${semester}` : null;
 

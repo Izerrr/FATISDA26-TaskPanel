@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, LogOut, MessageSquare, RefreshCw } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, LogOut, MessageSquare, RefreshCw, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
@@ -12,6 +12,8 @@ interface SidebarProps {
   courses: Course[];
   user: User | null;
   guildId: string | null;
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 const navItems = [
@@ -86,7 +88,7 @@ function getRoleLabels(user: User | null) {
   return labels;
 }
 
-export function Sidebar({ courses, user, guildId }: SidebarProps) {
+export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const [syncing, setSyncing] = useState(false);
@@ -127,10 +129,10 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
     }
   }
 
-  return (
-    <aside className="hidden h-full w-72 shrink-0 flex-col overflow-y-auto border-r border-liquid-border bg-white md:flex">
+  const sidebarContent = (
+    <div className="flex h-full w-72 flex-col overflow-y-auto bg-white">
       {/* Brand */}
-      <div className="border-b border-liquid-border px-6 py-5">
+      <div className="flex items-center justify-between border-b border-liquid-border px-6 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-liquid-accent text-white shadow-md">
             <BookOpen className="h-4 w-4" />
@@ -138,10 +140,15 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
 
           <div>
             <p className="font-bold text-liquid-text">TaskPanel</p>
-
             <p className="text-[11px] text-liquid-text-secondary">FATISDA 2026</p>
           </div>
         </div>
+
+        {onClose && (
+          <button type="button" onClick={onClose} className="rounded-xl p-1.5 text-liquid-text-secondary hover:bg-slate-100 hover:text-liquid-text md:hidden" aria-label="Tutup menu navigasi">
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Context */}
@@ -175,10 +182,10 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? "bg-liquid-accent/10 text-liquid-accent" : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text"}`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-
                 {item.label}
               </Link>
             );
@@ -190,7 +197,6 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
       <div className="px-4 py-5">
         <div className="flex items-center justify-between px-2">
           <p className="label">Mata Kuliah</p>
-
           <span className="text-[10px] font-semibold text-liquid-text-tertiary">{courses.length}</span>
         </div>
 
@@ -201,10 +207,8 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
             courses.map((course) => (
               <div key={course.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-liquid-text-secondary">
                 <BookOpen className="h-4 w-4 shrink-0 text-liquid-text-tertiary" />
-
                 <div className="min-w-0">
                   <p className="truncate font-medium text-liquid-text">{course.name}</p>
-
                   <p className="text-[11px] text-liquid-text-secondary">{course.code}</p>
                 </div>
               </div>
@@ -222,7 +226,6 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
           className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-liquid-accent/30 hover:bg-liquid-accent/5 hover:text-liquid-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-
           {syncing ? "Sinkronisasi..." : "Sync Discord"}
         </button>
 
@@ -238,7 +241,6 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
 
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-liquid-text">{user?.username ?? "Pengguna"}</p>
-
             <p className="truncate text-[11px] text-liquid-text-secondary">{roleLabels.join(" · ")}</p>
           </div>
         </div>
@@ -256,6 +258,24 @@ export function Sidebar({ courses, user, guildId }: SidebarProps) {
           Keluar
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop static sidebar */}
+      <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border bg-white md:block">{sidebarContent}</aside>
+
+      {/* Mobile drawer with backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden" role="dialog" aria-modal="true">
+          {/* Backdrop overlay */}
+          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
+
+          {/* Drawer content */}
+          <div className="relative z-10 h-full w-72 shadow-2xl transition-transform">{sidebarContent}</div>
+        </div>
+      )}
+    </>
   );
 }
