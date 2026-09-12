@@ -13,9 +13,7 @@ export function TopNav({ onNewTask, search, onSearchChange }: TopNavProps) {
   return (
     <header className="flex h-16 shrink-0 items-center border-b border-liquid-border bg-white/80 px-4 backdrop-blur-xl md:px-6">
       <div className="hidden md:block">
-        <h1 className="text-sm font-bold text-liquid-text">
-          An unofficial, student-driven digital task panel maintained by the mass collective. Built to centralize assignments, schedule, and directories for Informatics & Data Science 2026.
-        </h1>
+        <h1 className="text-sm font-bold text-liquid-text">Built to centralize assignments, schedule, and resources for Informatics & Data Science 2026.</h1>
 
         <p className="text-[11px] text-liquid-text-secondary">Created by FATISDA 2026, for FATISDA 2026</p>
       </div>

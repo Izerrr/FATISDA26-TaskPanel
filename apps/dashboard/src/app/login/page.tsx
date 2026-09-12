@@ -23,9 +23,9 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-8 flex justify-center gap-2">
-            <FeaturePill icon={<Kanban className="h-3.5 w-3.5" />} label="Course Task" />
+            <FeaturePill icon={<Kanban className="h-3.5 w-3.5" />} label="Task" />
             <FeaturePill icon={<Users className="h-3.5 w-3.5" />} label="Schedule" />
-            <FeaturePill icon={<Bell className="h-3.5 w-3.5" />} label="Discord Notification" />
+            <FeaturePill icon={<Bell className="h-3.5 w-3.5" />} label="Notification" />
           </div>
 
           <button

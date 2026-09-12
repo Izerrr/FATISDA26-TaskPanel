@@ -231,7 +231,7 @@ export function DashboardShell() {
       <section>
         <p className="text-xs font-medium uppercase tracking-wider text-liquid-text-secondary">Hello There!</p>
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-liquid-text">Overview Taskpanel FATISDA 2026</h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-liquid-text">Main Dashboard TaskPanel</h1>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-sm text-liquid-text-secondary">
