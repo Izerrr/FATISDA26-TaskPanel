@@ -32,3 +32,8 @@ export interface Command {
 export class ExtendedClient extends Client {
   commands: Collection<string, Command> = new Collection();
 }
+
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
+export type TaskScope = "PERSONAL" | "CLASS";
+export type Kelas = "A" | "B" | "C" | "D" | "E";
+export type Prodi = "INFORMATIKA" | "SAINS_DATA" | "INFORMATIKA_PSDKU_KEBUMEN";

@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "prisma generate --schema=../../packages/database/prisma/schema.prisma && tsc -p tsconfig.json",
     "start": "pm2 start dist/index.js --name if26-bot"
   },
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
     "@if26/database": "workspace:*",
+    "@prisma/client": "^5.20.0",
     "axios": "^1.18.1",
     "canvas": "^3.2.3",
     "discord-player": "^7.2.0",
@@ -31,6 +32,7 @@
     "@types/ms": "^2.1.0",
     "@types/node": "^20.19.43",
     "@types/node-fetch": "^2.6.13",
+    "prisma": "^5.20.0",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3"
   }
