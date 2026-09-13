@@ -15,19 +15,35 @@ interface Props {
 
 export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [items, setItems] = useState<Task[]>(tasks);
+  const [isDragging, setIsDragging] = useState(false);
+  const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     setItems(tasks);
   }, [tasks]);
 
+  function handleDragStart() {
+    setIsDragging(true);
+  }
+
   async function handleDragEnd(result: DropResult) {
+    setIsDragging(false);
+
     if (!result.destination) return;
 
     const taskId = result.draggableId;
     const destinationStatus = result.destination.droppableId as TaskStatus;
+    const sourceStatus = result.source.droppableId as TaskStatus;
 
     if (!KANBAN_COLUMNS.includes(destinationStatus)) {
       return;
+    }
+
+    if (destinationStatus !== sourceStatus) {
+      setJustMovedTaskId(taskId);
+      setTimeout(() => {
+        setJustMovedTaskId((curr) => (curr === taskId ? null : curr));
+      }, 1500);
     }
 
     const previous = items;
@@ -97,17 +113,17 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         })}
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Mobile View: Render only active tab */}
         <div className="block md:hidden">
-          <KanbanColumn status={activeMobileTab} tasks={items.filter((task) => task.status === activeMobileTab)} />
+          <KanbanColumn status={activeMobileTab} tasks={items.filter((task) => task.status === activeMobileTab)} isDraggingAny={isDragging} justMovedTaskId={justMovedTaskId} />
         </div>
 
         {/* Desktop View: Full 4 columns side-by-side */}
         <div className="hidden overflow-x-auto pb-2 md:block">
           <div className="grid grid-cols-4 gap-4 min-w-[960px]">
             {KANBAN_COLUMNS.map((status) => (
-              <KanbanColumn key={status} status={status} tasks={items.filter((task) => task.status === status)} />
+              <KanbanColumn key={status} status={status} tasks={items.filter((task) => task.status === status)} isDraggingAny={isDragging} justMovedTaskId={justMovedTaskId} />
             ))}
           </div>
         </div>

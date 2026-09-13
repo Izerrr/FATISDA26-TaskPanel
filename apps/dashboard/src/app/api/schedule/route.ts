@@ -126,10 +126,7 @@ export async function GET(request: NextRequest) {
       where: {
         prodi,
         semester,
-        OR: [
-          { kelas },
-          { courseName: { contains: "Olahraga", mode: "insensitive" } },
-        ],
+        OR: [{ kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }],
       },
       orderBy: [
         {

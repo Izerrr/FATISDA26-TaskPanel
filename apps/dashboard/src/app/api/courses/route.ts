@@ -64,11 +64,7 @@ export async function GET(req: NextRequest) {
         prodi: targetProdi,
         ...(targetKelas
           ? {
-              OR: [
-                { kelas: targetKelas },
-                { kelas: null },
-                { name: { contains: "Olahraga", mode: "insensitive" } },
-              ],
+              OR: [{ kelas: targetKelas }, { kelas: null }, { name: { contains: "Olahraga", mode: "insensitive" } }],
             }
           : {}),
       },
@@ -99,10 +95,7 @@ export async function GET(req: NextRequest) {
         semester: targetSemester,
         ...(targetKelas
           ? {
-              OR: [
-                { kelas: targetKelas },
-                { courseName: { contains: "Olahraga", mode: "insensitive" } },
-              ],
+              OR: [{ kelas: targetKelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }],
             }
           : {}),
       },
