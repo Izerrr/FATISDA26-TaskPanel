@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const tasks = await prisma.task.findMany({
       where: {
         guildId,
+        OR: [{ scope: "CLASS" }, { scope: "PERSONAL", createdById: token.discordId as string }],
       },
       include: {
         createdBy: {
@@ -142,52 +143,54 @@ export async function POST(req: NextRequest) {
     });
 
     /*
-     * Jika tugas bertipe CLASS, cari role ID Discord kelas terkait
-     * agar seluruh mahasiswa di kelas tersebut mendapat mention/ping.
+     * Hanya kirim notifikasi Discord jika tugas bertipe CLASS.
+     * Tugas bertipe PERSONAL bersifat privat dan TIDAK dikirim ke Discord.
      */
-    let roleIdToMention: string | null = null;
-    const targetProdi = task.prodi ?? user.prodi;
-    const targetKelas = task.kelas ?? user.kelas;
+    if (task.scope === "CLASS") {
+      let roleIdToMention: string | null = null;
+      const targetProdi = task.prodi ?? user.prodi;
+      const targetKelas = task.kelas ?? user.kelas;
 
-    if (task.scope === "CLASS" && targetKelas) {
-      if (targetProdi) {
-        const specificRoleKey = `DISCORD_ROLE_${targetProdi}_${targetKelas}`;
-        roleIdToMention = process.env[specificRoleKey]?.trim() || null;
+      if (targetKelas) {
+        if (targetProdi) {
+          const specificRoleKey = `DISCORD_ROLE_${targetProdi}_${targetKelas}`;
+          roleIdToMention = process.env[specificRoleKey]?.trim() || null;
+        }
+
+        if (!roleIdToMention) {
+          const fallbackRoleKey = `DISCORD_ROLE_KELAS_${targetKelas}`;
+          roleIdToMention = process.env[fallbackRoleKey]?.trim() || null;
+        }
       }
 
-      if (!roleIdToMention) {
-        const fallbackRoleKey = `DISCORD_ROLE_KELAS_${targetKelas}`;
-        roleIdToMention = process.env[fallbackRoleKey]?.trim() || null;
-      }
+      const dueDateFormatted = task.dueDate
+        ? new Date(task.dueDate).toLocaleString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "Tidak ada deadline";
+
+      const prodiNameFormatted = targetProdi ? targetProdi.replace(/_/g, " ") : "";
+
+      const embedLines = [
+        `### 📌 ${task.title}`,
+        task.description ? `> ${task.description}\n` : "",
+        `📚 **Mata Kuliah:** ${task.course ? `${task.course.code} (${task.course.name})` : "Umum"}`,
+        `⏰ **Deadline:** ${dueDateFormatted}`,
+        `🏷️ **Tipe:** Tugas Kelas (${prodiNameFormatted} ${targetKelas ?? "-"})`,
+        `👤 **Dibuat oleh:** <@${user.id}>`,
+      ].filter(Boolean);
+
+      await sendDiscordNotification(guildId, embedLines.join("\n"), {
+        roleIdToMention,
+        mentionText: `📢 Pengumuman tugas baru untuk ${prodiNameFormatted} Kelas ${targetKelas ?? ""}!`,
+        prodi: targetProdi,
+        kelas: targetKelas,
+      });
     }
-
-    const dueDateFormatted = task.dueDate
-      ? new Date(task.dueDate).toLocaleString("id-ID", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "Tidak ada deadline";
-
-    const prodiNameFormatted = targetProdi ? targetProdi.replace(/_/g, " ") : "";
-
-    const embedLines = [
-      `### 📌 ${task.title}`,
-      task.description ? `> ${task.description}\n` : "",
-      `📚 **Mata Kuliah:** ${task.course ? `${task.course.code} (${task.course.name})` : "Umum"}`,
-      `⏰ **Deadline:** ${dueDateFormatted}`,
-      `🏷️ **Tipe:** ${task.scope === "CLASS" ? `Tugas Kelas (${prodiNameFormatted} ${targetKelas ?? "-"})` : "Tugas Personal"}`,
-      `👤 **Dibuat oleh:** <@${user.id}>`,
-    ].filter(Boolean);
-
-    await sendDiscordNotification(guildId, embedLines.join("\n"), {
-      roleIdToMention,
-      mentionText: `📢 Pengumuman tugas baru untuk ${prodiNameFormatted} Kelas ${targetKelas ?? ""}!`,
-      prodi: targetProdi,
-      kelas: targetKelas,
-    });
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {

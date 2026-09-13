@@ -5,7 +5,6 @@ import { sendDiscordNotification } from "@/lib/discord";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
-
 export async function PATCH(
   req: NextRequest,
   {
@@ -94,8 +93,11 @@ export async function PATCH(
       },
     });
 
-    if (status && status !== existing.status) {
-      await sendDiscordNotification(task.guildId, [`**${task.title}**`, `Status: ${existing.status} → **${status}**`, `Oleh: <@${user.id}>`].join("\n"));
+    if (task.scope === "CLASS" && status && status !== existing.status) {
+      await sendDiscordNotification(task.guildId, [`**${task.title}**`, `Status: ${existing.status} → **${status}**`, `Oleh: <@${user.id}>`].join("\n"), {
+        prodi: task.prodi,
+        kelas: task.kelas,
+      });
     }
 
     return NextResponse.json({
@@ -160,7 +162,12 @@ export async function DELETE(
       },
     });
 
-    await sendDiscordNotification(task.guildId, `**${task.title}** dihapus oleh <@${user.id}>`);
+    if (task.scope === "CLASS") {
+      await sendDiscordNotification(task.guildId, `**${task.title}** dihapus oleh <@${user.id}>`, {
+        prodi: task.prodi,
+        kelas: task.kelas,
+      });
+    }
 
     return NextResponse.json({
       success: true,

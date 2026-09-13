@@ -70,6 +70,9 @@ const command: Command = {
         whereClause.scope = "CLASS" as TaskScope;
       } else if (selectedScope === "PERSONAL") {
         whereClause.scope = "PERSONAL" as TaskScope;
+        whereClause.createdById = authorId;
+      } else {
+        whereClause.OR = [{ scope: "CLASS" as TaskScope }, { scope: "PERSONAL" as TaskScope, createdById: authorId }];
       }
 
       const tasks = await prisma.task.findMany({
