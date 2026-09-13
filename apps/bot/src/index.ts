@@ -12,13 +12,22 @@ if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith("mysql://")
   process.env.DATABASE_URL = FALLBACK_PG_URL;
 }
 
-import { GatewayIntentBits } from "discord.js";
+import { ActivityType, GatewayIntentBits } from "discord.js";
 import { ExtendedClient } from "./types.js";
 import { loadEvents } from "./handlers/eventHandler.js";
 import { loadCommands } from "./handlers/commandHandler.js";
 
 const client = new ExtendedClient({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers],
+  presence: {
+    status: "online",
+    activities: [
+      {
+        name: "taskpanel.ftsduaenam.web.id",
+        type: ActivityType.Watching,
+      },
+    ],
+  },
 });
 
 async function main() {

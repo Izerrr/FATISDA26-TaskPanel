@@ -1,23 +1,17 @@
 import { ActivityType, Client } from "discord.js";
 
-interface ActivityItem {
+export interface ActivityItem {
   name: string;
   type: ActivityType;
-  state?: string;
 }
 
-const ACTIVITIES: ActivityItem[] = [
+export const ACTIVITIES: ActivityItem[] = [
   {
     name: "taskpanel.ftsduaenam.web.id",
     type: ActivityType.Watching,
   },
   {
-    name: "Hello there! 👋",
-    type: ActivityType.Custom,
-    state: "Hello there! 👋 Semangat kuliah!",
-  },
-  {
-    name: "/help | /jadwal | /tugas",
+    name: "Hello there! 👋 | /help",
     type: ActivityType.Playing,
   },
   {
@@ -33,9 +27,12 @@ const ACTIVITIES: ActivityItem[] = [
     type: ActivityType.Playing,
   },
   {
-    name: "Kawal bareng IPK 4.0! 📚",
-    type: ActivityType.Custom,
-    state: "Kawal bareng IPK 4.0! 📚",
+    name: "IPK 4.0 FATISDA UNS 2026 🎓",
+    type: ActivityType.Competing,
+  },
+  {
+    name: "/jadwal & /tugas",
+    type: ActivityType.Listening,
   },
 ];
 
@@ -46,26 +43,18 @@ export function startActivityRotator(client: Client, intervalMs = 20000) {
     if (!client.user) return;
     const item = ACTIVITIES[currentIndex];
     try {
-      client.user.setPresence({
-        status: "online",
-        activities: [
-          {
-            name: item.name,
-            type: item.type,
-            state: item.state,
-          },
-        ],
-      });
+      client.user.setActivity(item.name, { type: item.type });
+      console.log(`[Presence] Set activity: ${ActivityType[item.type]} "${item.name}"`);
     } catch (err) {
       console.error("[Activity Rotator Error]", err);
     }
     currentIndex = (currentIndex + 1) % ACTIVITIES.length;
   };
 
-  // Update presence immediately
+  // Set initial activity immediately
   updatePresence();
 
-  // Rotate activities periodically
+  // Rotate periodically
   const intervalId = setInterval(updatePresence, intervalMs);
 
   return intervalId;
