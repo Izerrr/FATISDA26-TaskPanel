@@ -57,23 +57,23 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
     <article
       className={`group relative rounded-2xl border p-4 transition-all duration-200 ${
         isDragging
-          ? "border-liquid-accent/40 bg-white/95 shadow-2xl ring-2 ring-liquid-accent/30 backdrop-blur-md"
+          ? "border-liquid-accent/40 bg-white/95 dark:bg-slate-900/95 shadow-2xl ring-2 ring-liquid-accent/30 backdrop-blur-md"
           : isJustMoved
             ? "border-emerald-300 bg-emerald-50/20 ring-2 ring-emerald-400/80 shadow-md"
-            : "border-slate-200/90 bg-white shadow-sm hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5"
+            : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md hover:-translate-y-0.5"
       }`}
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex items-start gap-2 min-w-0 flex-1">
-          <div className="mt-0.5 shrink-0 text-slate-300 group-hover:text-slate-400 transition-colors">
+          <div className="mt-0.5 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors">
             <GripVertical className="h-4 w-4" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="break-words text-sm font-semibold text-liquid-text leading-snug">{task.title}</h3>
+            <h3 className="break-words text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug">{task.title}</h3>
 
             {task.course && (
-              <p className="mt-1 truncate text-xs text-liquid-text-secondary">
+              <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                 {task.course.code} · {task.course.name}
               </p>
             )}
@@ -83,34 +83,51 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
         {(onEdit || onDelete || onMoveStatus) && (
           <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
             <details className="group/menu">
-              <summary className="flex h-7 w-7 cursor-pointer list-none items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+              <summary className="flex h-7 w-7 cursor-pointer list-none items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 transition">
                 <MoreHorizontal className="h-4 w-4" />
               </summary>
 
-              <div className="absolute right-0 top-8 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+              <div className="absolute right-0 top-8 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 p-1 shadow-xl">
                 {onEdit && (
-                  <button type="button" onClick={() => onEdit(task)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50">
-                    <Pencil className="h-3.5 w-3.5" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                      onEdit(task);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-slate-400" />
                     Edit
                   </button>
                 )}
 
                 {onDelete && (
-                  <button type="button" onClick={() => onDelete(task)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-red-600 hover:bg-red-50">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                      onDelete(task);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
+                  >
                     <Trash2 className="h-3.5 w-3.5" />
                     Hapus
                   </button>
                 )}
 
                 {onMoveStatus && (
-                  <div className="border-t border-slate-100 mt-1 pt-1">
+                  <div className="border-t border-slate-100 dark:border-slate-750 mt-1 pt-1">
                     <span className="block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pindahkan Ke:</span>
                     {KANBAN_COLUMNS.filter((s) => s !== task.status).map((targetStatus) => (
                       <button
                         key={targetStatus}
                         type="button"
-                        onClick={() => onMoveStatus(task, targetStatus)}
-                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-liquid-accent transition-colors"
+                        onClick={(e) => {
+                          e.currentTarget.closest("details")?.removeAttribute("open");
+                          onMoveStatus(task, targetStatus);
+                        }}
+                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-liquid-accent transition-colors"
                       >
                         <span>{KANBAN_META[targetStatus].label}</span>
                         <ArrowRight className="h-3 w-3 opacity-60" />

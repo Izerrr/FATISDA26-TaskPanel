@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { GuildProvider } from "@/components/providers/GuildProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import "./globals.css";
 
@@ -27,14 +28,32 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const t = localStorage.getItem('fatisda_theme');
+                if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body>
-        <AuthProvider>
-          <GuildProvider>
-            {children}
-            <InstallPrompt />
-          </GuildProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <GuildProvider>
+              {children}
+              <InstallPrompt />
+            </GuildProvider>
+          </AuthProvider>
+        </ThemeProvider>
 
         <script
           dangerouslySetInnerHTML={{

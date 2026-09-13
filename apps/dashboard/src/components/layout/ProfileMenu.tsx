@@ -31,7 +31,7 @@ export function ProfileMenu() {
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen((value) => !value)} className="flex items-center gap-2 rounded-xl p-1 transition hover:bg-black/[0.04]">
+      <button onClick={() => setOpen((value) => !value)} className="flex items-center gap-2 rounded-xl p-1 transition hover:bg-black/[0.04] dark:hover:bg-slate-800">
         {session.user.image ? (
           <img src={session.user.image} alt={session.user.name ?? "User"} className="h-9 w-9 rounded-xl object-cover" />
         ) : (
@@ -40,27 +40,27 @@ export function ProfileMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-glass-lg">
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-glass-lg dark:border-slate-800 dark:bg-slate-900">
           <div className="px-4 py-4">
             <div className="flex items-center gap-3">
-              <UserRound className="h-4 w-4 text-liquid-text-secondary" />
+              <UserRound className="h-4 w-4 text-liquid-text-secondary dark:text-slate-400" />
 
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-liquid-text">{session.user.name}</p>
+                <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">{session.user.name}</p>
 
-                <p className="truncate text-xs text-liquid-text-secondary">Discord</p>
+                <p className="truncate text-xs text-liquid-text-secondary dark:text-slate-400">Discord</p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-black/[0.05] p-2">
+          <div className="border-t border-black/[0.05] p-2 dark:border-slate-800">
             <button
               onClick={() =>
                 signOut({
                   callbackUrl: "/login",
                 })
               }
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
             >
               <LogOut className="h-4 w-4" />
               Keluar

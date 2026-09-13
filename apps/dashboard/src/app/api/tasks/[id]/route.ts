@@ -53,10 +53,40 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const { title, description, status, assignedTo, dueDate } = body;
+    const { title, description, status, assignedTo, dueDate, courseId, scope } = body;
 
     if (status !== undefined && (typeof status !== "string" || !VALID_TASK_STATUSES.includes(status as TaskStatus))) {
       return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
+    }
+
+    let validCourseId: string | null | undefined = undefined;
+    if (courseId !== undefined) {
+      if (!courseId) {
+        validCourseId = null;
+      } else if (typeof courseId === "string") {
+        const existingCourse = await prisma.course.findUnique({ where: { id: courseId } });
+        if (existingCourse) {
+          validCourseId = existingCourse.id;
+        } else if (courseId.startsWith("sched-")) {
+          const decodedName = decodeURIComponent(courseId.replace(/^sched-/, "")).trim();
+          const targetProdi = user.prodi ?? "INFORMATIKA";
+          let found = await prisma.course.findFirst({
+            where: { name: { equals: decodedName, mode: "insensitive" }, prodi: targetProdi },
+          });
+          if (!found) {
+            try {
+              found = await prisma.course.create({
+                data: { code: "MK", name: decodedName, prodi: targetProdi, kelas: user.kelas ?? null },
+              });
+            } catch {
+              found = await prisma.course.findFirst({ where: { name: { equals: decodedName, mode: "insensitive" } } });
+            }
+          }
+          validCourseId = found ? found.id : null;
+        } else {
+          validCourseId = null;
+        }
+      }
     }
 
     const task = await prisma.task.update({
@@ -83,6 +113,14 @@ export async function PATCH(
 
         ...(dueDate !== undefined && {
           dueDate: dueDate ? new Date(dueDate) : null,
+        }),
+
+        ...(validCourseId !== undefined && {
+          courseId: validCourseId,
+        }),
+
+        ...(scope !== undefined && {
+          scope: scope === "CLASS" ? "CLASS" : "PERSONAL",
         }),
       },
 

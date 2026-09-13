@@ -11,14 +11,16 @@ interface Props {
   isDraggingAny?: boolean;
   justMovedTaskId?: string | null;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
+  onEdit?: (task: Task) => void;
+  onDelete?: (task: Task) => void;
 }
 
-export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onMoveStatus }: Props) {
+export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onMoveStatus, onEdit, onDelete }: Props) {
   const meta = KANBAN_META[status];
 
   return (
-    <section className={`flex min-w-[280px] flex-1 flex-col rounded-3xl border bg-white/70 backdrop-blur-xl transition-all duration-200 ${meta.border}`}>
-      <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70">
+    <section className={`flex min-w-[280px] flex-1 flex-col rounded-3xl border bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl transition-all duration-200 ${meta.border}`}>
+      <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70 dark:border-slate-800">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
         <span className="text-xs font-semibold text-liquid-text-secondary">{tasks.length}</span>
       </header>
@@ -45,7 +47,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
                       dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03] shadow-2xl ring-2 ring-liquid-accent/30 rounded-2xl" : "transition-transform duration-150"
                     }`}
                   >
-                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} />
+                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} onEdit={onEdit} onDelete={onDelete} />
                   </div>
                 )}
               </Draggable>

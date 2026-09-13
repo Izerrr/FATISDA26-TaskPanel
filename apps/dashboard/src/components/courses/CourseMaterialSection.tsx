@@ -146,7 +146,7 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
           const tone = typeColor[item.type] || "bg-slate-50 text-slate-600 border-slate-100";
 
           return (
-            <div key={item.id} className="group relative flex flex-col justify-between rounded-2xl border border-liquid-border bg-white p-4 shadow-glass transition hover:-translate-y-0.5 hover:shadow-md">
+            <div key={item.id} className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm hover:shadow-md transition hover:-translate-y-0.5">
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${tone}`}>
@@ -167,12 +167,12 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
                   )}
                 </div>
 
-                <h3 className="mt-3 text-sm font-bold text-liquid-text leading-snug">{item.title}</h3>
-                {item.description && <p className="mt-1 text-xs text-liquid-text-secondary line-clamp-2 leading-relaxed">{item.description}</p>}
+                <h3 className="mt-3 text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug">{item.title}</h3>
+                {item.description && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">{item.description}</p>}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100/70">
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-liquid-accent hover:underline">
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline">
                   <span>Buka Repository</span>
                   <ExternalLink className="h-3 w-3" />
                 </a>
@@ -184,19 +184,23 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
 
       {/* Modal Tambah Tautan */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-liquid-text">Tambah Tautan Materi</h3>
-              <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Tambah Tautan Materi</h3>
+              <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveResource} className="mt-4 space-y-4">
               <div>
-                <label className="text-xs font-semibold text-liquid-text">Tipe Tautan</label>
-                <select value={type} onChange={(e) => setType(e.target.value as any)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs focus:border-liquid-accent focus:outline-none">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Tipe Tautan</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as any)}
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 px-3 py-2 text-xs focus:border-sky-500 focus:outline-none"
+                >
                   <option value="DRIVE">Google Drive (Slide & Rekaman)</option>
                   <option value="MODULE">Modul Praktikum & Lab</option>
                   <option value="SYLLABUS">Silabus / RPS Kuliah</option>
