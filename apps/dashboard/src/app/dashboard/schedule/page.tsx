@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, Clock3, MapPin } from "lucide-react";
+import { Calendar, CalendarDays, Clock3, MapPin } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
 import { useRole } from "@/hooks/useRole";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ScheduleSyncPanel } from "@/components/schedule/ScheduleSyncPanel";
+import { ScheduleExportModal } from "@/components/schedule/ScheduleExportModal";
 
 const DAYS = [
   { value: 1, label: "Senin" },
@@ -56,10 +57,12 @@ export default function SchedulePage() {
   const prodiLabel = getProdiLabel(user?.prodi);
   const isAdmin = user?.roles?.includes("ADMIN");
 
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+
   return (
     <DashboardFrame>
       <div className="space-y-6">
-        {/* Header with Title & Semester Chooser */}
+        {/* Header with Title & Actions */}
         <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -75,23 +78,38 @@ export default function SchedulePage() {
             )}
           </div>
 
-          {/* Semester Selector */}
-          <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm">
-            <span className="px-2 text-xs font-semibold text-liquid-text-tertiary">Semester</span>
-            <div className="flex gap-1 overflow-x-auto">
-              {SEMESTERS.map((sem) => (
-                <button
-                  key={sem}
-                  type="button"
-                  onClick={() => setSelectedSemester(sem)}
-                  className={`h-7 w-7 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
-                >
-                  {sem}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Export Button */}
+            <button
+              type="button"
+              onClick={() => setExportModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-2xl border border-liquid-border bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition"
+            >
+              <Calendar className="h-4 w-4 text-liquid-accent" />
+              <span>Ekspor Kalender</span>
+            </button>
+
+            {/* Semester Selector */}
+            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm">
+              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary">Semester</span>
+              <div className="flex gap-1 overflow-x-auto">
+                {SEMESTERS.map((sem) => (
+                  <button
+                    key={sem}
+                    type="button"
+                    onClick={() => setSelectedSemester(sem)}
+                    className={`h-7 w-7 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
+                  >
+                    {sem}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>
+
+        {/* Export Modal */}
+        <ScheduleExportModal open={exportModalOpen} schedules={schedules} semester={selectedSemester} kelas={user?.kelas} onClose={() => setExportModalOpen(false)} />
 
         {isAdmin && user?.prodi && user?.kelas && <ScheduleSyncPanel />}
 

@@ -1,6 +1,7 @@
 import { ExtendedClient } from "../../types.js";
 import { syncAllGuildMembers, syncGuildToDatabase } from "../../lib/sync.js";
 import { startActivityRotator } from "../../lib/activityRotator.js";
+import { startScheduler } from "../../lib/scheduler.js";
 
 export const name = "ready";
 export const once = true;
@@ -10,6 +11,9 @@ export const execute = async (client: ExtendedClient) => {
 
   // Mulai rotasi status dan aktivitas bot
   startActivityRotator(client);
+
+  // Mulai scheduler morning briefing dan deadline reminder
+  startScheduler(client);
 
   try {
     const targetGuildId = process.env.DISCORD_GUILD_ID;

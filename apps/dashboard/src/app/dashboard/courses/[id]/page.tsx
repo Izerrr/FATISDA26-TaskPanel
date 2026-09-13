@@ -6,6 +6,7 @@ import { ArrowLeft, BookOpen, CalendarDays, ClipboardList } from "lucide-react";
 import { useMemo } from "react";
 import { useCourses } from "@/hooks/useCourses";
 import { useMe } from "@/hooks/useMe";
+import { CourseMaterialSection } from "@/components/courses/CourseMaterialSection";
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -75,6 +76,7 @@ export default function CourseDetailPage() {
   }
 
   const isOwnAcademicContext = user?.prodi === course.prodi && (!course.kelas || !user.kelas || course.kelas === user.kelas);
+  const canEdit = user?.roles?.some((r) => ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(r)) || false;
 
   return (
     <div className="space-y-6">
@@ -146,6 +148,9 @@ export default function CourseDetailPage() {
           </Link>
         </div>
       </section>
+
+      {/* Repository Materi & Modul Kuliah */}
+      <CourseMaterialSection course={course} canEdit={canEdit} />
     </div>
   );
 }
