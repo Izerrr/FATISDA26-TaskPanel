@@ -44,7 +44,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  function setTheme(newTheme: Theme) {
+  function applyTheme(newTheme: Theme) {
     setThemeState(newTheme);
     localStorage.setItem("fatisda_theme", newTheme);
     if (newTheme === "dark") {
@@ -54,8 +54,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  function setTheme(newTheme: Theme) {
+    // Add page transition class
+    document.documentElement.classList.add("theme-transition");
+    applyTheme(newTheme);
+    setTimeout(() => {
+      document.documentElement.classList.remove("theme-transition");
+    }, 450);
+  }
+
   function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+
+    // If browser supports View Transitions API, use it for cross-fade/circular reveal
+    if (typeof document !== "undefined" && "startViewTransition" in document) {
+      document.documentElement.classList.add("theme-transition");
+      (document as unknown as { startViewTransition: (cb: () => void) => void }).startViewTransition(() => {
+        applyTheme(nextTheme);
+      });
+      setTimeout(() => {
+        document.documentElement.classList.remove("theme-transition");
+      }, 450);
+    } else {
+      setTheme(nextTheme);
+    }
   }
 
   return <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>{children}</ThemeContext.Provider>;

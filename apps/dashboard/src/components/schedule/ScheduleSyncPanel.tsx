@@ -58,23 +58,23 @@ export function ScheduleSyncPanel({ defaultProdi = "INFORMATIKA" }: Props) {
   }
 
   return (
-    <section className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5">
+    <section className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20 p-5">
       {/* Header */}
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300">
           <RefreshCw className="h-4 w-4" />
         </div>
 
         <div>
-          <h2 className="text-sm font-bold text-liquid-text">Sinkronisasi Jadwal</h2>
+          <h2 className="text-sm font-bold text-liquid-text dark:text-slate-100">Sinkronisasi Jadwal</h2>
 
-          <p className="mt-1 text-xs leading-5 text-liquid-text-secondary">Ambil jadwal terbaru dari sumber spreadsheet dan ganti data jadwal lama untuk program studi yang dipilih.</p>
+          <p className="mt-1 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">Ambil jadwal terbaru dari sumber spreadsheet dan ganti data jadwal lama untuk program studi yang dipilih.</p>
         </div>
       </div>
 
       {/* Target */}
       <div className="mt-5">
-        <label htmlFor="schedule-prodi" className="mb-1.5 block text-xs font-semibold text-liquid-text">
+        <label htmlFor="schedule-prodi" className="mb-1.5 block text-xs font-semibold text-liquid-text dark:text-slate-200">
           Program Studi
         </label>
 
@@ -83,10 +83,10 @@ export function ScheduleSyncPanel({ defaultProdi = "INFORMATIKA" }: Props) {
           value={prodi}
           onChange={(event) => setProdi(event.target.value as Prodi)}
           disabled={isSubmitting}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-xs text-slate-700 dark:text-slate-200 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/40 disabled:opacity-50"
         >
           {PRODI_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
               {option.label}
             </option>
           ))}
@@ -94,20 +94,20 @@ export function ScheduleSyncPanel({ defaultProdi = "INFORMATIKA" }: Props) {
       </div>
 
       {/* Warning */}
-      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800">
+      <div className="mt-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs leading-5 text-amber-800 dark:text-amber-300">
         <strong>Perhatian:</strong> sinkronisasi akan mengganti seluruh jadwal lama untuk <strong>{prodi}</strong>.
       </div>
 
       {/* Feedback */}
       {message && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs font-medium text-emerald-700">
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 p-3 text-xs font-medium text-emerald-700 dark:text-emerald-300">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           {message}
         </div>
       )}
 
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-700">
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 p-3 text-xs font-medium text-red-700 dark:text-red-300">
           <XCircle className="h-4 w-4 shrink-0" />
           {error}
         </div>

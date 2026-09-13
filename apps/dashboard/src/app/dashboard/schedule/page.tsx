@@ -67,11 +67,11 @@ export default function SchedulePage() {
           <div>
             <div className="flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-liquid-accent" />
-              <h1 className="text-xl font-bold text-liquid-text">Jadwal Kuliah</h1>
+              <h1 className="text-xl font-bold text-liquid-text dark:text-slate-100">Jadwal Kuliah</h1>
             </div>
-            <p className="mt-1 text-sm text-liquid-text-secondary">Jadwal perkuliahan mingguan per program studi, kelas, dan semester.</p>
+            <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">Jadwal perkuliahan mingguan per program studi, kelas, dan semester.</p>
             {(prodiLabel || user?.kelas) && (
-              <p className="mt-1.5 text-xs font-medium text-liquid-text-secondary">
+              <p className="mt-1.5 text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
                 {prodiLabel}
                 {user?.kelas ? ` · Kelas ${user.kelas}` : ""}
               </p>
@@ -83,22 +83,22 @@ export default function SchedulePage() {
             <button
               type="button"
               onClick={() => setExportModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-2xl border border-liquid-border bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition"
+              className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition"
             >
               <Calendar className="h-4 w-4 text-liquid-accent" />
               <span>Ekspor Kalender</span>
             </button>
 
             {/* Semester Selector */}
-            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm">
-              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary">Semester</span>
+            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
+              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">Semester</span>
               <div className="flex gap-1 overflow-x-auto">
                 {SEMESTERS.map((sem) => (
                   <button
                     key={sem}
                     type="button"
                     onClick={() => setSelectedSemester(sem)}
-                    className={`h-7 w-7 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
+                    className={`h-7 w-7 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
                   >
                     {sem}
                   </button>
@@ -124,7 +124,9 @@ export default function SchedulePage() {
                 key={day.value}
                 type="button"
                 onClick={() => setSelectedDay(day.value)}
-                className={`relative shrink-0 rounded-xl px-4 py-2.5 text-xs font-semibold transition ${isSelected ? "bg-liquid-accent text-white shadow-sm" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                className={`relative shrink-0 rounded-xl px-4 py-2.5 text-xs font-semibold transition ${
+                  isSelected ? "bg-liquid-accent text-white shadow-sm" : "border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                }`}
               >
                 {day.label}
                 {isToday && <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${isSelected ? "bg-white" : "bg-liquid-accent"}`} />}
@@ -134,61 +136,61 @@ export default function SchedulePage() {
         </div>
 
         {/* Schedule List / Card */}
-        <section className="rounded-2xl border border-liquid-border bg-white p-5 shadow-glass">
+        <section className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass">
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex gap-4 rounded-xl border border-slate-100 p-4">
+                <div key={i} className="flex gap-4 rounded-xl border border-slate-100 dark:border-slate-800 p-4">
                   <div className="w-20 shrink-0 space-y-2">
-                    <div className="h-4 w-14 animate-pulse rounded bg-slate-200" />
-                    <div className="h-3 w-10 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-14 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-3 w-10 animate-pulse rounded bg-slate-100 dark:bg-slate-700" />
                   </div>
-                  <div className="min-w-0 flex-1 border-l border-slate-100 pl-4 space-y-2">
-                    <div className="h-4 w-48 animate-pulse rounded bg-slate-200" />
-                    <div className="h-3 w-28 animate-pulse rounded bg-slate-100" />
+                  <div className="min-w-0 flex-1 border-l border-slate-100 dark:border-slate-800 pl-4 space-y-2">
+                    <div className="h-4 w-48 animate-pulse rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-3 w-28 animate-pulse rounded bg-slate-100 dark:bg-slate-700" />
                     <div className="flex gap-3 pt-1">
-                      <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
-                      <div className="h-3 w-32 animate-pulse rounded bg-slate-100" />
+                      <div className="h-3 w-20 animate-pulse rounded bg-slate-100 dark:bg-slate-700" />
+                      <div className="h-3 w-32 animate-pulse rounded bg-slate-100 dark:bg-slate-700" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : isError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm font-medium text-red-600">Gagal memuat jadwal untuk semester ini.</div>
+            <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 p-5 text-sm font-medium text-red-600 dark:text-red-400">Gagal memuat jadwal untuk semester ini.</div>
           ) : selectedSchedules.length === 0 ? (
-            <div className="rounded-xl bg-slate-50/80 p-8 text-center">
-              <CalendarDays className="mx-auto h-8 w-8 text-slate-300" />
-              <p className="mt-3 text-sm font-semibold text-liquid-text">Tidak ada kelas</p>
-              <p className="mt-1 text-xs text-liquid-text-secondary">
+            <div className="rounded-xl bg-slate-50/80 dark:bg-slate-800/40 p-8 text-center">
+              <CalendarDays className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
+              <p className="mt-3 text-sm font-semibold text-liquid-text dark:text-slate-100">Tidak ada kelas</p>
+              <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">
                 Tidak ada jadwal kuliah untuk hari {DAYS.find((d) => d.value === selectedDay)?.label} di Semester {selectedSemester}.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               {selectedSchedules.map((schedule) => (
-                <div key={schedule.id} className="group flex gap-4 rounded-xl border border-slate-100 p-4 transition hover:border-slate-200 hover:shadow-sm">
+                <div key={schedule.id} className="group flex gap-4 rounded-xl border border-slate-100 dark:border-slate-800 p-4 transition hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm">
                   <div className="w-20 shrink-0">
-                    <p className="text-sm font-bold text-liquid-text">{schedule.startTime}</p>
-                    <p className="mt-1 text-[11px] text-liquid-text-secondary">{schedule.endTime}</p>
+                    <p className="text-sm font-bold text-liquid-text dark:text-slate-100">{schedule.startTime}</p>
+                    <p className="mt-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">{schedule.endTime}</p>
                   </div>
 
-                  <div className="min-w-0 flex-1 border-l border-slate-100 pl-4">
-                    <p className="text-sm font-semibold text-liquid-text group-hover:text-liquid-accent transition-colors">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
+                  <div className="min-w-0 flex-1 border-l border-slate-100 dark:border-slate-800 pl-4">
+                    <p className="text-sm font-semibold text-liquid-text dark:text-slate-100 group-hover:text-liquid-accent dark:group-hover:text-sky-400 transition-colors">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
 
-                    {schedule.course?.code && <p className="mt-0.5 text-[11px] font-medium text-liquid-text-secondary">{schedule.course.code}</p>}
+                    {schedule.course?.code && <p className="mt-0.5 text-[11px] font-medium text-liquid-text-secondary dark:text-slate-400">{schedule.course.code}</p>}
 
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-liquid-text-secondary">
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">
                       {schedule.room && (
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-slate-400" />
+                          <MapPin className="h-3 w-3 text-slate-400 dark:text-slate-500" />
                           {schedule.room}
                         </span>
                       )}
 
                       {schedule.lecturer && (
                         <span className="flex items-center gap-1">
-                          <Clock3 className="h-3 w-3 text-slate-400" />
+                          <Clock3 className="h-3 w-3 text-slate-400 dark:text-slate-500" />
                           {schedule.lecturer}
                         </span>
                       )}

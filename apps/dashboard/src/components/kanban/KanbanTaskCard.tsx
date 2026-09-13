@@ -141,18 +141,24 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
         )}
       </div>
 
-      {task.description && <p className="mt-2.5 pl-6 line-clamp-3 text-xs leading-5 text-liquid-text-secondary">{task.description}</p>}
+      {task.description && <p className="mt-2.5 pl-6 line-clamp-3 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">{task.description}</p>}
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2 pl-6">
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
           <StatusIcon className="h-3 w-3" />
           {statusLabel[task.status]}
         </span>
 
-        <span className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${task.scope === "CLASS" ? "bg-blue-50 text-blue-600" : "bg-violet-50 text-violet-600"}`}>{task.scope === "CLASS" ? "Kelas" : "Personal"}</span>
+        <span
+          className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${task.scope === "CLASS" ? "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300" : "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300"}`}
+        >
+          {task.scope === "CLASS" ? "Kelas" : "Personal"}
+        </span>
 
         {task.dueDate && (
-          <span className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${urgency === "overdue" ? "bg-red-50 text-red-600" : urgency === "dueSoon" ? "bg-amber-50 text-amber-600" : "bg-slate-100 text-slate-500"}`}>
+          <span
+            className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${urgency === "overdue" ? "bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-300" : urgency === "dueSoon" ? "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}
+          >
             {formatDueDate(task.dueDate)}
           </span>
         )}
@@ -160,8 +166,8 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
 
       {/* Mobile-Friendly Quick Move Bar (1-tap transition on phone) */}
       {onMoveStatus && (
-        <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-slate-100/90 pt-2.5 pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
-          <span className="text-[10px] font-bold text-slate-400">Pindah:</span>
+        <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-slate-100/90 dark:border-slate-800 pt-2.5 pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Pindah:</span>
           <div className="flex items-center gap-1">
             {task.status === "TODO" && (
               <button type="button" onClick={() => onMoveStatus(task, "IN_PROGRESS")} className="flex items-center gap-1 rounded-lg bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-700 transition active:scale-95">

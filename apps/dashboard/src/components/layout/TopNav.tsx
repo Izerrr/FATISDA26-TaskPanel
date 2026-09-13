@@ -56,15 +56,18 @@ export function TopNav({ onToggleMobileMenu, onNewTask, search, onSearchChange }
           </button>
         )}
 
-        {/* Dark Mode Toggle Button */}
+        {/* Animated Dark Mode Toggle Button */}
         <button
           type="button"
           onClick={toggleTheme}
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl text-liquid-text-secondary transition hover:bg-black/[0.04] hover:text-liquid-text dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.03] text-liquid-text-secondary transition-all duration-300 hover:bg-black/[0.06] hover:text-liquid-text active:scale-90 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-amber-300 overflow-hidden"
           aria-label={theme === "dark" ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
           title={theme === "dark" ? "Mode Terang" : "Mode Gelap"}
         >
-          {theme === "dark" ? <Sun className="h-[18px] w-[18px] text-amber-400" /> : <Moon className="h-[18px] w-[18px]" />}
+          <div className="relative h-5 w-5">
+            <Sun className={`absolute inset-0 h-5 w-5 text-amber-400 transition-all duration-500 ease-out transform ${theme === "dark" ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`} />
+            <Moon className={`absolute inset-0 h-5 w-5 text-slate-600 transition-all duration-500 ease-out transform ${theme === "dark" ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+          </div>
         </button>
 
         <button
