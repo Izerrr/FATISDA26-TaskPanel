@@ -53,3 +53,21 @@
     @apply text-[11px] font-semibold uppercase tracking-wide text-liquid-text-secondary;
   }
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Styling for DnD destination slot/placeholder */
+[data-rfd-placeholder-context-id] {
+  border-radius: 1rem !important;
+  border: 2px dashed rgba(99, 102, 241, 0.35) !important;
+  background-color: rgba(241, 245, 249, 0.65) !important;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}

@@ -10,9 +10,10 @@ interface Props {
   tasks: Task[];
   isDraggingAny?: boolean;
   justMovedTaskId?: string | null;
+  onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
 }
 
-export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId }: Props) {
+export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onMoveStatus }: Props) {
   const meta = KANBAN_META[status];
 
   return (
@@ -32,13 +33,22 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
             {tasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(dragProvided, dragSnapshot) => (
-                  <div
-                    ref={dragProvided.innerRef}
-                    {...dragProvided.draggableProps}
-                    {...dragProvided.dragHandleProps}
-                    className={`cursor-grab active:cursor-grabbing select-none ${dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03]" : "transition-transform duration-150"}`}
-                  >
-                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} />
+                  <div className="relative">
+                    {/* Ghost card that stays in the original lifted position */}
+                    {dragSnapshot.isDragging && (
+                      <div className="pointer-events-none select-none">
+                        <KanbanTaskCard task={task} index={index} isGhost />
+                      </div>
+                    )}
+
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      {...dragProvided.dragHandleProps}
+                      className={`cursor-grab active:cursor-grabbing select-none ${dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03]" : "transition-transform duration-150"}`}
+                    >
+                      <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} />
+                    </div>
                   </div>
                 )}
               </Draggable>

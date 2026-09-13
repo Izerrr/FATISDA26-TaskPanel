@@ -1,17 +1,20 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import type { Task, TaskStatus } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
+import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 
 interface KanbanTaskCardProps {
   task: Task;
   index?: number;
   isDragging?: boolean;
   isJustMoved?: boolean;
+  isGhost?: boolean;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
+  onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
 }
 
 const statusLabel: Record<TaskStatus, string> = {
@@ -28,9 +31,27 @@ const statusIcon: Record<TaskStatus, typeof Clock3> = {
   DONE: CheckCircle2,
 };
 
-export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, onEdit, onDelete }: KanbanTaskCardProps) {
+export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, isGhost = false, onEdit, onDelete, onMoveStatus }: KanbanTaskCardProps) {
   const StatusIcon = statusIcon[task.status];
   const urgency = getUrgency(task.dueDate);
+
+  if (isGhost) {
+    return (
+      <article className="relative rounded-2xl border-2 border-dashed border-liquid-accent/40 bg-slate-100/50 p-4 opacity-45 shadow-inner select-none pointer-events-none">
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="min-w-0 flex-1">
+            <h3 className="break-words text-sm font-semibold text-slate-500 leading-snug">{task.title}</h3>
+            {task.course && (
+              <p className="mt-1 truncate text-xs text-slate-400">
+                {task.course.code} · {task.course.name}
+              </p>
+            )}
+          </div>
+          <span className="shrink-0 rounded-full bg-slate-200/80 px-2 py-0.5 text-[10px] font-semibold text-slate-500">Sedang digeser...</span>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article
@@ -59,14 +80,14 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
           </div>
         </div>
 
-        {(onEdit || onDelete) && (
+        {(onEdit || onDelete || onMoveStatus) && (
           <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
             <details className="group/menu">
               <summary className="flex h-7 w-7 cursor-pointer list-none items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
                 <MoreHorizontal className="h-4 w-4" />
               </summary>
 
-              <div className="absolute right-0 top-8 z-20 w-36 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+              <div className="absolute right-0 top-8 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
                 {onEdit && (
                   <button type="button" onClick={() => onEdit(task)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-600 hover:bg-slate-50">
                     <Pencil className="h-3.5 w-3.5" />
@@ -79,6 +100,23 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                     <Trash2 className="h-3.5 w-3.5" />
                     Hapus
                   </button>
+                )}
+
+                {onMoveStatus && (
+                  <div className="border-t border-slate-100 mt-1 pt-1">
+                    <span className="block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pindahkan Ke:</span>
+                    {KANBAN_COLUMNS.filter((s) => s !== task.status).map((targetStatus) => (
+                      <button
+                        key={targetStatus}
+                        type="button"
+                        onClick={() => onMoveStatus(task, targetStatus)}
+                        className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-liquid-accent transition-colors"
+                      >
+                        <span>{KANBAN_META[targetStatus].label}</span>
+                        <ArrowRight className="h-3 w-3 opacity-60" />
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             </details>

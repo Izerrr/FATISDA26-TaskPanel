@@ -1,11 +1,15 @@
 import { ExtendedClient } from "../../types.js";
 import { syncAllGuildMembers, syncGuildToDatabase } from "../../lib/sync.js";
+import { startActivityRotator } from "../../lib/activityRotator.js";
 
 export const name = "ready";
 export const once = true;
 
 export const execute = async (client: ExtendedClient) => {
   console.log(`🤖 Bot online! Logged in as ${client.user?.tag}`);
+
+  // Mulai rotasi status dan aktivitas bot
+  startActivityRotator(client);
 
   try {
     const targetGuildId = process.env.DISCORD_GUILD_ID;
