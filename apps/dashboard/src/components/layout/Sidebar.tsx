@@ -174,7 +174,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       {/* Context */}
       <div className="px-4 pt-5">
         <div className="mt-2 rounded-2xl bg-liquid-accent/5 px-3 py-3 dark:bg-slate-800/60">
-          <p className="text-sm font-semibold text-liquid-text dark:text-slate-100">FATISDA 2026</p>
+          <p className="text-sm font-semibold text-liquid-text dark:text-slate-100">My Profile</p>
 
           <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">{profileLabel || "Profil belum tersinkron"}</p>
 

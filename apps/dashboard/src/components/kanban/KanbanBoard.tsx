@@ -194,7 +194,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-64 animate-pulse rounded-3xl border border-slate-100 bg-white p-4 shadow-sm" />
+          <div key={i} className="h-64 animate-pulse rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm" />
         ))}
       </div>
     );
@@ -215,11 +215,11 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
               type="button"
               onClick={() => scrollToColumn(status)}
               className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                isActive ? "bg-liquid-accent text-white shadow-sm scale-[1.02]" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                isActive ? "bg-liquid-accent text-white shadow-sm scale-[1.02]" : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
               }`}
             >
               <span>{meta.label}</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"}`}>{count}</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>{count}</span>
             </button>
           );
         })}

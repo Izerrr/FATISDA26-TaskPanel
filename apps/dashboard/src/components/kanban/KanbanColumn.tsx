@@ -22,7 +22,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
     <section className={`flex min-w-[280px] flex-1 flex-col rounded-3xl border bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl transition-all duration-200 ${meta.border}`}>
       <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70 dark:border-slate-800">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
-        <span className="text-xs font-semibold text-liquid-text-secondary">{tasks.length}</span>
+        <span className="text-xs font-semibold text-liquid-text-secondary dark:text-slate-400">{tasks.length}</span>
       </header>
 
       <Droppable droppableId={status}>
@@ -30,7 +30,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`min-h-[220px] flex-1 space-y-3 rounded-b-3xl p-3 transition-all duration-200 ${snapshot.isDraggingOver ? `${meta.dropBg} ring-2 ${meta.activeRing} shadow-inner` : isDraggingAny ? "bg-slate-50/40" : ""}`}
+            className={`min-h-[220px] flex-1 space-y-3 rounded-b-3xl p-3 transition-all duration-200 ${snapshot.isDraggingOver ? `${meta.dropBg} ring-2 ${meta.activeRing} shadow-inner` : isDraggingAny ? "bg-slate-50/40 dark:bg-slate-800/30" : ""}`}
           >
             {tasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -44,7 +44,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
                       touchAction: "manipulation",
                     }}
                     className={`cursor-grab active:cursor-grabbing select-none transition-shadow ${
-                      dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03] shadow-2xl ring-2 ring-liquid-accent/30 rounded-2xl" : "transition-transform duration-150"
+                      dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03] shadow-2xl ring-2 ring-liquid-accent/30 dark:ring-sky-500/30 rounded-2xl" : "transition-transform duration-150"
                     }`}
                   >
                     <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} onEdit={onEdit} onDelete={onDelete} />
@@ -59,18 +59,18 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
               <div
                 className={`flex h-28 flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition-all duration-200 ${
                   snapshot.isDraggingOver
-                    ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent scale-[1.02] shadow-sm"
+                    ? "border-liquid-accent dark:border-sky-500 bg-liquid-accent/10 dark:bg-sky-500/15 text-liquid-accent dark:text-sky-400 scale-[1.02] shadow-sm"
                     : isDraggingAny
-                      ? "border-slate-300/80 bg-slate-50/70 text-slate-500"
-                      : "border-slate-200/60 bg-slate-50/30 text-slate-400"
+                      ? "border-slate-300/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400"
+                      : "border-slate-200/60 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 text-slate-400 dark:text-slate-500"
                 }`}
               >
                 {snapshot.isDraggingOver ? (
-                  <p className="text-xs font-bold text-liquid-accent">Lepaskan tugas di sini</p>
+                  <p className="text-xs font-bold text-liquid-accent dark:text-sky-400">Lepaskan tugas di sini</p>
                 ) : isDraggingAny ? (
-                  <p className="text-xs font-medium text-slate-500">Pindahkan ke kolom ini</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Pindahkan ke kolom ini</p>
                 ) : (
-                  <p className="text-xs text-slate-400">Belum ada tugas</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Belum ada tugas</p>
                 )}
               </div>
             )}
