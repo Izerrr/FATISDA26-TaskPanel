@@ -121,6 +121,43 @@ export async function POST(req: NextRequest) {
       update: {},
     });
 
+    // Safely resolve courseId (handling synthetic schedule IDs like sched-...)
+    let validCourseId: string | null = null;
+    if (courseId && typeof courseId === "string") {
+      const existingCourse = await prisma.course.findUnique({ where: { id: courseId } });
+      if (existingCourse) {
+        validCourseId = existingCourse.id;
+      } else if (courseId.startsWith("sched-")) {
+        const decodedName = decodeURIComponent(courseId.replace(/^sched-/, "")).trim();
+        const targetProdi = user.prodi ?? "INFORMATIKA";
+        let found = await prisma.course.findFirst({
+          where: {
+            name: { equals: decodedName, mode: "insensitive" },
+            prodi: targetProdi,
+          },
+        });
+
+        if (!found) {
+          try {
+            found = await prisma.course.create({
+              data: {
+                code: "MK",
+                name: decodedName,
+                prodi: targetProdi,
+                kelas: user.kelas ?? null,
+              },
+            });
+          } catch {
+            found = await prisma.course.findFirst({
+              where: { name: { equals: decodedName, mode: "insensitive" } },
+            });
+          }
+        }
+
+        validCourseId = found ? found.id : null;
+      }
+    }
+
     const task = await prisma.task.create({
       data: {
         guildId,
@@ -132,9 +169,10 @@ export async function POST(req: NextRequest) {
         scope: taskScope,
         prodi: prodi ?? user.prodi ?? null,
         kelas: kelas ?? user.kelas ?? null,
-        courseId: courseId || null,
+        courseId: validCourseId,
         createdById: user.id,
       },
+
       include: {
         createdBy: true,
         assignee: true,

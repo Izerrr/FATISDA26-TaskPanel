@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Loader2, Plus, X } from "lucide-react";
 
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useRole } from "@/hooks/useRole";
@@ -15,200 +14,7 @@ import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 
 import type { Course } from "@/types";
 
-interface CreateTaskModalProps {
-  open: boolean;
-  guildId: string | null;
-  courses: Course[];
-  roles: string[];
-  onClose: () => void;
-  onCreated: () => void;
-}
-
-function CreateTaskModal({ open, guildId, courses, roles, onClose, onCreated }: CreateTaskModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [courseId, setCourseId] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [scope, setScope] = useState<"PERSONAL" | "CLASS">("PERSONAL");
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const canCreateClass = roles.some((role) => ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role));
-
-  if (!open) {
-    return null;
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!guildId) {
-      setError("Pilih server Discord terlebih dahulu.");
-      return;
-    }
-
-    if (!title.trim()) {
-      setError("Judul tugas wajib diisi.");
-      return;
-    }
-
-    if (scope === "CLASS" && !canCreateClass) {
-      setError("Kamu tidak memiliki izin membuat tugas kelas.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          guildId,
-          title: title.trim(),
-          description: description.trim() || null,
-          courseId: courseId || null,
-          dueDate: dueDate || null,
-          scope,
-          status: "TODO",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Gagal membuat tugas.");
-      }
-
-      setTitle("");
-      setDescription("");
-      setCourseId("");
-      setDueDate("");
-      setScope("PERSONAL");
-
-      onCreated();
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal membuat tugas.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl border border-white/70 bg-white shadow-float">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-          <div>
-            <h2 className="text-lg font-bold text-liquid-text">Tugas Baru</h2>
-
-            <p className="mt-1 text-xs text-liquid-text-secondary">Tambahkan tugas ke workspace yang sedang dipilih.</p>
-          </div>
-
-          <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5 p-6">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setScope("PERSONAL")}
-              className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${scope === "PERSONAL" ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500"}`}
-            >
-              Personal
-            </button>
-
-            <button
-              type="button"
-              disabled={!canCreateClass}
-              onClick={() => setScope("CLASS")}
-              className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${scope === "CLASS" ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500"} ${
-                !canCreateClass ? "cursor-not-allowed opacity-40" : ""
-              }`}
-            >
-              Kelas
-            </button>
-          </div>
-
-          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
-
-          <div>
-            <label className="label mb-2 block font-semibold text-liquid-text">Judul Tugas</label>
-
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-              placeholder="Contoh: Laporan Praktikum Modul 2"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="label mb-2 block font-semibold text-liquid-text">Mata Kuliah</label>
-
-              <select
-                value={courseId}
-                onChange={(event) => setCourseId(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
-              >
-                <option value="">Tanpa mata kuliah</option>
-
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.code} ({course.name})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="label mb-2 block font-semibold text-liquid-text">Deadline Pengumpulan</label>
-
-              <input
-                type="datetime-local"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-liquid-text outline-none transition focus:border-liquid-accent focus:bg-white"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="label mb-2 block">Deskripsi</label>
-
-            <textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={4}
-              placeholder="Detail tugas..."
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">
-              Batal
-            </button>
-
-            <button type="submit" disabled={loading} className="flex items-center gap-2 rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-              <Plus className="h-4 w-4" />
-
-              {loading ? "Menyimpan..." : "Simpan Tugas"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+import { NewTaskModal } from "@/components/kanban/NewTaskModal";
 
 export function DashboardShell() {
   const { selectedGuild } = useGuild();
@@ -317,7 +123,7 @@ export function DashboardShell() {
         </>
       )}
 
-      <CreateTaskModal open={createOpen} guildId={selectedGuild} courses={courses} roles={roles.map((role) => String(role))} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
+      {selectedGuild && <NewTaskModal open={createOpen} guildId={selectedGuild} courses={courses} roles={roles.map((role) => String(role))} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />}
     </DashboardFrame>
   );
 }
