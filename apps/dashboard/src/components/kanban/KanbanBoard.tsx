@@ -19,10 +19,44 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [activeMobileTab, setActiveMobileTab] = useState<TaskStatus>("TODO");
 
   const columnRefs = useRef<Record<string, HTMLElement | null>>({});
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setItems(tasks);
   }, [tasks]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let timeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const scrollLeft = container.scrollLeft;
+        const width = container.offsetWidth;
+        const center = scrollLeft + width / 2;
+
+        for (const status of KANBAN_COLUMNS) {
+          const el = columnRefs.current[status];
+          if (el) {
+            const left = el.offsetLeft;
+            const right = left + el.offsetWidth;
+            if (center >= left && center <= right) {
+              setActiveMobileTab(status);
+              break;
+            }
+          }
+        }
+      }, 60);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   function handleDragStart() {
     setIsDragging(true);
@@ -163,14 +197,14 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
 
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Unified Responsive Kanban Layout (No duplicate droppables!) */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 no-scrollbar md:grid md:grid-cols-4 md:min-w-[960px] md:overflow-visible md:snap-none">
+        <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar md:grid md:grid-cols-4 md:min-w-[960px] md:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
           {KANBAN_COLUMNS.map((status) => (
             <div
               key={status}
               ref={(el) => {
                 columnRefs.current[status] = el;
               }}
-              className="w-[85vw] max-w-[360px] shrink-0 snap-center md:w-auto md:max-w-none md:shrink md:snap-align-none"
+              className={`w-[85vw] max-w-[360px] shrink-0 md:w-auto md:max-w-none md:shrink md:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
             >
               <KanbanColumn status={status} tasks={items.filter((task) => task.status === status)} isDraggingAny={isDragging} justMovedTaskId={justMovedTaskId} onMoveStatus={handleMoveTask} />
             </div>

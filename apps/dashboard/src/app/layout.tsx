@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { GuildProvider } from "@/components/providers/GuildProvider";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
   title: "FATISDA 26 | TaskPanel",
   description: "Task management dashboard untuk FATISDA UNS 2026.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -25,7 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body>
         <AuthProvider>
-          <GuildProvider>{children}</GuildProvider>
+          <GuildProvider>
+            {children}
+            <InstallPrompt />
+          </GuildProvider>
         </AuthProvider>
 
         <script

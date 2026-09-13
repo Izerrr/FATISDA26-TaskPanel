@@ -8,6 +8,8 @@ import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
 
+import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
+
 interface SidebarProps {
   courses: Course[];
   user: User | null;
@@ -34,7 +36,7 @@ const navItems = [
   },
   {
     href: "/dashboard/courses",
-    label: "Mata Kuliah",
+    label: "Mata Kuliah & Vault",
     icon: BookOpen,
   },
   {
@@ -218,13 +220,18 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
             <p className="px-3 text-xs italic text-liquid-text-secondary">Belum ada data mata kuliah.</p>
           ) : (
             courses.map((course) => (
-              <div key={course.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-liquid-text-secondary">
-                <BookOpen className="h-4 w-4 shrink-0 text-liquid-text-tertiary" />
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-liquid-text">{course.name}</p>
+              <Link
+                key={course.id}
+                href={`/dashboard/courses/${course.id}`}
+                onClick={onClose}
+                className="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-liquid-text-secondary transition hover:bg-slate-50 hover:text-liquid-accent"
+              >
+                <BookOpen className="h-4 w-4 shrink-0 text-liquid-text-tertiary transition-colors group-hover:text-liquid-accent" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-liquid-text transition-colors group-hover:text-liquid-accent">{course.name}</p>
                   <p className="text-[11px] text-liquid-text-secondary">{course.code}</p>
                 </div>
-              </div>
+              </Link>
             ))
           )}
         </div>
@@ -232,6 +239,10 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
       {/* Bottom */}
       <div className="mt-auto border-t border-liquid-border p-4">
+        <SidebarInstallButton />
+
+        <div className="my-2" />
+
         <button
           type="button"
           onClick={handleSync}

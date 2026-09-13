@@ -23,7 +23,7 @@ const navItems = [
   },
   {
     href: "/dashboard/courses",
-    label: "Kuliah",
+    label: "Matkul & Vault",
     icon: BookOpen,
   },
 ] as const;

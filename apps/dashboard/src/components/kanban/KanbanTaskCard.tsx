@@ -140,6 +140,45 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
           </span>
         )}
       </div>
+
+      {/* Mobile-Friendly Quick Move Bar (1-tap transition on phone) */}
+      {onMoveStatus && (
+        <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-slate-100/90 pt-2.5 pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
+          <span className="text-[10px] font-bold text-slate-400">Pindah:</span>
+          <div className="flex items-center gap-1">
+            {task.status === "TODO" && (
+              <button type="button" onClick={() => onMoveStatus(task, "IN_PROGRESS")} className="flex items-center gap-1 rounded-lg bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-700 transition active:scale-95">
+                <span>Kerjakan</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            )}
+
+            {task.status === "IN_PROGRESS" && (
+              <>
+                <button type="button" onClick={() => onMoveStatus(task, "NEED_REVIEW")} className="flex items-center gap-1 rounded-lg bg-purple-500/15 px-2 py-1 text-[11px] font-bold text-purple-700 transition active:scale-95">
+                  <span>Review</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+                <button type="button" onClick={() => onMoveStatus(task, "DONE")} className="flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2 py-1 text-[11px] font-bold text-emerald-700 transition active:scale-95">
+                  <span>Selesai ✓</span>
+                </button>
+              </>
+            )}
+
+            {task.status === "NEED_REVIEW" && (
+              <button type="button" onClick={() => onMoveStatus(task, "DONE")} className="flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition active:scale-95">
+                <span>Selesai ✓</span>
+              </button>
+            )}
+
+            {task.status === "DONE" && (
+              <button type="button" onClick={() => onMoveStatus(task, "TODO")} className="flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600 transition active:scale-95">
+                <span>↺ Buka Lagi</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </article>
   );
 }

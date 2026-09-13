@@ -33,22 +33,19 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
             {tasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(dragProvided, dragSnapshot) => (
-                  <div className="relative">
-                    {/* Ghost card that stays in the original lifted position */}
-                    {dragSnapshot.isDragging && (
-                      <div className="pointer-events-none select-none">
-                        <KanbanTaskCard task={task} index={index} isGhost />
-                      </div>
-                    )}
-
-                    <div
-                      ref={dragProvided.innerRef}
-                      {...dragProvided.draggableProps}
-                      {...dragProvided.dragHandleProps}
-                      className={`cursor-grab active:cursor-grabbing select-none ${dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03]" : "transition-transform duration-150"}`}
-                    >
-                      <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} />
-                    </div>
+                  <div
+                    ref={dragProvided.innerRef}
+                    {...dragProvided.draggableProps}
+                    {...dragProvided.dragHandleProps}
+                    style={{
+                      ...dragProvided.draggableProps.style,
+                      touchAction: "manipulation",
+                    }}
+                    className={`cursor-grab active:cursor-grabbing select-none transition-shadow ${
+                      dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03] shadow-2xl ring-2 ring-liquid-accent/30 rounded-2xl" : "transition-transform duration-150"
+                    }`}
+                  >
+                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} />
                   </div>
                 )}
               </Draggable>
