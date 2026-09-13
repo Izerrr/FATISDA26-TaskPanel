@@ -59,6 +59,7 @@ export function TopNav({ onToggleMobileMenu, onNewTask, search, onSearchChange }
         {/* Animated Dark Mode Toggle Button */}
         <button
           type="button"
+          data-theme-anim
           onClick={toggleTheme}
           className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.03] text-liquid-text-secondary transition-all duration-300 hover:bg-black/[0.06] hover:text-liquid-text active:scale-90 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-amber-300 overflow-hidden"
           aria-label={theme === "dark" ? "Ganti ke mode terang" : "Ganti ke mode gelap"}

@@ -45,12 +45,44 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   function applyTheme(newTheme: Theme) {
-    setThemeState(newTheme);
-    localStorage.setItem("fatisda_theme", newTheme);
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
+    if (typeof document !== "undefined") {
+      // Temporarily disable CSS transitions on the DOM during theme toggle
+      // This ensures 100% of elements (cards, sidebar, background, borders, text)
+      // switch theme at the EXACT same millisecond without trailing/delayed transitions
+      const css = document.createElement("style");
+      css.appendChild(
+        document.createTextNode(
+          `*:not([data-theme-anim]):not([data-theme-anim] *) {
+            -webkit-transition: none !important;
+            -moz-transition: none !important;
+            -o-transition: none !important;
+            -ms-transition: none !important;
+            transition: none !important;
+          }`,
+        ),
+      );
+      document.head.appendChild(css);
+
+      setThemeState(newTheme);
+      localStorage.setItem("fatisda_theme", newTheme);
+      if (newTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
+      // Force synchronous reflow so all elements adopt new colors instantly
+      window.getComputedStyle(document.body);
+
+      // Re-enable interactions on next frame
+      setTimeout(() => {
+        if (document.head.contains(css)) {
+          document.head.removeChild(css);
+        }
+      }, 20);
     } else {
-      document.documentElement.classList.remove("dark");
+      setThemeState(newTheme);
+      localStorage.setItem("fatisda_theme", newTheme);
     }
   }
 
