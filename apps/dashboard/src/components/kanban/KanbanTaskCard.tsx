@@ -87,7 +87,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                 <MoreHorizontal className="h-4 w-4" />
               </summary>
 
-              <div className="absolute right-0 top-8 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 p-1 shadow-xl">
+              <div className="absolute right-0 top-8 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-xl">
                 {onEdit && (
                   <button
                     type="button"
@@ -95,7 +95,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                       e.currentTarget.closest("details")?.removeAttribute("open");
                       onEdit(task);
                     }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
                   >
                     <Pencil className="h-3.5 w-3.5 text-slate-400" />
                     Edit
@@ -117,7 +117,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                 )}
 
                 {onMoveStatus && (
-                  <div className="border-t border-slate-100 dark:border-slate-750 mt-1 pt-1">
+                  <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
                     <span className="block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Pindahkan Ke:</span>
                     {KANBAN_COLUMNS.filter((s) => s !== task.status).map((targetStatus) => (
                       <button

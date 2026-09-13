@@ -98,7 +98,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative flex w-full max-w-lg flex-col rounded-3xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden max-h-[92vh] my-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4.5 bg-gradient-to-r from-slate-50 to-white dark:from-slate-850 dark:to-slate-900">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4.5 bg-slate-50 dark:bg-slate-900">
           <div>
             <h2 className="text-base font-bold text-slate-800 dark:text-white">Edit Tugas</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Perbarui rincian, status, dan tenggat waktu tugas.</p>
@@ -213,8 +213,8 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850 px-6 py-3.5">
-          <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900 px-6 py-3.5">
+          <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition">
             Batal
           </button>
 

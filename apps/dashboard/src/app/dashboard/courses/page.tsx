@@ -48,7 +48,7 @@ export default function CoursesPage() {
         </section>
 
         {/* Vault Feature Banner */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-sky-200/80 bg-gradient-to-r from-sky-50/90 via-indigo-50/50 to-white dark:from-slate-900 dark:via-slate-850 dark:to-slate-900 dark:border-slate-800 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-sky-200/80 bg-gradient-to-r from-sky-50/90 via-indigo-50/50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:border-slate-800 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-sm">
               <FolderGit2 className="h-5 w-5" />

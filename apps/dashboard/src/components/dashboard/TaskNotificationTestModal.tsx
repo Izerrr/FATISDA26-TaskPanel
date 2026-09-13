@@ -134,7 +134,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                       className={`rounded-xl border px-3 py-2.5 text-left text-xs font-semibold transition ${
                         isSelected
                           ? "border-violet-600 bg-violet-50/70 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 shadow-sm"
-                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750"
+                          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                       }`}
                     >
                       {item.label}
@@ -158,7 +158,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
                       className={`h-9 w-12 rounded-xl text-xs font-bold transition ${
                         isSelected
                           ? "bg-violet-600 text-white shadow-sm"
-                          : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 hover:text-slate-900 dark:hover:text-slate-100"
+                          : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100"
                       }`}
                     >
                       {k}
@@ -242,7 +242,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
               {result.error && <div className="mt-2 rounded-xl bg-red-100/70 dark:bg-red-900/50 p-2.5 font-mono text-[11px] text-red-800 dark:text-red-200 break-words">{result.error}</div>}
 
               {result.diagnostics && (
-                <div className="mt-3 space-y-2 border-t border-slate-200/60 dark:border-slate-750 pt-3">
+                <div className="mt-3 space-y-2 border-t border-slate-200/60 dark:border-slate-700 pt-3">
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <div className="rounded-xl bg-white dark:bg-slate-800 p-2.5 shadow-sm border border-slate-100 dark:border-slate-700">
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-medium">Target</span>
@@ -316,7 +316,7 @@ export function TaskNotificationTestModal({ open, onClose, currentUser }: Props)
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 px-6 py-4">
+        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 px-6 py-4">
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
             <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span>Aman: Tidak ada data tugas yang disimpan di database.</span>

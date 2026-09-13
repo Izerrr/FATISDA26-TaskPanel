@@ -61,7 +61,7 @@ export function ScheduleExportModal({ open, schedules, semester, kelas, onClose 
                   className={`rounded-xl border py-2 text-xs font-medium transition ${
                     alarmMinutes === mins
                       ? "border-liquid-accent bg-liquid-accent/10 dark:bg-sky-500/20 text-liquid-accent dark:text-sky-300 font-semibold shadow-xs"
-                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750"
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                   }`}
                 >
                   {mins === 60 ? "1 Jam" : `${mins} Menit`} Sebelum
@@ -71,7 +71,7 @@ export function ScheduleExportModal({ open, schedules, semester, kelas, onClose 
           </div>
 
           {/* Primary Action: Download .ics */}
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-750 bg-slate-50/70 dark:bg-slate-800/60 p-4">
+          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-sm font-bold text-liquid-text dark:text-slate-100">Unduh Berkas iCalendar (.ics)</h3>

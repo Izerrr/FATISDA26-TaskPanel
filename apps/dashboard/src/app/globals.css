@@ -77,27 +77,6 @@
   }
 }
 
-/* Page-wide smooth transition when toggling dark/light mode */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.35s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition:
-    background-color 0.35s ease,
-    border-color 0.35s ease,
-    color 0.35s ease,
-    fill 0.35s ease,
-    stroke 0.35s ease,
-    box-shadow 0.35s ease !important;
-  transition-delay: 0s !important;
-}
-
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

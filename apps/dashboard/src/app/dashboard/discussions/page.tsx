@@ -33,7 +33,7 @@ export default function DiscussionsPage() {
 
             <Link
               href="/dashboard"
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-750"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Kembali ke Beranda
