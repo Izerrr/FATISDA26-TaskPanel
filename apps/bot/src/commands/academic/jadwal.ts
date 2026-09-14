@@ -50,13 +50,7 @@ const command: Command = {
         .setName("agama")
         .setDescription("Filter mata kuliah agama (default: Islam)")
         .setRequired(false)
-        .addChoices(
-          { name: "Islam (Default)", value: "ISLAM" },
-          { name: "Kristen", value: "KRISTEN" },
-          { name: "Katholik", value: "KATHOLIK" },
-          { name: "Budha", value: "BUDHA" },
-          { name: "Semua Agama", value: "SEMUA" },
-        ),
+        .addChoices({ name: "Islam (Default)", value: "ISLAM" }, { name: "Kristen", value: "KRISTEN" }, { name: "Katholik", value: "KATHOLIK" }, { name: "Budha", value: "BUDHA" }, { name: "Semua Agama", value: "SEMUA" }),
     ),
 
   async run(_client, context, args) {
