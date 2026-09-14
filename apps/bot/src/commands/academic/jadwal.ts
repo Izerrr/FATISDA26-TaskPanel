@@ -44,13 +44,27 @@ const command: Command = {
         .setRequired(false)
         .addChoices({ name: "Kelas A", value: "A" }, { name: "Kelas B", value: "B" }, { name: "Kelas C", value: "C" }, { name: "Kelas D", value: "D" }),
     )
-    .addIntegerOption((option) => option.setName("semester").setDescription("Semester perkuliahan (1-8, default: 2)").setRequired(false).setMinValue(1).setMaxValue(8)),
+    .addIntegerOption((option) => option.setName("semester").setDescription("Semester perkuliahan (1-8, default: 1)").setRequired(false).setMinValue(1).setMaxValue(8))
+    .addStringOption((option) =>
+      option
+        .setName("agama")
+        .setDescription("Filter mata kuliah agama (default: Islam)")
+        .setRequired(false)
+        .addChoices(
+          { name: "Islam (Default)", value: "ISLAM" },
+          { name: "Kristen", value: "KRISTEN" },
+          { name: "Katholik", value: "KATHOLIK" },
+          { name: "Budha", value: "BUDHA" },
+          { name: "Semua Agama", value: "SEMUA" },
+        ),
+    ),
 
   async run(_client, context, args) {
     const authorId = isSlash(context) ? context.user.id : context.author.id;
     const hariOpt = isSlash(context) ? context.options.getString("hari") : args[0]?.toUpperCase();
     let kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
     let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : null;
+    const agamaOpt = isSlash(context) ? context.options.getString("agama")?.toUpperCase() : args[2]?.toUpperCase();
 
     try {
       if (!kelasOpt || semesterOpt === null) {
@@ -101,7 +115,7 @@ const command: Command = {
       };
 
       if (kelasOpt && ["A", "B", "C", "D"].includes(kelasOpt)) {
-        whereClause.OR = [{ kelas: kelasOpt as Kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }];
+        whereClause.kelas = kelasOpt as Kelas;
       }
 
       const rawSchedules = await prisma.schedule.findMany({
@@ -112,9 +126,25 @@ const command: Command = {
         orderBy: [{ startTime: "asc" }, { kelas: "asc" }],
       });
 
-      // Deduplikasi agar sesi yang sama (batch-wide seperti Olahraga & Agama) tidak dobel
+      // Filter agama: default Islam jika tidak ditentukan
+      const matchesAgama = (courseName: string, selectedAgama: string | undefined): boolean => {
+        const norm = courseName.toLowerCase();
+        if (!norm.includes("agama")) return true;
+
+        const choice = (selectedAgama || "ISLAM").toUpperCase();
+        if (choice === "SEMUA") return true;
+        if (choice === "KRISTEN") return norm.includes("kristen");
+        if (choice === "KATHOLIK") return norm.includes("katholik") || norm.includes("katolik");
+        if (choice === "BUDHA") return norm.includes("budha") || norm.includes("buddha");
+        if (choice === "HINDU") return norm.includes("hindu");
+        return norm.includes("islam");
+      };
+
+      const filteredRaw = rawSchedules.filter((s) => matchesAgama(s.courseName, agamaOpt));
+
+      // Deduplikasi agar sesi yang sama (batch-wide seperti Olahraga) tidak dobel
       const uniqueScheduleMap = new Map<string, (typeof rawSchedules)[number]>();
-      for (const s of rawSchedules) {
+      for (const s of filteredRaw) {
         const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
         if (!uniqueScheduleMap.has(key) || s.kelas === kelasOpt) {
           uniqueScheduleMap.set(key, s);
@@ -144,7 +174,7 @@ const command: Command = {
       const embed = new EmbedBuilder()
         .setTitle(`📅 Jadwal Perkuliahan — ${DAY_NAMES[targetDayNumber]} (Semester ${semesterOpt})`)
         .setColor(BRAND_COLOR)
-        .setDescription(`Ditemukan **${schedules.length}** sesi kuliah ${kelasOpt ? `untuk Kelas ${kelasOpt}` : ""}\n`)
+        .setDescription(`Ditemukan **${schedules.length}** sesi kuliah ${kelasOpt ? `untuk Kelas ${kelasOpt}` : ""}\n*💡 Tips: Gunakan opsi \`agama:\` untuk melihat jadwal Kristen, Katholik, atau Budha.*\n`)
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 

@@ -135,12 +135,16 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
     }
 
     if (databaseEntries.length > 0) {
-      // Pengecualian untuk mata kuliah 1 angkatan (semua kelas), contoh: Olahraga, Agama
+      // Pengecualian untuk mata kuliah 1 angkatan (semua kelas), contoh: Olahraga dan Agama non-Islam (Kristen, Katholik, Budha)
+      // Catatan: MKU seperti PAI, Bahasa Indonesia, dan Pancasila memiliki kode rombel A1, A2, B1, B2
+      // yang dipetakan secara ketat ke kelas masing-masing (A1->A, A2->B, B1->C, B2->D).
       const ALL_KELAS: Kelas[] = ["A", "B", "C", "D"];
       const recordsToInsert = [];
 
       for (const entry of databaseEntries) {
-        const isBatchWide = /olahraga|agama/i.test(entry.courseName);
+        const isMkuClass = entry.rawClassCode ? /^[AB][12]$/i.test(entry.rawClassCode) : false;
+        const isNonIslamReligion = entry.courseName.toLowerCase().includes("agama") && !entry.courseName.toLowerCase().includes("islam");
+        const isBatchWide = !isMkuClass && (/olahraga/i.test(entry.courseName) || isNonIslamReligion);
 
         if (isBatchWide) {
           for (const k of ALL_KELAS) {

@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     const prodiParam = searchParams.get("prodi") as Prodi | null;
     const kelasParam = searchParams.get("kelas") as Kelas | null;
     const semesterParam = searchParams.get("semester");
+    const agamaParam = searchParams.get("agama");
 
     const prodi = prodiParam || user.prodi;
     const kelas = kelasParam || user.kelas;
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
       where: {
         prodi,
         semester,
-        OR: [{ kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
+        kelas,
       },
       orderBy: [
         {
@@ -161,9 +162,25 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Deduplikasi jadwal agar sesi yang sama (batch-wide seperti Olahraga/Agama) tidak muncul berulang
+    // Filter agama jika dipilih (default: "islam")
+    const matchesAgamaFilter = (courseName: string, filter: string | null | undefined): boolean => {
+      const norm = courseName.toLowerCase();
+      if (!norm.includes("agama")) return true;
+
+      const selected = (filter || "islam").trim().toLowerCase();
+      if (selected === "semua" || selected === "all") return true;
+      if (selected === "kristen") return norm.includes("kristen");
+      if (selected === "katholik" || selected === "katolik") return norm.includes("katholik") || norm.includes("katolik");
+      if (selected === "budha" || selected === "buddha") return norm.includes("budha") || norm.includes("buddha");
+      if (selected === "hindu") return norm.includes("hindu");
+      return norm.includes("islam");
+    };
+
+    const filteredSchedules = schedules.filter((s) => matchesAgamaFilter(s.courseName, agamaParam));
+
+    // Deduplikasi jadwal agar sesi yang sama (batch-wide seperti Olahraga) tidak muncul berulang
     const uniqueMap = new Map<string, (typeof schedules)[number]>();
-    for (const s of schedules) {
+    for (const s of filteredSchedules) {
       const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
       if (!uniqueMap.has(key) || s.kelas === kelas) {
         uniqueMap.set(key, s);

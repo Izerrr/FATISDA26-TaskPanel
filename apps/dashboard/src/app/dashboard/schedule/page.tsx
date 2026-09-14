@@ -38,10 +38,19 @@ function getProdiLabel(prodi: string | null | undefined) {
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+const AGAMA_OPTIONS = [
+  { value: "islam", label: "Islam" },
+  { value: "kristen", label: "Kristen" },
+  { value: "katholik", label: "Katholik" },
+  { value: "budha", label: "Budha" },
+  { value: "semua", label: "Semua" },
+];
+
 export default function SchedulePage() {
   const { user } = useRole();
 
   const [selectedSemester, setSelectedSemester] = useState<number>(user?.semester ?? 1);
+  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
 
   useEffect(() => {
     if (user?.semester) {
@@ -51,6 +60,7 @@ export default function SchedulePage() {
 
   const { schedules, isLoading, isError } = useSchedule({
     semester: selectedSemester,
+    agama: selectedAgama,
   });
 
   const today = new Date().getDay() || 7;
@@ -94,6 +104,23 @@ export default function SchedulePage() {
               <Calendar className="h-4 w-4 text-liquid-accent" />
               <span>Ekspor Kalender</span>
             </button>
+
+            {/* Agama Selector */}
+            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
+              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">Agama</span>
+              <div className="flex gap-1 overflow-x-auto">
+                {AGAMA_OPTIONS.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setSelectedAgama(item.value)}
+                    className={`h-7 rounded-xl px-2.5 text-xs font-semibold transition ${selectedAgama === item.value ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Semester Selector */}
             <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">

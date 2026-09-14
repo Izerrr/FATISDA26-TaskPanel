@@ -106,21 +106,28 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         continue;
       }
 
-      // Ambil jadwal hari ini (termasuk Olahraga & Agama batch-wide untuk semester aktif 1)
+      // Ambil jadwal hari ini untuk kelas target (semester 1)
       const rawSchedules = await prisma.schedule.findMany({
         where: {
           prodi: target.prodi,
           day: currentDay,
           semester: 1,
-          OR: [{ kelas: target.kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
+          kelas: target.kelas,
         },
         include: { course: true },
         orderBy: { startTime: "asc" },
       });
 
-      // Deduplikasi agar sesi batch-wide pada jam & ruangan sama tidak muncul berulang
+      // Filter default untuk briefing kelas: matkul reguler + PAI kelas tersebut (tanpa agama lain)
+      const filteredRaw = rawSchedules.filter((s) => {
+        const norm = s.courseName.toLowerCase();
+        if (!norm.includes("agama")) return true;
+        return norm.includes("islam");
+      });
+
+      // Deduplikasi agar sesi pada jam & ruangan sama tidak muncul berulang
       const uniqueScheduleMap = new Map<string, (typeof rawSchedules)[number]>();
-      for (const s of rawSchedules) {
+      for (const s of filteredRaw) {
         const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
         if (!uniqueScheduleMap.has(key) || s.kelas === target.kelas) {
           uniqueScheduleMap.set(key, s);

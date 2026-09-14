@@ -24,6 +24,7 @@ interface UseScheduleOptions {
   semester?: number;
   prodi?: string;
   kelas?: string;
+  agama?: string;
 }
 
 export function useSchedule(options: UseScheduleOptions = {}) {
@@ -32,8 +33,12 @@ export function useSchedule(options: UseScheduleOptions = {}) {
   const prodi = options.prodi ?? user?.prodi;
   const kelas = options.kelas ?? user?.kelas;
   const semester = options.semester ?? user?.semester ?? 1;
+  const agama = options.agama ?? "islam";
 
-  const key = prodi && kelas && semester ? `/api/schedule?prodi=${encodeURIComponent(prodi)}&kelas=${encodeURIComponent(kelas)}&semester=${semester}` : null;
+  const key =
+    prodi && kelas && semester
+      ? `/api/schedule?prodi=${encodeURIComponent(prodi)}&kelas=${encodeURIComponent(kelas)}&semester=${semester}&agama=${encodeURIComponent(agama)}`
+      : null;
 
   const { data, error, isLoading, mutate } = useSWR<ScheduleResponse>(key, fetcher);
 
