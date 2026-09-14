@@ -11,7 +11,7 @@ const command: Command = {
   async run(client, context) {
     const inviteLink = `https://discord.com/api/oauth2/authorize?client_id=${client.user?.id}&permissions=8&scope=bot%20applications.commands`;
 
-    const embed = new EmbedBuilder().setTitle("🔗 Invite FATISDA26 Helper").setDescription(`Klik [Di Sini](${inviteLink}) untuk mengundang bot ini ke server kamu!`).setColor(BRAND_COLOR).setTimestamp();
+    const embed = new EmbedBuilder().setTitle("🔗 Invite FATISDA26 Assistant").setDescription(`Klik [Di Sini](${inviteLink}) untuk mengundang bot ini ke server kamu!`).setColor(BRAND_COLOR).setTimestamp();
 
     await reply(context, { embeds: [embed] });
   },

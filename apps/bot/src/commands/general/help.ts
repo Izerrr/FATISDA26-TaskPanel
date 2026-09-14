@@ -45,7 +45,7 @@ const command: Command = {
       (categories[cat] ??= []).push(`\`${cmd.name}\``);
     });
 
-    const embed = new EmbedBuilder().setTitle("📚 Menu Perintah FATISDA26 Helper").setDescription("Gunakan `/help [nama_command]` untuk melihat detail per-command.").setColor(BRAND_COLOR).setTimestamp();
+    const embed = new EmbedBuilder().setTitle("📚 Menu Perintah FATISDA26 Assistant").setDescription("Gunakan `/help [nama_command]` untuk melihat detail per-command.").setColor(BRAND_COLOR).setTimestamp();
 
     for (const [category, cmds] of Object.entries(categories)) {
       embed.addFields({ name: `➤ ${category.toUpperCase()}`, value: cmds.join(", "), inline: false });
