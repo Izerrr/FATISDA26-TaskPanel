@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
+import { resolveCourseId } from "@/lib/course-resolver";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -64,28 +65,7 @@ export async function PATCH(
       if (!courseId) {
         validCourseId = null;
       } else if (typeof courseId === "string") {
-        const existingCourse = await prisma.course.findUnique({ where: { id: courseId } });
-        if (existingCourse) {
-          validCourseId = existingCourse.id;
-        } else if (courseId.startsWith("sched-")) {
-          const decodedName = decodeURIComponent(courseId.replace(/^sched-/, "")).trim();
-          const targetProdi = user.prodi ?? "INFORMATIKA";
-          let found = await prisma.course.findFirst({
-            where: { name: { equals: decodedName, mode: "insensitive" }, prodi: targetProdi },
-          });
-          if (!found) {
-            try {
-              found = await prisma.course.create({
-                data: { code: "MK", name: decodedName, prodi: targetProdi, kelas: user.kelas ?? null },
-              });
-            } catch {
-              found = await prisma.course.findFirst({ where: { name: { equals: decodedName, mode: "insensitive" } } });
-            }
-          }
-          validCourseId = found ? found.id : null;
-        } else {
-          validCourseId = null;
-        }
+        validCourseId = await resolveCourseId(courseId, existing.prodi ?? user.prodi ?? "INFORMATIKA", existing.kelas ?? user.kelas ?? null);
       }
     }
 

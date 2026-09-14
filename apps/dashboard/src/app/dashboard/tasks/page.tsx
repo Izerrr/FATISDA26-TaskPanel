@@ -95,7 +95,7 @@ export default function TasksPage() {
                       }
 
                       return (
-                        <span key={role} className="rounded-full bg-liquid-accent/10 dark:bg-sky-500/20 px-2.5 py-1 text-[10px] font-semibold text-liquid-accent dark:text-sky-300">
+                        <span key={role} className="rounded-full bg-liquid-accent/10 dark:bg-sky-500/20 px-3 py-1 text-xs font-semibold text-liquid-accent dark:text-sky-300">
                           {label}
                         </span>
                       );
@@ -220,7 +220,7 @@ export default function TasksPage() {
 
               {courses.map((course) => (
                 <option key={course.id} value={course.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                  {course.code}
+                  {course.code} — {course.name}
                 </option>
               ))}
             </select>

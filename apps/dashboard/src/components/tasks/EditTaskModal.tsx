@@ -209,6 +209,16 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
                 <option value="" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Tanpa mata kuliah
                 </option>
+                {task?.course && !courses.some((c) => c.id === task.course?.id) && (
+                  <option value={task.course.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                    {task.course.code} — {task.course.name}
+                  </option>
+                )}
+                {courseId && (!task?.course || task.course.id !== courseId) && !courses.some((c) => c.id === courseId) && (
+                  <option value={courseId} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                    {courseId.startsWith("sched-") ? decodeURIComponent(courseId.replace(/^sched-/, "")) : courseId}
+                  </option>
+                )}
                 {courses.map((course) => (
                   <option key={course.id} value={course.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                     {course.code} — {course.name}

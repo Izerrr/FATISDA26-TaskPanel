@@ -48,8 +48,20 @@ export function getRoleIdToMention(prodi?: string | null, kelas?: string | null)
 /**
  * Kirim Morning Briefing (Jadwal kuliah & tugas hari ini)
  */
-export async function sendDailyMorningBriefing(client: Client) {
+export interface BriefingResult {
+  sent: number;
+  skipped: number;
+  errors: string[];
+}
+
+export async function sendDailyMorningBriefing(client: Client, customTargets?: { prodi: Prodi; kelas: Kelas; channelId?: string }[]): Promise<BriefingResult> {
   console.log("⏰ [Scheduler] Menjalankan Morning Briefing...");
+
+  const result: BriefingResult = {
+    sent: 0,
+    skipped: 0,
+    errors: [],
+  };
 
   // Waktu WIB
   const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
@@ -62,20 +74,37 @@ export async function sendDailyMorningBriefing(client: Client) {
     year: "numeric",
   });
 
-  const classTargets: { prodi: Prodi; kelas: Kelas }[] = [
+  const defaultTargets: { prodi: Prodi; kelas: Kelas; channelId?: string }[] = [
     { prodi: "INFORMATIKA", kelas: "A" },
     { prodi: "INFORMATIKA", kelas: "B" },
     { prodi: "INFORMATIKA", kelas: "C" },
     { prodi: "INFORMATIKA", kelas: "D" },
+    { prodi: "SAINS_DATA", kelas: "A" },
+    { prodi: "SAINS_DATA", kelas: "B" },
+    { prodi: "INFORMATIKA_PSDKU_KEBUMEN", kelas: "A" },
   ];
+
+  const classTargets = customTargets && customTargets.length > 0 ? customTargets : defaultTargets;
 
   for (const target of classTargets) {
     try {
-      const channelId = getTargetChannelId(target.prodi, target.kelas);
-      if (!channelId) continue;
+      const channelId = target.channelId || getTargetChannelId(target.prodi, target.kelas);
+      if (!channelId) {
+        console.warn(`[Scheduler] Channel ID untuk ${target.prodi} Kelas ${target.kelas} belum diatur di environment variable.`);
+        result.skipped++;
+        continue;
+      }
 
-      const channel = (await client.channels.fetch(channelId).catch(() => null)) as TextChannel | null;
-      if (!channel || !channel.isTextBased()) continue;
+      const channel = (await client.channels.fetch(channelId).catch((err) => {
+        console.error(`[Scheduler] Gagal fetch channel ${channelId}:`, err);
+        return null;
+      })) as TextChannel | null;
+
+      if (!channel || !channel.isTextBased()) {
+        console.warn(`[Scheduler] Channel ${channelId} tidak valid atau bukan text channel.`);
+        result.skipped++;
+        continue;
+      }
 
       // Ambil jadwal hari ini (termasuk Olahraga batch-wide)
       const schedules = await prisma.schedule.findMany({
@@ -111,6 +140,8 @@ export async function sendDailyMorningBriefing(client: Client) {
       });
 
       if (schedules.length === 0 && tasksDueSoon.length === 0) {
+        console.log(`[Scheduler] Tidak ada jadwal atau tugas untuk ${target.prodi} Kelas ${target.kelas}. Lewati.`);
+        result.skipped++;
         continue;
       }
 
@@ -164,11 +195,16 @@ export async function sendDailyMorningBriefing(client: Client) {
         components: [row],
       });
 
-      console.log(`[Scheduler] Sukses mengirim morning briefing ke ${target.prodi} Kelas ${target.kelas}`);
+      console.log(`✅ [Scheduler] Sukses mengirim morning briefing ke ${target.prodi} Kelas ${target.kelas}`);
+      result.sent++;
     } catch (err) {
-      console.error(`[Scheduler] Gagal kirim briefing untuk ${target.prodi} ${target.kelas}:`, err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(`❌ [Scheduler] Gagal kirim briefing untuk ${target.prodi} ${target.kelas}:`, err);
+      result.errors.push(`${target.prodi} ${target.kelas}: ${errMsg}`);
     }
   }
+
+  return result;
 }
 
 /**
@@ -267,10 +303,14 @@ export async function checkApproachingDeadlines(client: Client) {
 export function startScheduler(client: Client) {
   console.log("⏰ [Scheduler] Memulai Background Scheduler (Timezone: Asia/Jakarta)...");
 
-  // 1. Morning Briefing setiap hari jam 06:30 WIB
+  // 1. Morning Briefing setiap hari jam 07:00 WIB (dapat dikonfigurasi via SCHEDULE_BRIEFING_CRON)
+  const briefingCron = process.env.SCHEDULE_BRIEFING_CRON?.trim() || "0 7 * * *";
+  console.log(`⏰ [Scheduler] Memasang Morning Briefing cron: "${briefingCron}" (Asia/Jakarta)...`);
+
   cron.schedule(
-    "30 6 * * *",
+    briefingCron,
     async () => {
+      console.log(`⏰ [Scheduler] Trigger cron morning briefing (${briefingCron})...`);
       await sendDailyMorningBriefing(client);
     },
     {

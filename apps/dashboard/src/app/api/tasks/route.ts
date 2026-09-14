@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
+import { resolveCourseId } from "@/lib/course-resolver";
 type TaskScope = "PERSONAL" | "CLASS";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
@@ -121,42 +122,8 @@ export async function POST(req: NextRequest) {
       update: {},
     });
 
-    // Safely resolve courseId (handling synthetic schedule IDs like sched-...)
-    let validCourseId: string | null = null;
-    if (courseId && typeof courseId === "string") {
-      const existingCourse = await prisma.course.findUnique({ where: { id: courseId } });
-      if (existingCourse) {
-        validCourseId = existingCourse.id;
-      } else if (courseId.startsWith("sched-")) {
-        const decodedName = decodeURIComponent(courseId.replace(/^sched-/, "")).trim();
-        const targetProdi = user.prodi ?? "INFORMATIKA";
-        let found = await prisma.course.findFirst({
-          where: {
-            name: { equals: decodedName, mode: "insensitive" },
-            prodi: targetProdi,
-          },
-        });
-
-        if (!found) {
-          try {
-            found = await prisma.course.create({
-              data: {
-                code: "MK",
-                name: decodedName,
-                prodi: targetProdi,
-                kelas: user.kelas ?? null,
-              },
-            });
-          } catch {
-            found = await prisma.course.findFirst({
-              where: { name: { equals: decodedName, mode: "insensitive" } },
-            });
-          }
-        }
-
-        validCourseId = found ? found.id : null;
-      }
-    }
+    // Safely resolve courseId (handles DB courses, schedule synthetic IDs, and prevents constraint conflicts)
+    const validCourseId = await resolveCourseId(courseId, prodi ?? user.prodi ?? "INFORMATIKA", kelas ?? user.kelas ?? null);
 
     const task = await prisma.task.create({
       data: {

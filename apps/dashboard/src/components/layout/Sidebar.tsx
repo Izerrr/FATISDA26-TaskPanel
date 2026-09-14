@@ -102,6 +102,15 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
   const roleLabels = getRoleLabels(user);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen, onClose]);
+
   async function handleSync() {
     if (syncing) {
       return;
@@ -295,16 +304,14 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       {/* Desktop static sidebar */}
       <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border bg-white transition-colors dark:border-slate-800 dark:bg-slate-900 md:block">{sidebarContent}</aside>
 
-      {/* Mobile drawer with backdrop */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden" role="dialog" aria-modal="true">
-          {/* Backdrop overlay */}
-          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
+      {/* Mobile drawer with subtle slide-in animation & backdrop fade */}
+      <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileOpen ? "visible pointer-events-auto" : "invisible pointer-events-none"}`} role="dialog" aria-modal="true">
+        {/* Backdrop overlay */}
+        <div className={`fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300 ease-out ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={onClose} aria-hidden="true" />
 
-          {/* Drawer content */}
-          <div className="relative z-10 h-full w-72 shadow-2xl transition-transform">{sidebarContent}</div>
-        </div>
-      )}
+        {/* Drawer content */}
+        <div className={`relative z-10 h-full w-72 shadow-2xl transform transition-transform duration-300 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>
+      </div>
     </>
   );
 }

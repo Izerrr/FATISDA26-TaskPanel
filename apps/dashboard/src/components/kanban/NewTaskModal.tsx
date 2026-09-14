@@ -131,7 +131,15 @@ export function NewTaskModal({ open, guildId, courses, roles, onClose, onCreated
     }
   }
 
-  const selectedCourse = courses.find((c) => c.id === courseId);
+  const selectedCourse =
+    courses.find((c) => c.id === courseId) ||
+    (courseId.startsWith("sched-")
+      ? {
+          id: courseId,
+          code: "MK",
+          name: decodeURIComponent(courseId.replace(/^sched-/, "")),
+        }
+      : null);
 
   const modalContent = (
     <div
@@ -389,6 +397,11 @@ export function NewTaskModal({ open, guildId, courses, roles, onClose, onCreated
                     <option value="" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                       Tanpa mata kuliah
                     </option>
+                    {courseId && !courses.some((c) => c.id === courseId) && (
+                      <option value={courseId} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                        {courseId.startsWith("sched-") ? decodeURIComponent(courseId.replace(/^sched-/, "")) : courseId}
+                      </option>
+                    )}
                     {courses.map((course) => (
                       <option key={course.id} value={course.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                         {course.code} — {course.name}
