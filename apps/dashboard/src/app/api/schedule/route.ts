@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const prodi = prodiParam || user.prodi;
     const kelas = kelasParam || user.kelas;
     const parsedSemester = semesterParam ? parseInt(semesterParam, 10) : NaN;
-    const semester = !Number.isNaN(parsedSemester) ? parsedSemester : (user.semester ?? 2);
+    const semester = !Number.isNaN(parsedSemester) ? parsedSemester : (user.semester ?? 1);
 
     if (!prodi || !kelas) {
       return NextResponse.json({
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       where: {
         prodi,
         semester,
-        OR: [{ kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }],
+        OR: [{ kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
       },
       orderBy: [
         {
@@ -161,6 +161,16 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Deduplikasi jadwal agar sesi yang sama (batch-wide seperti Olahraga/Agama) tidak muncul berulang
+    const uniqueMap = new Map<string, (typeof schedules)[number]>();
+    for (const s of schedules) {
+      const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
+      if (!uniqueMap.has(key) || s.kelas === kelas) {
+        uniqueMap.set(key, s);
+      }
+    }
+    const uniqueSchedules = Array.from(uniqueMap.values());
+
     return NextResponse.json({
       success: true,
       profile: {
@@ -187,8 +197,8 @@ export async function GET(request: NextRequest) {
           )?.lastSyncedAt ?? null,
         staleBeforeMs: STALE_AFTER_MS,
       },
-      total: schedules.length,
-      entries: schedules,
+      total: uniqueSchedules.length,
+      entries: uniqueSchedules,
     });
   } catch (error) {
     console.error("[GET /api/schedule]", error);

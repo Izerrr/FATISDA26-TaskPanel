@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const semesterParam = searchParams.get("semester");
-    const targetSemester = semesterParam ? parseInt(semesterParam, 10) : (user.semester ?? 2);
+    const targetSemester = semesterParam ? parseInt(semesterParam, 10) : (user.semester ?? 1);
 
     const targetProdi = user.prodi ?? "INFORMATIKA";
     const targetKelas = user.kelas;
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
         prodi: targetProdi,
         ...(targetKelas
           ? {
-              OR: [{ kelas: targetKelas }, { kelas: null }, { name: { contains: "Olahraga", mode: "insensitive" } }],
+              OR: [{ kelas: targetKelas }, { kelas: null }, { name: { contains: "Olahraga", mode: "insensitive" } }, { name: { contains: "Agama", mode: "insensitive" } }],
             }
           : {}),
       },
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
         semester: targetSemester,
         ...(targetKelas
           ? {
-              OR: [{ kelas: targetKelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }],
+              OR: [{ kelas: targetKelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
             }
           : {}),
       },
@@ -115,8 +115,23 @@ export async function GET(req: NextRequest) {
     const existingNames = new Set(dbCourses.map((c) => c.name.toLowerCase().trim()));
 
     for (const schedule of activeSchedules) {
-      if (!existingNames.has(schedule.courseName.toLowerCase().trim())) {
-        existingNames.add(schedule.courseName.toLowerCase().trim());
+      const normName = schedule.courseName.toLowerCase().trim();
+      const existingCourse = combinedCourses.find((c) => c.name.toLowerCase().trim() === normName);
+
+      if (existingCourse) {
+        // Tambahkan schedule jika belum ada di course ini
+        const hasSched = existingCourse.schedules.some((s) => s.day === schedule.day && s.startTime === schedule.startTime && s.endTime === schedule.endTime);
+        if (!hasSched) {
+          existingCourse.schedules.push({
+            day: schedule.day,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            room: schedule.room,
+            lecturer: schedule.lecturer,
+          });
+        }
+      } else {
+        existingNames.add(normName);
         combinedCourses.push({
           id: schedule.courseId ?? `sched-${encodeURIComponent(schedule.courseName)}`,
           code: "MK",

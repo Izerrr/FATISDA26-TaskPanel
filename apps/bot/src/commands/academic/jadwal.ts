@@ -62,7 +62,7 @@ const command: Command = {
           semesterOpt = dbUser.semester;
         }
       }
-      semesterOpt = semesterOpt ?? 2;
+      semesterOpt = semesterOpt ?? 1;
 
       // Hitung hari saat ini dalam zona waktu WIB (UTC+7)
       const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
@@ -101,16 +101,26 @@ const command: Command = {
       };
 
       if (kelasOpt && ["A", "B", "C", "D"].includes(kelasOpt)) {
-        whereClause.OR = [{ kelas: kelasOpt as Kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }];
+        whereClause.OR = [{ kelas: kelasOpt as Kelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }];
       }
 
-      const schedules = await prisma.schedule.findMany({
+      const rawSchedules = await prisma.schedule.findMany({
         where: whereClause,
         include: {
           course: true,
         },
         orderBy: [{ startTime: "asc" }, { kelas: "asc" }],
       });
+
+      // Deduplikasi agar sesi yang sama (batch-wide seperti Olahraga & Agama) tidak dobel
+      const uniqueScheduleMap = new Map<string, (typeof rawSchedules)[number]>();
+      for (const s of rawSchedules) {
+        const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
+        if (!uniqueScheduleMap.has(key) || s.kelas === kelasOpt) {
+          uniqueScheduleMap.set(key, s);
+        }
+      }
+      const schedules = Array.from(uniqueScheduleMap.values());
 
       const scheduleButton = new ButtonBuilder().setLabel("Buka Jadwal Lengkap Web").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
 

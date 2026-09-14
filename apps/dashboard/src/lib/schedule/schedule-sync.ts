@@ -135,12 +135,12 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
     }
 
     if (databaseEntries.length > 0) {
-      // Pengecualian untuk mata kuliah 1 angkatan (semua kelas), contoh: Olahraga
+      // Pengecualian untuk mata kuliah 1 angkatan (semua kelas), contoh: Olahraga, Agama
       const ALL_KELAS: Kelas[] = ["A", "B", "C", "D"];
       const recordsToInsert = [];
 
       for (const entry of databaseEntries) {
-        const isBatchWide = entry.courseName.trim().toLowerCase().includes("olahraga");
+        const isBatchWide = /olahraga|agama/i.test(entry.courseName);
 
         if (isBatchWide) {
           for (const k of ALL_KELAS) {
@@ -179,8 +179,21 @@ export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
         }
       }
 
+      // Deduplikasi sebelum insert agar tidak ada duplikasi record
+      const deduplicatedRecords = [];
+      const insertSeen = new Set<string>();
+
+      for (const record of recordsToInsert) {
+        const key = [record.prodi, record.kelas, record.semester, record.day, record.startTime, record.endTime, record.room ?? "", record.courseName.toLowerCase().trim()].join("|");
+
+        if (!insertSeen.has(key)) {
+          insertSeen.add(key);
+          deduplicatedRecords.push(record);
+        }
+      }
+
       await tx.schedule.createMany({
-        data: recordsToInsert,
+        data: deduplicatedRecords,
       });
     }
 

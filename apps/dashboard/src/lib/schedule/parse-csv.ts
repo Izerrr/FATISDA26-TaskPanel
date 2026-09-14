@@ -224,16 +224,6 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
 
       const parsed = parseScheduleCell(rawValue, prodi);
 
-      if (rawValue.toLowerCase().includes("agama")) {
-        console.log("AGAMA DEBUG:", {
-          rawValue,
-          parsed,
-          day: currentDay,
-          session,
-          room,
-        });
-      }
-
       if (!parsed) {
         continue;
       }
@@ -267,11 +257,6 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
       });
     }
   }
-
-  console.log({
-    prodi,
-    totalParsed: result.length,
-  });
 
   return result;
 }

@@ -62,11 +62,6 @@ export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | nul
     return null;
   }
 
-  console.log("IGNORED CHECK:", {
-    value,
-    ignored: isIgnoredCell(value),
-  });
-
   if (isIgnoredCell(value)) {
     return null;
   }
@@ -91,7 +86,11 @@ export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | nul
 
   const classToken = tokensAfterSemester.find(isClassToken);
 
-  const courseName = match[1].trim().replace(/\s+/g, " ");
+  let courseName = match[1].trim().replace(/\s+/g, " ");
+
+  if (/^sisdig$/i.test(courseName)) {
+    courseName = "Sistem Digital";
+  }
 
   const semester = Number(match[2]);
 

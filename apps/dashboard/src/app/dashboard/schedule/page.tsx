@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, CalendarDays, Clock3, MapPin } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
@@ -41,7 +41,13 @@ const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 export default function SchedulePage() {
   const { user } = useRole();
 
-  const [selectedSemester, setSelectedSemester] = useState<number>(user?.semester ?? 2);
+  const [selectedSemester, setSelectedSemester] = useState<number>(user?.semester ?? 1);
+
+  useEffect(() => {
+    if (user?.semester) {
+      setSelectedSemester(user.semester);
+    }
+  }, [user?.semester]);
 
   const { schedules, isLoading, isError } = useSchedule({
     semester: selectedSemester,

@@ -25,7 +25,9 @@ const COURSE_KEYWORDS: Record<string, string[]> = {
   etika: ["etika", "profesi"],
   statistika: ["statistika", "probabilitas"],
   olahraga: ["olahraga", "kebugaran"],
-  agama: ["agama", "pendidikan agama"],
+  sisdig: ["sistem digital", "sisdig"],
+  digital: ["sistem digital", "sisdig"],
+  agama: ["agama", "pendidikan agama", "pai", "kristen", "katholik", "katolik", "hindu", "budha", "buddha", "konghucu"],
   pancasila: ["pancasila"],
   kwu: ["kewirausahaan"],
 };

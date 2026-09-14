@@ -46,7 +46,7 @@ export function DashboardShell() {
       <section>
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <h1 className="text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100">Halo, {user?.username ?? "Mahasiswa"}!</h1>
-          <p className="text-xs font-medium text-liquid-text-tertiary dark:text-slate-400">Semester Aktif: {user?.semester ?? 2}</p>
+          <p className="text-xs font-medium text-liquid-text-tertiary dark:text-slate-400">Semester Aktif: {user?.semester ?? 1}</p>
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
