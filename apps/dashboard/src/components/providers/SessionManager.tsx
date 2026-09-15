@@ -52,10 +52,7 @@ export function SessionManager({ children }: { children: ReactNode }) {
 
     try {
       // Revalidasi endpoint profil user dan seluruh cache SWR
-      await Promise.allSettled([
-        fetch("/api/me", { cache: "no-store" }),
-        mutate((key) => typeof key === "string" && key.startsWith("/api/")),
-      ]);
+      await Promise.allSettled([fetch("/api/me", { cache: "no-store" }), mutate((key) => typeof key === "string" && key.startsWith("/api/"))]);
     } catch (e) {
       console.warn("[SessionManager] Sync error:", e);
     } finally {

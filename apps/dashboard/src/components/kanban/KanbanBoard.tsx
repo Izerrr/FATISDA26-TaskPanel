@@ -109,9 +109,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     }
   }
 
-  const canManageClassTasks = roles.some((role) =>
-    ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role))
-  );
+  const canManageClassTasks = roles.some((role) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role)));
 
   function canModifyTask(task: Task): boolean {
     if (!user) return false;
@@ -276,14 +274,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         />
       )}
 
-      {deletingTask && (
-        <DeleteTaskModal
-          open={!!deletingTask}
-          task={deletingTask}
-          onClose={() => setDeletingTask(null)}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
+      {deletingTask && <DeleteTaskModal open={!!deletingTask} task={deletingTask} onClose={() => setDeletingTask(null)} onConfirm={handleConfirmDelete} />}
     </div>
   );
 }

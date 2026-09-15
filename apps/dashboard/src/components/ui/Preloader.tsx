@@ -26,9 +26,7 @@ export function Preloader({ visible, message = "Menyelaraskan Sesi...", subtext 
   return (
     <aside
       aria-label="Status Pemuatan"
-      className={`fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity duration-300 pointer-events-none ${
-        visible ? "opacity-100" : "opacity-0"
-      }`}
+      className={`fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity duration-300 pointer-events-none ${visible ? "opacity-100" : "opacity-0"}`}
     >
       <div
         className={`relative flex flex-col items-center justify-center rounded-3xl border border-sky-500/20 bg-slate-900/90 dark:bg-slate-950/90 px-8 py-6 shadow-2xl shadow-sky-500/10 transition-all duration-300 ${
@@ -53,13 +51,9 @@ export function Preloader({ visible, message = "Menyelaraskan Sesi...", subtext 
         </div>
 
         {/* Text Details */}
-        <p className="text-xs font-bold tracking-wide text-slate-100 text-center">
-          {message}
-        </p>
+        <p className="text-xs font-bold tracking-wide text-slate-100 text-center">{message}</p>
 
-        <p className="mt-1 text-[10px] font-medium tracking-wider text-sky-400/80 uppercase">
-          {subtext}
-        </p>
+        <p className="mt-1 text-[10px] font-medium tracking-wider text-sky-400/80 uppercase">{subtext}</p>
       </div>
     </aside>
   );

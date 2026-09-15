@@ -26,9 +26,7 @@ function LoginContent() {
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Sesi Berakhir</p>
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                Kamu keluar otomatis karena tidak ada aktivitas selama 24 jam. Silakan masuk kembali dengan akun Discord kamu.
-              </p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">Kamu keluar otomatis karena tidak ada aktivitas selama 24 jam. Silakan masuk kembali dengan akun Discord kamu.</p>
             </div>
           </div>
         )}

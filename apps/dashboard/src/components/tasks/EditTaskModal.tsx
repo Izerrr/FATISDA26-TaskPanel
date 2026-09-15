@@ -63,9 +63,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
 
   if (!open || !mounted || !task) return null;
 
-  const canCreateClass = roles.some((role) =>
-    ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role))
-  );
+  const canCreateClass = roles.some((role) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role)));
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -194,9 +192,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
             <div className="rounded-2xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/30 p-2.5 space-y-1.5 animate-in fade-in duration-150">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-blue-900 dark:text-blue-200">Target Kelas:</span>
-                <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300">
-                  {targetKelas === "ALL" ? "Semua Kelas di Prodi" : `Khusus Kelas ${targetKelas}`}
-                </span>
+                <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300">{targetKelas === "ALL" ? "Semua Kelas di Prodi" : `Khusus Kelas ${targetKelas}`}</span>
               </div>
               <div className="grid grid-cols-6 gap-1 p-1 rounded-xl bg-white/80 dark:bg-slate-800 border border-blue-100 dark:border-blue-900/40">
                 {["ALL", "A", "B", "C", "D", "E"].map((k) => (
@@ -204,11 +200,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
                     key={k}
                     type="button"
                     onClick={() => setTargetKelas(k)}
-                    className={`py-1 rounded-lg text-xs font-bold transition ${
-                      targetKelas === k
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    }`}
+                    className={`py-1 rounded-lg text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                   >
                     {k === "ALL" ? "Semua" : `Kls ${k}`}
                   </button>

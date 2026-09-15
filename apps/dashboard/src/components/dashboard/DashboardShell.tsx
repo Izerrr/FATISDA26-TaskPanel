@@ -123,16 +123,7 @@ export function DashboardShell() {
         </>
       )}
 
-      <NewTaskModal
-        open={createOpen}
-        guildId={selectedGuild || ""}
-        courses={courses}
-        roles={roles.map((role) => String(role))}
-        user={user}
-        userId={user?.id}
-        onClose={() => setCreateOpen(false)}
-        onCreated={() => void mutate()}
-      />
+      <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles.map((role) => String(role))} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
     </DashboardFrame>
   );
 }
