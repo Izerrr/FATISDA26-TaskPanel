@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, LogOut, MessageSquare, RefreshCw, X } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
@@ -101,6 +101,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   const profileLabel = [prodiLabel, user?.kelas ? `Kelas ${user.kelas}` : null].filter(Boolean).join(" · ");
 
   const roleLabels = getRoleLabels(user);
+  const canManageVault = (user?.roles || []).some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r as string));
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -220,6 +221,27 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
             );
           })}
         </div>
+
+        {canManageVault && (
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between px-2 mb-1">
+              <p className="label">Pengelola</p>
+              <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">CMS</span>
+            </div>
+            <Link
+              href="/dashboard/vault-cms"
+              onClick={onClose}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                pathname.startsWith("/dashboard/vault-cms")
+                  ? "bg-liquid-accent/10 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-400"
+                  : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              }`}
+            >
+              <FolderGit2 className="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+              <span>Kelola Course Vault</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Courses */}

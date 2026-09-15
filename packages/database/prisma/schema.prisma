@@ -68,6 +68,8 @@ model User {
   createdTasks  Task[] @relation("CreatedTasks")
   assignedTasks Task[] @relation("AssignedTasks")
 
+  updatedVaults CourseVault[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -111,11 +113,41 @@ model Course {
 
   tasks     Task[]
   schedules Schedule[]
+  vaults    CourseVault[]
 
   createdAt DateTime @default(now())
 
   @@unique([code, prodi, kelas])
   @@index([prodi, kelas])
+}
+
+model CourseVault {
+  id          String   @id @default(cuid())
+  courseId    String?
+  courseName  String
+  prodi       Prodi
+  kelas       Kelas?
+  semester    Int?
+
+  driveUrl     String?
+  modulUrl     String?
+  silabusUrl   String?
+  communityUrl String?
+  notes        String?
+
+  extraLinks   Json?    @default("[]")
+
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  course      Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseName, prodi, kelas])
+  @@index([prodi, kelas])
+  @@index([courseId])
 }
 
 model Task {

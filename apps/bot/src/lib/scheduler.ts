@@ -54,7 +54,7 @@ export interface BriefingResult {
   errors: string[];
 }
 
-export async function sendDailyMorningBriefing(client: Client, customTargets?: { prodi: Prodi; kelas: Kelas; channelId?: string }[]): Promise<BriefingResult> {
+export async function sendDailyMorningBriefing(client: Client, customTargets?: { prodi: Prodi; kelas: Kelas; channelId?: string; semester?: number }[]): Promise<BriefingResult> {
   console.log("⏰ [Scheduler] Menjalankan Morning Briefing...");
 
   const result: BriefingResult = {
@@ -74,14 +74,14 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
     year: "numeric",
   });
 
-  const defaultTargets: { prodi: Prodi; kelas: Kelas; channelId?: string }[] = [
-    { prodi: "INFORMATIKA", kelas: "A" },
-    { prodi: "INFORMATIKA", kelas: "B" },
-    { prodi: "INFORMATIKA", kelas: "C" },
-    { prodi: "INFORMATIKA", kelas: "D" },
-    { prodi: "SAINS_DATA", kelas: "A" },
-    { prodi: "SAINS_DATA", kelas: "B" },
-    { prodi: "INFORMATIKA_PSDKU_KEBUMEN", kelas: "A" },
+  const defaultTargets: { prodi: Prodi; kelas: Kelas; channelId?: string; semester?: number }[] = [
+    { prodi: "INFORMATIKA", kelas: "A", semester: 1 },
+    { prodi: "INFORMATIKA", kelas: "B", semester: 1 },
+    { prodi: "INFORMATIKA", kelas: "C", semester: 1 },
+    { prodi: "INFORMATIKA", kelas: "D", semester: 1 },
+    { prodi: "SAINS_DATA", kelas: "A", semester: 1 },
+    { prodi: "SAINS_DATA", kelas: "B", semester: 1 },
+    { prodi: "INFORMATIKA_PSDKU_KEBUMEN", kelas: "A", semester: 1 },
   ];
 
   const classTargets = customTargets && customTargets.length > 0 ? customTargets : defaultTargets;
@@ -106,12 +106,14 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         continue;
       }
 
-      // Ambil jadwal hari ini untuk kelas target (semester 1)
+      const targetSemester = target.semester ?? 1;
+
+      // Ambil jadwal hari ini untuk kelas target (semester dinamis)
       const rawSchedules = await prisma.schedule.findMany({
         where: {
           prodi: target.prodi,
           day: currentDay,
-          semester: 1,
+          semester: targetSemester,
           kelas: target.kelas,
         },
         include: { course: true },
@@ -169,7 +171,7 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
       const embed = new EmbedBuilder()
         .setColor(BRAND_COLOR)
         .setTitle(`🌅 Morning Briefing: ${dayName}, ${dateFormatted}`)
-        .setDescription(`Selamat pagi rekan-rekan **${target.prodi} Kelas ${target.kelas}**! Berikut rangkuman perkuliahan dan tugas Anda hari ini:`)
+        .setDescription(`Selamat pagi rekan-rekan **${target.prodi} Kelas ${target.kelas}** (Semester ${targetSemester})! Berikut rangkuman perkuliahan dan tugas Anda hari ini:`)
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 

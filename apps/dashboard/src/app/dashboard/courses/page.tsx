@@ -11,8 +11,12 @@ import type { Course } from "@/types";
 
 export default function CoursesPage() {
   const { courses, isLoading, isError } = useCourses();
-  const { user } = useRole();
+  const { user, roles } = useRole();
   const [search, setSearch] = useState("");
+
+  const canManageVault = useMemo(() => {
+    return roles.some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r));
+  }, [roles]);
 
   const filteredCourses = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -46,6 +50,25 @@ export default function CoursesPage() {
             </p>
           )}
         </section>
+
+        {/* PJ & Admin Shortcut Banner */}
+        {canManageVault && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-sky-300/80 dark:border-sky-800 bg-sky-50/70 dark:bg-sky-950/40 p-4 sm:flex-row sm:items-center sm:justify-between shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-xs">
+                <FolderGit2 className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Panel Pengelola: Anda memiliki akses Penanggung Jawab (PJ) / Admin</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">Kelola tautan Google Drive materi, modul praktikum, dan silabus RPS melalui CMS Vault.</p>
+              </div>
+            </div>
+            <Link href="/dashboard/vault-cms" className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-3.5 py-2 text-xs font-semibold shadow-xs transition shrink-0">
+              <span>Buka CMS Vault</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
 
         {/* Vault Feature Banner */}
         <div className="flex flex-col gap-3 rounded-2xl border border-sky-200/80 bg-gradient-to-r from-sky-50/90 via-indigo-50/50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 dark:border-slate-800 p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">

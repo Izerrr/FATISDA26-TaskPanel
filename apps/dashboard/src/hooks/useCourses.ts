@@ -20,8 +20,9 @@ const fetcher = async (url: string): Promise<CoursesResponse> => {
   return response.json();
 };
 
-export function useCourses() {
-  const { data, error, isLoading, mutate } = useSWR<CoursesResponse>("/api/courses", fetcher);
+export function useCourses(semester?: number) {
+  const url = typeof semester === "number" ? `/api/courses?semester=${semester}` : "/api/courses";
+  const { data, error, isLoading, mutate } = useSWR<CoursesResponse>(url, fetcher);
 
   return {
     courses: data?.courses ?? [],

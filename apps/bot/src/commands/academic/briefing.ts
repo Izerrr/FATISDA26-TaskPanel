@@ -22,6 +22,7 @@ const command: Command = {
     .addStringOption((opt) =>
       opt.setName("kelas").setDescription("Kelas target (A/B/C/D)").setRequired(false).addChoices({ name: "Kelas A", value: "A" }, { name: "Kelas B", value: "B" }, { name: "Kelas C", value: "C" }, { name: "Kelas D", value: "D" }),
     )
+    .addIntegerOption((opt) => opt.setName("semester").setDescription("Semester perkuliahan target (1-8, default: semester profil atau 1)").setRequired(false).setMinValue(1).setMaxValue(8))
     .addBooleanOption((opt) => opt.setName("di_channel_ini").setDescription("Kirimkan briefing langsung ke channel saat ini").setRequired(false)),
 
   async run(client: ExtendedClient, context, args) {
@@ -30,16 +31,20 @@ const command: Command = {
 
     let prodiOpt = isSlash(context) ? (context.options.getString("prodi") as Prodi | null) : (args[0]?.toUpperCase() as Prodi | null);
     let kelasOpt = isSlash(context) ? (context.options.getString("kelas") as Kelas | null) : (args[1]?.toUpperCase() as Kelas | null);
+    let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : args[2] ? parseInt(args[2], 10) : null;
+    if (isNaN(semesterOpt as number)) semesterOpt = null;
     const sendHere = isSlash(context) ? Boolean(context.options.getBoolean("di_channel_ini")) : false;
 
     // Ambil profil user jika opsi tidak diisi
-    if (!prodiOpt || !kelasOpt) {
+    if (!prodiOpt || !kelasOpt || semesterOpt === null) {
       const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
       if (dbUser) {
         if (!prodiOpt && dbUser.prodi) prodiOpt = dbUser.prodi;
         if (!kelasOpt && dbUser.kelas) kelasOpt = dbUser.kelas;
+        if (semesterOpt === null && dbUser.semester) semesterOpt = dbUser.semester;
       }
     }
+    semesterOpt = semesterOpt ?? 1;
 
     try {
       if (isSlash(context)) {
@@ -52,6 +57,7 @@ const command: Command = {
           {
             prodi: prodiOpt,
             kelas: kelasOpt,
+            semester: semesterOpt,
             channelId: sendHere && currentChannelId ? currentChannelId : undefined,
           },
         ];
