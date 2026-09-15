@@ -21,15 +21,60 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const guildId = searchParams.get("guildId");
+    const targetGuildId = (guildId && guildId.trim()) || process.env.DISCORD_GUILD_ID;
 
-    if (!guildId) {
+    if (!targetGuildId) {
       return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: token.discordId as string,
+      },
+      select: {
+        id: true,
+        prodi: true,
+        kelas: true,
+        roles: true,
+      },
+    });
+
+    const canViewAllClassTasks = Boolean(
+      user?.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(r))
+    );
+
+    // Filter tugas kelas:
+    // Jika admin/ketua angkatan -> tampilkan semua tugas kelas di server ini
+    // Jika mahasiswa biasa -> tampilkan tugas kelas prodi mereka (atau umum) DAN kelas mereka (atau semua kelas)
+    const classTaskFilter: any = {
+      scope: "CLASS",
+    };
+
+    if (!canViewAllClassTasks) {
+      const prodiConditions: any[] = [{ prodi: null }];
+      if (user?.prodi) {
+        prodiConditions.push({ prodi: user.prodi });
+      }
+
+      const kelasConditions: any[] = [{ kelas: null }];
+      if (user?.kelas) {
+        kelasConditions.push({ kelas: user.kelas });
+      }
+
+      classTaskFilter.AND = [
+        { OR: prodiConditions },
+        { OR: kelasConditions },
+      ];
     }
 
     const tasks = await prisma.task.findMany({
       where: {
-        guildId,
-        OR: [{ scope: "CLASS" }, { scope: "PERSONAL", createdById: token.discordId as string }],
+        guildId: targetGuildId,
+        OR: [
+          classTaskFilter,
+          { scope: "PERSONAL", createdById: token.discordId as string },
+          { scope: "PERSONAL", assignedTo: token.discordId as string },
+        ],
       },
       include: {
         createdBy: {
@@ -78,7 +123,9 @@ export async function POST(req: NextRequest) {
 
     const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId } = body;
 
-    if (typeof guildId !== "string" || !guildId) {
+    const targetGuildId = (typeof guildId === "string" && guildId.trim()) || process.env.DISCORD_GUILD_ID;
+
+    if (!targetGuildId) {
       return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
     }
 
@@ -100,7 +147,9 @@ export async function POST(req: NextRequest) {
 
     const taskStatus: TaskStatus = typeof status === "string" && VALID_TASK_STATUSES.includes(status as TaskStatus) ? (status as TaskStatus) : "TODO";
 
-    const canCreateClassTask = user.roles.includes("ADMIN") || user.roles.includes("PJ_KELAS") || user.roles.includes("PJ_MATKUL");
+    const canCreateClassTask = user.roles.some((r) =>
+      ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r)
+    );
 
     if (taskScope === "CLASS" && !canCreateClassTask) {
       return NextResponse.json(
@@ -113,29 +162,32 @@ export async function POST(req: NextRequest) {
 
     await prisma.guild.upsert({
       where: {
-        id: guildId,
+        id: targetGuildId,
       },
       create: {
-        id: guildId,
+        id: targetGuildId,
         name: "Discord Server",
       },
       update: {},
     });
 
+    const targetProdi = prodi ?? user.prodi ?? null;
+    const targetKelas = kelas === "ALL" || kelas === "" ? null : (kelas ?? user.kelas ?? null);
+
     // Safely resolve courseId (handles DB courses, schedule synthetic IDs, and prevents constraint conflicts)
-    const validCourseId = await resolveCourseId(courseId, prodi ?? user.prodi ?? "INFORMATIKA", kelas ?? user.kelas ?? null);
+    const validCourseId = await resolveCourseId(courseId, targetProdi ?? "INFORMATIKA", targetKelas ?? null);
 
     const task = await prisma.task.create({
       data: {
-        guildId,
+        guildId: targetGuildId,
         title: title.trim(),
         description: typeof description === "string" && description.trim() ? description.trim() : null,
         assignedTo: typeof assignedTo === "string" && assignedTo ? assignedTo : null,
         dueDate: dueDate ? new Date(dueDate) : null,
         status: taskStatus,
         scope: taskScope,
-        prodi: prodi ?? user.prodi ?? null,
-        kelas: kelas ?? user.kelas ?? null,
+        prodi: targetProdi,
+        kelas: targetKelas,
         courseId: validCourseId,
         createdById: user.id,
       },

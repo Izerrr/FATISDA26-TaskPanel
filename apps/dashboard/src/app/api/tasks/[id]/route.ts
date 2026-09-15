@@ -44,17 +44,23 @@ export async function PATCH(
       return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
     }
 
-    const isAdmin = user.roles.includes("ADMIN");
-
-    const isOwner = existing.createdById === user.id;
-
-    if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: "Tidak memiliki izin" }, { status: 403 });
-    }
-
     const body = await req.json();
+    const { title, description, status, assignedTo, dueDate, courseId, scope, kelas } = body;
 
-    const { title, description, status, assignedTo, dueDate, courseId, scope } = body;
+    const canManageClass = user.roles.some((r) =>
+      ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r)
+    );
+    const isOwner = existing.createdById === user.id;
+    const isAssignee = existing.assignedTo === user.id;
+
+    const isAuthorized =
+      isOwner ||
+      (existing.scope === "CLASS" && canManageClass) ||
+      (isAssignee && status !== undefined);
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: "Tidak memiliki izin untuk mengubah tugas ini" }, { status: 403 });
+    }
 
     if (status !== undefined && (typeof status !== "string" || !VALID_TASK_STATUSES.includes(status as TaskStatus))) {
       return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
@@ -68,6 +74,9 @@ export async function PATCH(
         validCourseId = await resolveCourseId(courseId, existing.prodi ?? user.prodi ?? "INFORMATIKA", existing.kelas ?? user.kelas ?? null);
       }
     }
+
+    const targetKelas =
+      kelas !== undefined ? (kelas === "ALL" || kelas === "" ? null : kelas) : undefined;
 
     const task = await prisma.task.update({
       where: {
@@ -101,6 +110,10 @@ export async function PATCH(
 
         ...(scope !== undefined && {
           scope: scope === "CLASS" ? "CLASS" : "PERSONAL",
+        }),
+
+        ...(targetKelas !== undefined && {
+          kelas: targetKelas,
         }),
       },
 
@@ -166,12 +179,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
     }
 
-    const isAdmin = user.roles.includes("ADMIN");
-
+    const canManageClass = user.roles.some((r) =>
+      ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r)
+    );
     const isOwner = task.createdById === user.id;
 
-    if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: "Tidak memiliki izin" }, { status: 403 });
+    if (!isOwner && !(task.scope === "CLASS" && canManageClass)) {
+      return NextResponse.json({ error: "Tidak memiliki izin untuk menghapus tugas ini" }, { status: 403 });
     }
 
     await prisma.task.delete({

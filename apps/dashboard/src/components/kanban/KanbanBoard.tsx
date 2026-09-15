@@ -6,6 +6,7 @@ import type { Task, TaskStatus } from "@/types";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
 import { EditTaskModal } from "@/components/tasks/EditTaskModal";
+import { DeleteTaskModal } from "@/components/tasks/DeleteTaskModal";
 import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
 
@@ -17,13 +18,14 @@ interface Props {
 
 export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const { courses } = useCourses();
-  const { roles } = useRole();
+  const { roles, user } = useRole();
 
   const [items, setItems] = useState<Task[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
   const [activeMobileTab, setActiveMobileTab] = useState<TaskStatus>("TODO");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
   const columnRefs = useRef<Record<string, HTMLElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -107,9 +109,18 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     }
   }
 
-  async function handleDeleteTask(task: Task) {
-    if (!window.confirm(`Hapus tugas "${task.title}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+  const canManageClassTasks = roles.some((role) =>
+    ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role))
+  );
 
+  function canModifyTask(task: Task): boolean {
+    if (!user) return false;
+    if (task.createdById === user.id) return true;
+    if (task.scope === "CLASS" && canManageClassTasks) return true;
+    return false;
+  }
+
+  async function handleConfirmDelete(task: Task) {
     const previous = items;
     setItems((curr) => curr.filter((t) => t.id !== task.id));
 
@@ -119,14 +130,15 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
       });
 
       if (!response.ok) {
-        throw new Error("Gagal menghapus tugas.");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Gagal menghapus tugas.");
       }
 
       onMutated?.();
     } catch (err) {
       console.error("[Kanban] delete error", err);
       setItems(previous);
-      alert("Gagal menghapus tugas.");
+      throw err;
     }
   }
 
@@ -242,8 +254,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
                 isDraggingAny={isDragging}
                 justMovedTaskId={justMovedTaskId}
                 onMoveStatus={handleMoveTask}
-                onEdit={(task) => setEditingTask(task)}
-                onDelete={handleDeleteTask}
+                onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+                onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
               />
             </div>
           ))}
@@ -261,6 +273,15 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
             setEditingTask(null);
             onMutated?.();
           }}
+        />
+      )}
+
+      {deletingTask && (
+        <DeleteTaskModal
+          open={!!deletingTask}
+          task={deletingTask}
+          onClose={() => setDeletingTask(null)}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>

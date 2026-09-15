@@ -20,8 +20,8 @@ async function fetcher(url: string): Promise<TaskResponse> {
   return response.json();
 }
 
-export function useTasks(guildId: string | null) {
-  const url = guildId ? `/api/tasks?guildId=${encodeURIComponent(guildId)}` : null;
+export function useTasks(guildId?: string | null) {
+  const url = guildId ? `/api/tasks?guildId=${encodeURIComponent(guildId)}` : "/api/tasks";
 
   const { data, error, isLoading, mutate } = useSWR<TaskResponse>(url, fetcher, {
     revalidateOnFocus: true,

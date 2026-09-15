@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { GuildProvider } from "@/components/providers/GuildProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { SessionManager } from "@/components/providers/SessionManager";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import "./globals.css";
 
@@ -48,10 +49,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider>
           <AuthProvider>
-            <GuildProvider>
-              {children}
-              <InstallPrompt />
-            </GuildProvider>
+            <SessionManager>
+              <GuildProvider>
+                {children}
+                <InstallPrompt />
+              </GuildProvider>
+            </SessionManager>
           </AuthProvider>
         </ThemeProvider>
 

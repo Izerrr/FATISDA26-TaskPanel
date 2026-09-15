@@ -260,7 +260,16 @@ export default function TasksPage() {
       </div>
 
       {/* Create Task */}
-      {selectedGuild && user && <NewTaskModal open={createOpen} guildId={selectedGuild} courses={courses} roles={roles} userId={user.id} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />}
+      <NewTaskModal
+        open={createOpen}
+        guildId={selectedGuild || ""}
+        courses={courses}
+        roles={roles}
+        user={user}
+        userId={user?.id}
+        onClose={() => setCreateOpen(false)}
+        onCreated={handleCreated}
+      />
 
       {/* Admin Testing Environment: Notifikasi Discord */}
       {canTestNotify && <TaskNotificationTestModal open={testOpen} onClose={() => setTestOpen(false)} currentUser={user} />}
