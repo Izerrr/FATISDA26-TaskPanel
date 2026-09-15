@@ -10,7 +10,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
     "@if26/database": "workspace:*",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.22.0",
     "axios": "^1.18.1",
     "canvas": "^3.2.3",
     "discord-player": "^7.2.0",
