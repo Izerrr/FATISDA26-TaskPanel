@@ -40,9 +40,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const canViewAllClassTasks = Boolean(
-      user?.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r))
-    );
+    const canViewAllClassTasks = Boolean(user?.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r)));
 
     // Filter tugas kelas:
     // Jika admin/pengurus (PJ Kelas/PJ Matkul/Ketua/Admin) -> tampilkan semua tugas kelas di server ini
@@ -74,18 +72,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const guildCondition = configuredGuildId
-      ? { in: Array.from(new Set([targetGuildId, configuredGuildId].filter(Boolean) as string[])) }
-      : targetGuildId;
+    const guildCondition = configuredGuildId ? { in: Array.from(new Set([targetGuildId, configuredGuildId].filter(Boolean) as string[])) } : targetGuildId;
 
     const tasks = await prisma.task.findMany({
       where: {
         guildId: guildCondition,
-        OR: [
-          classTaskFilter,
-          { scope: "PERSONAL", createdById: token.discordId as string },
-          { scope: "PERSONAL", assignedTo: token.discordId as string },
-        ],
+        OR: [classTaskFilter, { scope: "PERSONAL", createdById: token.discordId as string }, { scope: "PERSONAL", assignedTo: token.discordId as string }],
       },
       include: {
         createdBy: {
