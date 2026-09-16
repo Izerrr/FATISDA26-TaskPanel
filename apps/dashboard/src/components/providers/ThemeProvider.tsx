@@ -23,24 +23,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // 1. Check stored preference
     const saved = localStorage.getItem("fatisda_theme") as Theme | null;
+    let initialTheme: Theme = "light";
     if (saved === "dark" || saved === "light") {
-      setThemeState(saved);
-      if (saved === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      initialTheme = saved;
     } else {
       // 2. Check system preference
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (prefersDark) {
-        setThemeState("dark");
-        document.documentElement.classList.add("dark");
-      } else {
-        setThemeState("light");
-        document.documentElement.classList.remove("dark");
-      }
+      initialTheme = prefersDark ? "dark" : "light";
     }
+
+    setThemeState(initialTheme);
+    if (initialTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", initialTheme === "dark" ? "#020617" : "#f2f2f7");
+    }
+
     setMounted(true);
   }, []);
 
@@ -67,8 +72,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("fatisda_theme", newTheme);
       if (newTheme === "dark") {
         document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = "dark";
       } else {
         document.documentElement.classList.remove("dark");
+        document.documentElement.style.colorScheme = "light";
+      }
+
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute("content", newTheme === "dark" ? "#020617" : "#f2f2f7");
       }
 
       // Force synchronous reflow so all elements adopt new colors instantly

@@ -5,17 +5,33 @@
 @layer base {
   html {
     min-height: 100%;
+    background-color: #f2f2f7;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html.dark {
+    background-color: #020617;
+    color-scheme: dark;
   }
 
   body {
     min-height: 100vh;
+    font-family:
+      var(--font-sans),
+      Inter,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
     @apply bg-liquid-bg text-liquid-text antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   html.dark body {
-    background-color: #0b1120;
+    background-color: #020617;
     color: #f1f5f9;
   }
 

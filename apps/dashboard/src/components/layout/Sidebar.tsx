@@ -9,6 +9,7 @@ import { signOut } from "next-auth/react";
 import type { Course, User } from "@/types";
 
 import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
+import { useSessionManager } from "@/components/providers/SessionManager";
 
 interface SidebarProps {
   courses: Course[];
@@ -92,6 +93,7 @@ function getRoleLabels(user: User | null) {
 
 export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { triggerSync } = useSessionManager();
 
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
@@ -120,6 +122,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
     try {
       setSyncing(true);
       setSyncMessage("");
+      void triggerSync("Menyelaraskan dengan Discord...");
 
       // 1. Sync akun profil sendiri langsung dari Discord
       const meResponse = await fetch("/api/me/sync", {
@@ -329,7 +332,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       {/* Mobile drawer with subtle slide-in animation & backdrop fade */}
       <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileOpen ? "visible pointer-events-auto" : "invisible pointer-events-none"}`} role="dialog" aria-modal="true">
         {/* Backdrop overlay */}
-        <div className={`fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300 ease-out ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={onClose} aria-hidden="true" />
+        <div className={`fixed inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 ease-out ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={onClose} aria-hidden="true" />
 
         {/* Drawer content */}
         <div className={`relative z-10 h-full w-72 shadow-2xl transform transition-transform duration-300 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>

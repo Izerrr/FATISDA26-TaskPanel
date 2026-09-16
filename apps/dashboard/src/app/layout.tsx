@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { GuildProvider } from "@/components/providers/GuildProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -6,8 +7,18 @@ import { SessionManager } from "@/components/providers/SessionManager";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
+
 export const viewport: Viewport = {
-  themeColor: "#0284c7",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f2f2f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -29,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" className={inter.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -46,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body>
+      <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>
             <SessionManager>

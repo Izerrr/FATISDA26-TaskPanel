@@ -34,7 +34,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "SF Pro Display", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         mono: ["SF Mono", "JetBrains Mono", "monospace"],
       },
       borderRadius: {

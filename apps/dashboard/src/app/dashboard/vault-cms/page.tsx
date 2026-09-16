@@ -373,7 +373,7 @@ export default function VaultCmsPage() {
 
         {/* Edit Modal */}
         {editingCourse && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-150">
             <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
               {/* Modal Header */}
               <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">

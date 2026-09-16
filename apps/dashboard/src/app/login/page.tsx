@@ -17,8 +17,8 @@ function LoginContent() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-liquid-accent text-white shadow-lg shadow-liquid-accent/20">
             <Shield className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text">FATISDA 26</h1>
-          <p className="mt-1 text-sm text-liquid-text-secondary">Panel tugas FATISDA UNS 2026</p>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100">FATISDA 26</h1>
+          <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">Panel tugas FATISDA UNS 2026</p>
         </div>
 
         {isExpired && (
@@ -50,17 +50,17 @@ function LoginContent() {
           {!loading && <ArrowRight className="h-4 w-4 opacity-70" />}
         </button>
 
-        <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary">Kamu perlu bergabung di server Discord yang terhubung dengan panel ini.</p>
+        <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary dark:text-slate-400">Kamu perlu bergabung di server Discord yang terhubung dengan panel ini.</p>
       </div>
 
-      <p className="mt-6 text-center text-[11px] text-liquid-text-tertiary">Dibangun untuk FATISDA 2026</p>
+      <p className="mt-6 text-center text-[11px] text-liquid-text-tertiary dark:text-slate-500">Dibangun untuk FATISDA 2026</p>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-liquid-bg">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-liquid-bg dark:bg-slate-950">
       <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-liquid-accent/10 blur-[100px]" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-liquid-teal/10 blur-[100px]" />
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
 function FeaturePill({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-black/[0.03] px-3 py-1.5 text-[11px] font-medium text-liquid-text-secondary">
+    <div className="flex items-center gap-1.5 rounded-full bg-black/[0.03] dark:bg-slate-800/80 px-3 py-1.5 text-[11px] font-medium text-liquid-text-secondary dark:text-slate-300">
       {icon}
       {label}
     </div>

@@ -31,6 +31,7 @@ export function SessionManager({ children }: { children: ReactNode }) {
   const [preloaderVisible, setPreloaderVisible] = useState(false);
   const [preloaderMessage, setPreloaderMessage] = useState("Menyelaraskan Sesi...");
   const lastWriteRef = useRef<number>(0);
+  const hasInitialSyncedRef = useRef(false);
 
   // Perbarui timestamp aktivitas user
   function recordActivity() {
@@ -56,10 +57,10 @@ export function SessionManager({ children }: { children: ReactNode }) {
     } catch (e) {
       console.warn("[SessionManager] Sync error:", e);
     } finally {
-      // Biarkan preloader terlihat sebentar (~1000ms) agar animasinya terasa subtle dan smooth
+      // Biarkan preloader terlihat sebentar (~800ms) agar animasinya terasa subtle dan smooth
       setTimeout(() => {
         setPreloaderVisible(false);
-      }, 1000);
+      }, 800);
     }
   }
 
@@ -88,6 +89,16 @@ export function SessionManager({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status !== "authenticated") return;
+
+    // Tampilkan preloader subtle pada initial mount pertama kali
+    if (!hasInitialSyncedRef.current) {
+      hasInitialSyncedRef.current = true;
+      setPreloaderMessage("Sinkronisasi Sesi FATISDA...");
+      setPreloaderVisible(true);
+      const initTimer = setTimeout(() => {
+        setPreloaderVisible(false);
+      }, 750);
+    }
 
     // Catat aktivitas saat pertama kali mount
     recordActivity();
