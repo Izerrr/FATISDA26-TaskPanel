@@ -33,8 +33,11 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
   const effectiveGuild = selectedGuild ?? guilds[0]?.id ?? null;
 
   useEffect(() => {
-    if (!selectedGuild && guilds[0]?.id) {
-      setSelectedGuild(guilds[0].id);
+    if (guilds.length > 0) {
+      const isValid = selectedGuild && guilds.some((g) => g.id === selectedGuild);
+      if (!isValid) {
+        setSelectedGuild(guilds[0].id);
+      }
     }
   }, [guilds, selectedGuild, setSelectedGuild]);
 

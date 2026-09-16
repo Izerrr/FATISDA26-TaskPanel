@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const guildId = searchParams.get("guildId");
-    const targetGuildId = (guildId && guildId.trim()) || process.env.DISCORD_GUILD_ID;
+    const configuredGuildId = process.env.DISCORD_GUILD_ID;
+    const targetGuildId = (guildId && guildId.trim()) || configuredGuildId;
 
     if (!targetGuildId) {
       return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
@@ -39,33 +40,52 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const canViewAllClassTasks = Boolean(user?.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(r)));
+    const canViewAllClassTasks = Boolean(
+      user?.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r))
+    );
 
     // Filter tugas kelas:
-    // Jika admin/ketua angkatan -> tampilkan semua tugas kelas di server ini
-    // Jika mahasiswa biasa -> tampilkan tugas kelas prodi mereka (atau umum) DAN kelas mereka (atau semua kelas)
+    // Jika admin/pengurus (PJ Kelas/PJ Matkul/Ketua/Admin) -> tampilkan semua tugas kelas di server ini
+    // Jika mahasiswa biasa:
+    // - Prodi: jika user punya prodi, tampilkan tugas prodinya + tugas umum (prodi: null).
+    // - Kelas: jika user punya kelas, tampilkan tugas kelasnya + tugas umum (kelas: null).
+    // Jika prodi atau kelas belum tersinkron di Discord, jangan kunci / hilangkan tugasnya agar papan tidak kosong.
     const classTaskFilter: any = {
       scope: "CLASS",
     };
 
     if (!canViewAllClassTasks) {
-      const prodiConditions: any[] = [{ prodi: null }];
+      const filterConditions: any[] = [];
+
       if (user?.prodi) {
-        prodiConditions.push({ prodi: user.prodi });
+        filterConditions.push({
+          OR: [{ prodi: null }, { prodi: user.prodi }],
+        });
       }
 
-      const kelasConditions: any[] = [{ kelas: null }];
       if (user?.kelas) {
-        kelasConditions.push({ kelas: user.kelas });
+        filterConditions.push({
+          OR: [{ kelas: null }, { kelas: user.kelas }],
+        });
       }
 
-      classTaskFilter.AND = [{ OR: prodiConditions }, { OR: kelasConditions }];
+      if (filterConditions.length > 0) {
+        classTaskFilter.AND = filterConditions;
+      }
     }
+
+    const guildCondition = configuredGuildId
+      ? { in: Array.from(new Set([targetGuildId, configuredGuildId].filter(Boolean) as string[])) }
+      : targetGuildId;
 
     const tasks = await prisma.task.findMany({
       where: {
-        guildId: targetGuildId,
-        OR: [classTaskFilter, { scope: "PERSONAL", createdById: token.discordId as string }, { scope: "PERSONAL", assignedTo: token.discordId as string }],
+        guildId: guildCondition,
+        OR: [
+          classTaskFilter,
+          { scope: "PERSONAL", createdById: token.discordId as string },
+          { scope: "PERSONAL", assignedTo: token.discordId as string },
+        ],
       },
       include: {
         createdBy: {
@@ -114,7 +134,8 @@ export async function POST(req: NextRequest) {
 
     const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId } = body;
 
-    const targetGuildId = (typeof guildId === "string" && guildId.trim()) || process.env.DISCORD_GUILD_ID;
+    const configuredGuildId = process.env.DISCORD_GUILD_ID;
+    const targetGuildId = configuredGuildId || (typeof guildId === "string" && guildId.trim() ? guildId.trim() : null);
 
     if (!targetGuildId) {
       return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
@@ -155,7 +176,7 @@ export async function POST(req: NextRequest) {
       },
       create: {
         id: targetGuildId,
-        name: "Discord Server",
+        name: "FATISDA UNS 2026",
       },
       update: {},
     });

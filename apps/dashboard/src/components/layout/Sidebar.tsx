@@ -114,6 +114,27 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen, onClose]);
 
+  const [updatingKelas, setUpdatingKelas] = useState(false);
+
+  async function handleSelectKelas(newKelas: string) {
+    try {
+      setUpdatingKelas(true);
+      void triggerSync("Menyimpan kelas...");
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kelas: newKelas }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdatingKelas(false);
+    }
+  }
+
   async function handleSync() {
     if (syncing) {
       return;
@@ -198,6 +219,25 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
               </span>
             ))}
           </div>
+
+          {!user?.kelas && (
+            <div className="mt-3 rounded-xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/30 p-2.5">
+              <p className="text-[11px] font-semibold text-sky-800 dark:text-sky-300">Pilih Kelas Kamu:</p>
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {(["A", "B", "C", "D", "E"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    disabled={updatingKelas}
+                    onClick={() => handleSelectKelas(k)}
+                    className="rounded-lg border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-sky-700 dark:text-sky-200 shadow-xs hover:bg-sky-500 hover:text-white dark:hover:bg-sky-500 dark:hover:text-white transition active:scale-95 disabled:opacity-50"
+                  >
+                    Kls {k}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

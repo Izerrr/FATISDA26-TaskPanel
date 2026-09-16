@@ -284,12 +284,29 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
     console.error(`[Discord] Tidak dapat mengambil detail guild ${guildId}`);
   }
 
+  const configuredGuildId = process.env.DISCORD_GUILD_ID;
+  const isFatisdaGuild = Boolean(configuredGuildId && guildId === configuredGuildId);
+
   for (const member of members) {
     const discordRoles = member.roles ?? [];
-
     const isGuildOwner = guild?.owner_id === member.user.id;
-
     const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+
+    const newRoles = isFatisdaGuild ? mappedRoles(discordRoles, isGuildOwner) : ["STUDENT" as const];
+    const newProdi = isFatisdaGuild ? mappedProdi(discordRoles) : null;
+    const newKelas = isFatisdaGuild ? mappedKelas(discordRoles) : null;
+
+    const updateData: any = {
+      username: member.nick ?? member.user.username,
+      avatar,
+    };
+
+    if (isFatisdaGuild) {
+      updateData.discordRoles = discordRoles;
+      updateData.roles = newRoles;
+      if (newProdi !== null) updateData.prodi = newProdi;
+      if (newKelas !== null) updateData.kelas = newKelas;
+    }
 
     await prisma.user.upsert({
       where: {
@@ -300,20 +317,13 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
         id: member.user.id,
         username: member.nick ?? member.user.username,
         avatar,
-        discordRoles,
-        roles: mappedRoles(discordRoles, isGuildOwner),
-        prodi: mappedProdi(discordRoles),
-        kelas: mappedKelas(discordRoles),
+        discordRoles: isFatisdaGuild ? discordRoles : [],
+        roles: newRoles,
+        prodi: newProdi,
+        kelas: newKelas,
       },
 
-      update: {
-        username: member.nick ?? member.user.username,
-        avatar,
-        discordRoles,
-        roles: mappedRoles(discordRoles, isGuildOwner),
-        prodi: mappedProdi(discordRoles),
-        kelas: mappedKelas(discordRoles),
-      },
+      update: updateData,
     });
   }
 

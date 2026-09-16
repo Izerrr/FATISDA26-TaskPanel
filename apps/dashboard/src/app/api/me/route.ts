@@ -65,11 +65,36 @@ export async function PATCH(req: NextRequest) {
 
     // Parse & Validate Body
     const body = await req.json();
-    const semester = Number(body.semester);
+    const updateData: any = {};
 
-    // Guard clause: semester must be 1-8
-    if (!Number.isInteger(semester) || semester < 1 || semester > 8) {
-      return NextResponse.json({ error: "Semester harus berupa angka antara 1 sampai 8." }, { status: 400 });
+    if (body.semester !== undefined) {
+      const semester = Number(body.semester);
+      if (!Number.isInteger(semester) || semester < 1 || semester > 8) {
+        return NextResponse.json({ error: "Semester harus berupa angka antara 1 sampai 8." }, { status: 400 });
+      }
+      updateData.semester = semester;
+    }
+
+    if (body.kelas !== undefined) {
+      const validKelas = ["A", "B", "C", "D", "E"];
+      if (body.kelas === null || validKelas.includes(body.kelas)) {
+        updateData.kelas = body.kelas;
+      } else {
+        return NextResponse.json({ error: "Pilihan kelas tidak valid." }, { status: 400 });
+      }
+    }
+
+    if (body.prodi !== undefined) {
+      const validProdi = ["INFORMATIKA", "SAINS_DATA", "INFORMATIKA_PSDKU_KEBUMEN"];
+      if (body.prodi === null || validProdi.includes(body.prodi)) {
+        updateData.prodi = body.prodi;
+      } else {
+        return NextResponse.json({ error: "Pilihan prodi tidak valid." }, { status: 400 });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "Tidak ada data yang diperbarui." }, { status: 400 });
     }
 
     // Update Database via Prisma
@@ -77,9 +102,7 @@ export async function PATCH(req: NextRequest) {
       where: {
         id: token.discordId as string,
       },
-      data: {
-        semester,
-      },
+      data: updateData,
     });
 
     return NextResponse.json({
