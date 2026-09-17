@@ -1,6 +1,7 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
+import { requirePermissions } from "../../lib/moderation.js";
 import { syncAllGuildMembers } from "../../lib/sync.js";
 
 const command: Command = {
@@ -10,6 +11,8 @@ const command: Command = {
   data: new SlashCommandBuilder().setName("sync").setDescription("Sinkronisasi seluruh data anggota dan role Discord ke database TaskPanel").setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
   async run(_client, context) {
+    if (!(await requirePermissions(context, PermissionFlagsBits.ManageGuild))) return;
+
     const guild = context.guild;
     if (!guild) {
       await reply(context, {

@@ -1,4 +1,4 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { Command, ExtendedClient, Kelas, Prodi } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
@@ -12,6 +12,7 @@ const command: Command = {
   data: new SlashCommandBuilder()
     .setName("briefing")
     .setDescription("Kirim Morning Briefing jadwal kuliah & tugas hari ini secara manual")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addStringOption((opt) =>
       opt
         .setName("prodi")
@@ -29,6 +30,21 @@ const command: Command = {
     const authorId = isSlash(context) ? context.user.id : context.author.id;
     const currentChannelId = context.channelId;
 
+    // Verifikasi izin: Discord permission ManageMessages ATAU role PJ/Admin di database
+    const member = context.member as any;
+    const hasDiscordPerm = member?.permissions?.has(PermissionFlagsBits.ManageMessages) || member?.permissions?.has(PermissionFlagsBits.ManageGuild);
+
+    const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
+    const hasDbRole = dbUser?.roles?.some((r: string) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
+
+    if (!hasDiscordPerm && !hasDbRole) {
+      await reply(context, {
+        content: "❌ Anda tidak memiliki izin untuk memicu Morning Briefing manual. Fitur ini khusus untuk Admin, Pengurus, dan PJ.",
+        ephemeral: true,
+      });
+      return;
+    }
+
     let prodiOpt = isSlash(context) ? (context.options.getString("prodi") as Prodi | null) : (args[0]?.toUpperCase() as Prodi | null);
     let kelasOpt = isSlash(context) ? (context.options.getString("kelas") as Kelas | null) : (args[1]?.toUpperCase() as Kelas | null);
     let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : args[2] ? parseInt(args[2], 10) : null;
@@ -37,7 +53,6 @@ const command: Command = {
 
     // Ambil profil user jika opsi tidak diisi
     if (!prodiOpt || !kelasOpt || semesterOpt === null) {
-      const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
       if (dbUser) {
         if (!prodiOpt && dbUser.prodi) prodiOpt = dbUser.prodi;
         if (!kelasOpt && dbUser.kelas) kelasOpt = dbUser.kelas;

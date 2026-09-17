@@ -61,14 +61,17 @@ const command: Command = {
     const agamaOpt = isSlash(context) ? context.options.getString("agama")?.toUpperCase() : args[2]?.toUpperCase();
 
     try {
-      if (!kelasOpt || semesterOpt === null) {
-        const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
-        if (!kelasOpt && dbUser?.kelas) {
-          kelasOpt = dbUser.kelas;
-        }
-        if (semesterOpt === null && dbUser?.semester) {
-          semesterOpt = dbUser.semester;
-        }
+      let userProdi: Prodi = "INFORMATIKA";
+      const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
+      if (dbUser?.prodi) {
+        userProdi = dbUser.prodi;
+      }
+
+      if (!kelasOpt && dbUser?.kelas) {
+        kelasOpt = dbUser.kelas;
+      }
+      if (semesterOpt === null && dbUser?.semester) {
+        semesterOpt = dbUser.semester;
       }
       semesterOpt = semesterOpt ?? 1;
 
@@ -105,7 +108,7 @@ const command: Command = {
       const whereClause: any = {
         day: targetDayNumber,
         semester: semesterOpt,
-        prodi: "INFORMATIKA" as Prodi,
+        prodi: userProdi,
       };
 
       if (kelasOpt && ["A", "B", "C", "D"].includes(kelasOpt)) {

@@ -52,10 +52,16 @@ export async function GET(request: NextRequest) {
      * Fallback ke profil user di DB, dan fallback semester default ke 2.
      */
     const { searchParams } = new URL(request.url);
-    const prodiParam = searchParams.get("prodi") as Prodi | null;
-    const kelasParam = searchParams.get("kelas") as Kelas | null;
+    const rawProdi = searchParams.get("prodi");
+    const rawKelas = searchParams.get("kelas");
     const semesterParam = searchParams.get("semester");
     const agamaParam = searchParams.get("agama");
+
+    const validProdis: Prodi[] = ["INFORMATIKA", "SAINS_DATA", "INFORMATIKA_PSDKU_KEBUMEN"];
+    const validKelas: Kelas[] = ["A", "B", "C", "D", "E"];
+
+    const prodiParam = rawProdi && validProdis.includes(rawProdi as Prodi) ? (rawProdi as Prodi) : null;
+    const kelasParam = rawKelas && validKelas.includes(rawKelas as Kelas) ? (rawKelas as Kelas) : null;
 
     const prodi = prodiParam || user.prodi;
     const kelas = kelasParam || user.kelas;

@@ -389,6 +389,10 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
         body: JSON.stringify({
           content: mentionPrefix.trim() || undefined,
           embeds: [embedPayload],
+          allowed_mentions: {
+            parse: [],
+            roles: options?.roleIdToMention ? [options.roleIdToMention] : [],
+          },
         }),
       });
 
@@ -422,6 +426,10 @@ export async function sendDiscordNotification(_guildId: string, embedDescription
           username: "FATISDA TaskPanel",
           avatar_url: "https://cdn.discordapp.com/embed/avatars/0.png",
           embeds: [embedPayload],
+          allowed_mentions: {
+            parse: [],
+            roles: options?.roleIdToMention ? [options.roleIdToMention] : [],
+          },
         }),
       });
 

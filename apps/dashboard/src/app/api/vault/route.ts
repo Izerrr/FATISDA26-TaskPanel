@@ -48,21 +48,27 @@ export async function GET(req: NextRequest) {
     const courseName = searchParams.get("courseName");
     const courseId = searchParams.get("courseId");
 
-    const whereClause: any = {
-      prodi,
-    };
+    const andConditions: any[] = [{ prodi }];
 
     if (courseName) {
-      whereClause.courseName = { equals: courseName.trim(), mode: "insensitive" };
+      andConditions.push({ courseName: { equals: courseName.trim(), mode: "insensitive" } });
     }
 
     if (courseId) {
-      whereClause.OR = [{ courseId }, { courseName: { equals: courseId.replace(/^sched-/, ""), mode: "insensitive" } }];
+      andConditions.push({
+        OR: [{ courseId }, { courseName: { equals: courseId.replace(/^sched-/, ""), mode: "insensitive" } }],
+      });
     }
 
     if (kelas) {
-      whereClause.OR = [{ kelas }, { kelas: null }];
+      andConditions.push({
+        OR: [{ kelas }, { kelas: null }],
+      });
     }
+
+    const whereClause: any = {
+      AND: andConditions,
+    };
 
     const vaults = await prisma.courseVault.findMany({
       where: whereClause,

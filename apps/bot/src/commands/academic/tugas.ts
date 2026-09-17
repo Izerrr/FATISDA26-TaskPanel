@@ -52,27 +52,32 @@ const command: Command = {
         }
       }
 
-      const whereClause: any = {};
+      const statusCondition =
+        selectedStatus === "ACTIVE" ? { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] } : selectedStatus !== "ALL" && VALID_STATUSES.includes(selectedStatus as TaskStatus) ? (selectedStatus as TaskStatus) : undefined;
 
+      const classFilter: any = {
+        scope: "CLASS",
+      };
       if (selectedKelas && ["A", "B", "C", "D", "E"].includes(selectedKelas)) {
-        whereClause.kelas = selectedKelas as Kelas;
+        classFilter.OR = [{ kelas: selectedKelas as Kelas }, { kelas: null }];
       }
 
-      if (selectedStatus === "ACTIVE") {
-        whereClause.status = {
-          in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"],
-        };
-      } else if (selectedStatus !== "ALL" && VALID_STATUSES.includes(selectedStatus as TaskStatus)) {
-        whereClause.status = selectedStatus as TaskStatus;
+      const personalFilter: any = {
+        scope: "PERSONAL",
+        OR: [{ createdById: authorId }, { assignedTo: authorId }],
+      };
+
+      const whereClause: any = {};
+      if (statusCondition) {
+        whereClause.status = statusCondition;
       }
 
       if (selectedScope === "CLASS") {
-        whereClause.scope = "CLASS" as TaskScope;
+        Object.assign(whereClause, classFilter);
       } else if (selectedScope === "PERSONAL") {
-        whereClause.scope = "PERSONAL" as TaskScope;
-        whereClause.createdById = authorId;
+        Object.assign(whereClause, personalFilter);
       } else {
-        whereClause.OR = [{ scope: "CLASS" as TaskScope }, { scope: "PERSONAL" as TaskScope, createdById: authorId }];
+        whereClause.OR = [classFilter, personalFilter];
       }
 
       const tasks = await prisma.task.findMany({

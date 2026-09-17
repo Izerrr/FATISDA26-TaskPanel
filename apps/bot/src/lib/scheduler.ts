@@ -149,6 +149,7 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         where: {
           scope: "CLASS",
           status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+          prodi: target.prodi,
           OR: [{ kelas: target.kelas }, { kelas: null }],
           dueDate: {
             gte: startOfDay,

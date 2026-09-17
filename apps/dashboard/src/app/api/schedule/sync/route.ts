@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { syncSchedule } from "@/lib/schedule/schedule-sync";
 import { PRODI_VALUES, type Prodi } from "@/lib/schedule/types";
 
@@ -15,6 +18,28 @@ function isValidProdi(value: string | null): value is Prodi {
 
 export async function GET(request: NextRequest) {
   try {
+    // 1. Cek Cron Secret jika sinkronisasi dipanggil oleh background cron eksternal
+    const authHeader = request.headers.get("authorization");
+    const cronSecret = process.env.CRON_SECRET;
+    const isCronAuthorized = Boolean(cronSecret && authHeader === `Bearer ${cronSecret}`);
+
+    if (!isCronAuthorized) {
+      // 2. Cek Session User jika dipanggil secara manual dari web
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        return NextResponse.json({ success: false, error: "Unauthorized. Sesi login diperlukan." }, { status: 401 });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { roles: true },
+      });
+
+      const isManager = Boolean(user?.roles.some((r) => ["ADMIN", "OWNER"].includes(r)));
+      if (!isManager) {
+        return NextResponse.json({ success: false, error: "Akses ditolak. Hanya Admin yang dapat memicu sinkronisasi jadwal." }, { status: 403 });
+      }
+    }
     const prodiParam = request.nextUrl.searchParams.get("prodi");
 
     if (!isValidProdi(prodiParam)) {

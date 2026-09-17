@@ -7,6 +7,10 @@ import { normalizeScheduleEntries, parseScheduleCsv } from "@/lib/schedule";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Endpoint not found" }, { status: 404 });
+  }
+
   try {
     const csvPath = path.join(process.cwd(), "schedule-informatika.csv");
 

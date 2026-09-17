@@ -50,11 +50,14 @@ export async function PATCH(
     const canManageClass = user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
     const isOwner = existing.createdById === user.id;
     const isAssignee = existing.assignedTo === user.id;
+    const isManager = isOwner || (existing.scope === "CLASS" && canManageClass);
 
-    const isAuthorized = isOwner || (existing.scope === "CLASS" && canManageClass) || (isAssignee && status !== undefined);
-
-    if (!isAuthorized) {
+    if (!isManager && !isAssignee) {
       return NextResponse.json({ error: "Tidak memiliki izin untuk mengubah tugas ini" }, { status: 403 });
+    }
+
+    if (!isManager && isAssignee && status === undefined) {
+      return NextResponse.json({ error: "Assignee hanya memiliki izin untuk memperbarui status tugas" }, { status: 403 });
     }
 
     if (status !== undefined && (typeof status !== "string" || !VALID_TASK_STATUSES.includes(status as TaskStatus))) {
@@ -62,7 +65,7 @@ export async function PATCH(
     }
 
     let validCourseId: string | null | undefined = undefined;
-    if (courseId !== undefined) {
+    if (isManager && courseId !== undefined) {
       if (!courseId) {
         validCourseId = null;
       } else if (typeof courseId === "string") {
@@ -70,46 +73,43 @@ export async function PATCH(
       }
     }
 
-    const targetKelas = kelas !== undefined ? (kelas === "ALL" || kelas === "" ? null : kelas) : undefined;
+    const targetKelas = isManager && kelas !== undefined ? (kelas === "ALL" || kelas === "" ? null : kelas) : undefined;
+
+    // Jika user hanya assignee (bukan manager/owner), batasi mutasi HANYA pada field status
+    const updateData: any = {};
+    if (status !== undefined) {
+      updateData.status = status;
+    }
+
+    if (isManager) {
+      if (typeof title === "string" && title.trim()) {
+        updateData.title = title.trim();
+      }
+      if (description !== undefined) {
+        updateData.description = typeof description === "string" && description.trim() ? description.trim() : null;
+      }
+      if (assignedTo !== undefined) {
+        updateData.assignedTo = assignedTo || null;
+      }
+      if (dueDate !== undefined) {
+        updateData.dueDate = dueDate ? new Date(dueDate) : null;
+      }
+      if (validCourseId !== undefined) {
+        updateData.courseId = validCourseId;
+      }
+      if (scope !== undefined) {
+        updateData.scope = scope === "CLASS" ? "CLASS" : "PERSONAL";
+      }
+      if (targetKelas !== undefined) {
+        updateData.kelas = targetKelas;
+      }
+    }
 
     const task = await prisma.task.update({
       where: {
         id: params.id,
       },
-      data: {
-        ...(typeof title === "string" &&
-          title.trim() && {
-            title: title.trim(),
-          }),
-
-        ...(description !== undefined && {
-          description: typeof description === "string" && description.trim() ? description.trim() : null,
-        }),
-
-        ...(status !== undefined && {
-          status,
-        }),
-
-        ...(assignedTo !== undefined && {
-          assignedTo: assignedTo || null,
-        }),
-
-        ...(dueDate !== undefined && {
-          dueDate: dueDate ? new Date(dueDate) : null,
-        }),
-
-        ...(validCourseId !== undefined && {
-          courseId: validCourseId,
-        }),
-
-        ...(scope !== undefined && {
-          scope: scope === "CLASS" ? "CLASS" : "PERSONAL",
-        }),
-
-        ...(targetKelas !== undefined && {
-          kelas: targetKelas,
-        }),
-      },
+      data: updateData,
 
       include: {
         createdBy: true,
