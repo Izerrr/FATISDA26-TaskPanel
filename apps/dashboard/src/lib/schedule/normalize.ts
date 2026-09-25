@@ -58,7 +58,7 @@ function createNormalizedEntry(entries: ParsedScheduleEntry[]): NormalizedSchedu
 
     sourceSlots: entries.map((entry) => entry.session),
 
-    lecturer: first.lecturer,
+    lecturer: entries.find((entry) => entry.lecturer)?.lecturer ?? first.lecturer,
   };
 }
 

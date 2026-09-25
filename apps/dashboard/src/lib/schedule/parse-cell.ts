@@ -13,7 +13,7 @@ export interface ParsedCell {
 function isIgnoredCell(value: string): boolean {
   const normalized = value.trim().toLowerCase();
 
-  return IGNORED_CELL_PREFIXES.some((prefix) => normalized.startsWith(prefix.toLowerCase()));
+  return normalized.startsWith("digunakan") || IGNORED_CELL_PREFIXES.some((prefix) => normalized.startsWith(prefix.toLowerCase()));
 }
 
 export function normalizeClassCode(rawClassCode: string): Kelas | null {
@@ -27,7 +27,10 @@ export function normalizeClassCode(rawClassCode: string): Kelas | null {
 }
 
 function isKnownMarker(value: string, prodi: Prodi): boolean {
-  return MARKERS_BY_PRODI[prodi].some((marker) => marker.toLowerCase() === value.toLowerCase());
+  if (value === "*" || value === "P" || value === "MKU" || value === "MKWK") {
+    return true;
+  }
+  return MARKERS_BY_PRODI[prodi]?.some((marker) => marker.toLowerCase() === value.toLowerCase()) ?? false;
 }
 
 function isMkuCode(value: string): boolean {
@@ -109,10 +112,21 @@ export function parseScheduleCell(input: string, prodi: Prodi): ParsedCell | nul
   const markers: string[] = [];
 
   if (lecturerText) {
-    if (isKnownMarker(lecturerText, prodi)) {
-      markers.push(lecturerText);
-    } else {
-      lecturer = lecturerText;
+    const parts = lecturerText.split(/\s+/);
+    const nonMarkers: string[] = [];
+
+    for (const part of parts) {
+      if (isKnownMarker(part, prodi)) {
+        if (!markers.includes(part)) {
+          markers.push(part);
+        }
+      } else {
+        nonMarkers.push(part);
+      }
+    }
+
+    if (nonMarkers.length > 0) {
+      lecturer = nonMarkers.join(" ");
     }
   }
 

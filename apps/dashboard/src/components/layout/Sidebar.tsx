@@ -205,20 +205,43 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         )}
       </div>
 
-      {/* Context */}
+      {/* Context & Profile */}
       <div className="px-4 pt-5">
-        <div className="mt-2 rounded-2xl bg-liquid-accent/5 px-3 py-3 dark:bg-slate-800/60">
-          <p className="text-sm font-semibold text-liquid-text dark:text-slate-100">My Profile</p>
+        <div className="mt-2 rounded-2xl border border-liquid-border/50 bg-liquid-accent/5 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
+          <div className="flex items-center gap-3">
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.username} className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-liquid-accent/20 dark:ring-sky-500/20" />
+            ) : (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white shadow-sm">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
+            )}
 
-          <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">{profileLabel || "Profil belum tersinkron"}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-medium text-liquid-text-secondary dark:text-slate-400">Welcome back,</p>
+              <p className="truncate text-sm font-bold text-liquid-text dark:text-slate-100">{user?.username ?? "Mahasiswa"}</p>
+            </div>
+          </div>
+
+          <p className="mt-2.5 text-xs font-medium text-liquid-text-secondary dark:text-slate-400">{profileLabel || "Profil belum tersinkron"}</p>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
             {roleLabels.map((role) => (
-              <span key={role} className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-liquid-accent shadow-sm dark:bg-slate-700 dark:text-sky-300">
+              <span key={role} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-liquid-accent shadow-xs dark:bg-slate-700 dark:text-sky-300">
                 {role}
               </span>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={syncing}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200/80 bg-white/80 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50 hover:text-sky-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/80 dark:text-sky-300 dark:hover:bg-slate-700"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+            <span>{syncing ? "Menyelaraskan..." : "Sync Discord"}</span>
+          </button>
+
+          {syncMessage && <p className="mt-1.5 px-1 text-[10px] leading-4 text-liquid-text-secondary dark:text-slate-400">{syncMessage}</p>}
 
           {!user?.kelas && (
             <div className="mt-3 rounded-xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/30 p-2.5">
@@ -321,32 +344,6 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         <SidebarInstallButton />
 
         <div className="my-2" />
-
-        <button
-          type="button"
-          onClick={handleSync}
-          disabled={syncing}
-          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-liquid-accent/30 hover:bg-liquid-accent/5 hover:text-liquid-accent disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-sky-400"
-        >
-          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? "Sinkronisasi..." : "Sync Discord"}
-        </button>
-
-        {syncMessage && <p className="mb-3 px-2 text-[11px] leading-4 text-liquid-text-secondary dark:text-slate-400">{syncMessage}</p>}
-
-        {/* User */}
-        <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-800/60">
-          {user?.avatar ? (
-            <img src={user.avatar} alt={user.username} className="h-9 w-9 rounded-xl object-cover" />
-          ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
-          )}
-
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">{user?.username ?? "Pengguna"}</p>
-            <p className="truncate text-[11px] text-liquid-text-secondary dark:text-slate-400">{roleLabels.join(" · ")}</p>
-          </div>
-        </div>
 
         <button
           type="button"

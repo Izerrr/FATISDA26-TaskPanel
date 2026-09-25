@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { BookOpen } from "lucide-react";
 
 interface PreloaderProps {
   visible: boolean;
@@ -46,7 +46,7 @@ export function Preloader({ visible, message = "Menyelaraskan Sesi...", subtext 
 
           {/* Inner Pulsing Core Icon */}
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-md">
-            <Sparkles className="h-4 w-4 animate-pulse" />
+            <BookOpen className="h-4 w-4 animate-pulse" />
           </div>
         </div>
 

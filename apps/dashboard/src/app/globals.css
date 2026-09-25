@@ -27,6 +27,7 @@
     @apply bg-liquid-bg text-liquid-text antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
     text-rendering: optimizeLegibility;
   }
 

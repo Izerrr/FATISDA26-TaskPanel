@@ -59,7 +59,7 @@ export function MobileNav() {
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none md:hidden">
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -69,9 +69,11 @@ export function MobileNav() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-medium transition ${active ? "text-liquid-accent" : "text-liquid-text-secondary"}`}
+              className={`flex min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-semibold transition ${
+                active ? "text-liquid-accent dark:text-sky-400" : "text-liquid-text-secondary dark:text-slate-400"
+              }`}
             >
-              <div className={`flex h-8 w-10 items-center justify-center rounded-xl transition ${active ? "bg-liquid-accent/10" : "bg-transparent"}`}>
+              <div className={`flex h-8 w-10 items-center justify-center rounded-xl transition ${active ? "bg-liquid-accent/10 dark:bg-sky-500/20" : "bg-transparent"}`}>
                 <Icon className="h-[18px] w-[18px]" />
               </div>
 

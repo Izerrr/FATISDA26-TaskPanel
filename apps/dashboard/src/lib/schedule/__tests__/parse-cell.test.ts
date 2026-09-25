@@ -126,3 +126,42 @@ describe("schedule-informatika.csv parsing verification", () => {
     expect(sisdigB?.endTime).toBe("12:00");
   });
 });
+
+describe("Sains Data schedule parsing", () => {
+  it("parses sample Sains Data CSV lines correctly", async () => {
+    const { parseScheduleCsv } = await import("../parse-csv");
+    const csv = `
+Hari,Sesi,Pasca 01,Pasca 02,Ruang 1304,Ruang 1312,1301,1302,B.4.04 (Lab. Dasar Informatika 1),B.4.05 (Lab. Dasar Informatika 2),B4-12,LAB 2 DTIK
+Senin,1,Sistem Manajemen B...(3) (B),Intelijen Bisnis (5) (B),Digunakan S-1 Informatika,Digunakan S-1 Informatika,Temu Kembali Informasi (7) (A)*,,Digunakan S-1 Informatika,Rekayasa Sistem In...(3) (A),Digunakan S-1 Informatika
+,2,Sistem Manajemen B...(3) (B),Intelijen Bisnis (5) (B),Digunakan S-1 Informatika,Digunakan S-1 Informatika,Temu Kembali Informasi (7) (A)*,,,,Digunakan S-1 Informatika,,,PWW
+`;
+    const entries = parseScheduleCsv(csv, "SAINS_DATA");
+    expect(entries.length).toBeGreaterThan(0);
+    const smb = entries.find((e) => e.courseName.includes("Sistem Manajemen") && e.classCode === "B");
+    expect(smb).toBeDefined();
+    expect(smb?.day).toBe("MONDAY");
+    expect(smb?.semester).toBe(3);
+    expect(smb?.room).toBe("Pasca 01");
+  });
+});
+
+describe("PSDKU Kebumen schedule parsing", () => {
+  it("parses sample PSDKU Kebumen CSV lines correctly", async () => {
+    const { parseScheduleCsv } = await import("../parse-csv");
+    const csv = `
+JADWAL PERKULIAHAN INFORMATIKA PSDKU KEBUMEN ,,,,,,,
+Hari,Sesi,PRODI INFORMATIKA,,,,
+,,LAB KOMPUTER,RUANG 17,RUANG 19,,,,KETERANGAN
+Senin,1,,Metode Numerik (3) (A) Bu Shinta,Desain dan Analisis Algoritma (3) (B) Bu Dien,1,7:30,8:20
+,2,Machine Learning (5) Pak Fadil,Metode Numerik (3) (A) Bu Shinta,Desain dan Analisis Algoritma (3) (B) Bu Dien,2,8:20,9:10
+`;
+    const entries = parseScheduleCsv(csv, "INFORMATIKA_PSDKU_KEBUMEN");
+    expect(entries.length).toBeGreaterThan(0);
+    const num = entries.find((e) => e.courseName.includes("Metode Numerik") && e.classCode === "A");
+    expect(num).toBeDefined();
+    expect(num?.day).toBe("MONDAY");
+    expect(num?.semester).toBe(3);
+    expect(num?.room).toBe("RUANG 17");
+    expect(num?.lecturer).toBe("Bu Shinta");
+  });
+});

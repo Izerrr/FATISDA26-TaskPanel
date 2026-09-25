@@ -89,13 +89,19 @@ export async function GET(request: NextRequest) {
     const source = getScheduleSource(prodi);
 
     if (!source) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Belum ada sumber jadwal untuk prodi ${prodi}.`,
-        },
-        { status: 503 },
-      );
+      const existingInDb = await prisma.schedule.findMany({
+        where: { prodi, semester, kelas },
+        include: { course: true },
+        orderBy: [{ day: "asc" }, { startTime: "asc" }],
+      });
+
+      return NextResponse.json({
+        success: true,
+        profile: { username: user.username, prodi, kelas, semester },
+        total: existingInDb.length,
+        entries: existingInDb,
+        message: existingInDb.length === 0 ? `Sumber spreadsheet jadwal untuk prodi ${prodi.replace(/_/g, " ")} belum dikonfigurasi.` : undefined,
+      });
     }
 
     /*
@@ -120,10 +126,14 @@ export async function GET(request: NextRequest) {
 
     /*
      * Kalau data belum pernah sync atau sudah >30 menit,
-     * ambil versi terbaru dari Google Sheets.
+     * ambil versi terbaru dari Google Sheets secara aman.
      */
     if (isStale) {
-      await syncSchedule(prodi);
+      try {
+        await syncSchedule(prodi);
+      } catch (syncErr) {
+        console.warn(`[GET /api/schedule] Auto-sync background gagal untuk ${prodi}:`, syncErr);
+      }
     }
 
     /*
