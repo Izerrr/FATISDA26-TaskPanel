@@ -10,13 +10,7 @@ interface ScheduleAiMatcherProps {
   onClose?: () => void;
 }
 
-const QUICK_PROMPTS = [
-  "Kelas A sama Kelas B freenya kapan?",
-  "Kelas B smt 1 infor sama kelas A smt 1 sains data",
-  "Kelas B smt 1 freenya kapan aja ya?",
-  "Kapan slot kosong bareng hari Rabu?",
-  "Cari jam rapat semua kelas semester 1",
-];
+const QUICK_PROMPTS = ["Kelas A sama Kelas B freenya kapan?", "Kelas B smt 1 infor sama kelas A smt 1 sains data", "Kelas B smt 1 freenya kapan aja ya?", "Kapan slot kosong bareng hari Rabu?", "Cari jam rapat semua kelas semester 1"];
 
 /**
  * Komponen untuk merender jawaban markdown dari AI secara rapi, bersih,
@@ -249,9 +243,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {result.freeSlots.map((slot, idx) => {
-                  const classesDisplay = slot.classesFree.every((c) => c.length === 1)
-                    ? slot.classesFree.map((c) => `Kls ${c}`).join(" & ")
-                    : slot.classesFree.join(" ✕ ");
+                  const classesDisplay = slot.classesFree.every((c) => c.length === 1) ? slot.classesFree.map((c) => `Kls ${c}`).join(" & ") : slot.classesFree.join(" ✕ ");
 
                   return (
                     <div key={idx} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-xs hover:border-sky-200 dark:border-slate-800 dark:bg-slate-800/90 transition">

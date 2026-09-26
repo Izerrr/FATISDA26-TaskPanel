@@ -78,35 +78,7 @@ export const DEFAULT_FRIDAY_SESSION_TIMES: Record<number, { start: string; end: 
  * Urutan kolom ruangan resmi sesuai urutan Google Sheets masing-masing prodi
  */
 export const OFFICIAL_PRODI_ROOMS: Record<string, string[]> = {
-  INFORMATIKA: [
-    "B4-11",
-    "B4-12",
-    "B4-10",
-    "Pasca 1301 (Lt.3)",
-    "Pasca 1302",
-    "UPT TIK Lt 3",
-    "UPT TIK Lt 4",
-    "B.4.04 (Lab. Dasar Informatika 1)",
-    "B.4.05 (Lab. Dasar Informatika 2)",
-    "Pasca 1312 (Lt.3)",
-    "Pasca 1304 (Lt.3)",
-  ],
-  SAINS_DATA: [
-    "Pasca 01",
-    "Pasca 02",
-    "Ruang 1304",
-    "Ruang 1312",
-    "1301",
-    "1302",
-    "B.4.04 (Lab. Dasar Informatika 1)",
-    "B.4.05 (Lab. Dasar Informatika 2)",
-    "B4-12",
-    "LAB 2 DTIK",
-  ],
-  INFORMATIKA_PSDKU_KEBUMEN: [
-    "LAB KOMPUTER",
-    "RUANG 17",
-    "RUANG 19",
-  ],
+  INFORMATIKA: ["B4-11", "B4-12", "B4-10", "Pasca 1301 (Lt.3)", "Pasca 1302", "UPT TIK Lt 3", "UPT TIK Lt 4", "B.4.04 (Lab. Dasar Informatika 1)", "B.4.05 (Lab. Dasar Informatika 2)", "Pasca 1312 (Lt.3)", "Pasca 1304 (Lt.3)"],
+  SAINS_DATA: ["Pasca 01", "Pasca 02", "Ruang 1304", "Ruang 1312", "1301", "1302", "B.4.04 (Lab. Dasar Informatika 1)", "B.4.05 (Lab. Dasar Informatika 2)", "B4-12", "LAB 2 DTIK"],
+  INFORMATIKA_PSDKU_KEBUMEN: ["LAB KOMPUTER", "RUANG 17", "RUANG 19"],
 };
-

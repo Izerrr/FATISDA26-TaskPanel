@@ -206,7 +206,10 @@ export function parseQueryEntities(query: string, defaultProdi: Prodi = "INFORMA
 
   // 3. Deteksi Multi-Target / Cross-Prodi clauses
   const splitRegex = /\b(?:sama|dengan|vs|versus)\b|\b(?:dan)\s+(?=(?:kelas|kls|infor|sains|psdku))/i;
-  const rawClauses = q.split(splitRegex).map((c) => c.trim()).filter(Boolean);
+  const rawClauses = q
+    .split(splitRegex)
+    .map((c) => c.trim())
+    .filter(Boolean);
 
   let targetGroups: QueryTargetGroup[] = [];
 
@@ -232,7 +235,7 @@ export function parseQueryEntities(query: string, defaultProdi: Prodi = "INFORMA
   // Fallback single group
   if (targetGroups.length < 2) {
     const cls = detectClassesInText(q);
-    const classesToUse = cls.length > 0 ? cls : (q.includes("bareng") || q.includes("sama") || q.includes("gabung") ? ["A", "B"] : ["A"]);
+    const classesToUse = cls.length > 0 ? cls : q.includes("bareng") || q.includes("sama") || q.includes("gabung") ? ["A", "B"] : ["A"];
     const prodiLabel = globalProdi === "SAINS_DATA" ? "Sains Data" : globalProdi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Infor PSDKU" : "Informatika";
     targetGroups = [
       {
@@ -277,13 +280,7 @@ export function parseQueryEntities(query: string, defaultProdi: Prodi = "INFORMA
 /**
  * Core Engine: Menghitung jam kosong dan membandingkan jadwal (mendukung Lintas Prodi)
  */
-export function analyzeScheduleAndFreeTime(
-  query: string,
-  allSchedules: RawScheduleInput[],
-  tasks: TaskInput[] = [],
-  userProdi: Prodi = "INFORMATIKA",
-  userSemester: number = 1,
-): AiMatchResult {
+export function analyzeScheduleAndFreeTime(query: string, allSchedules: RawScheduleInput[], tasks: TaskInput[] = [], userProdi: Prodi = "INFORMATIKA", userSemester: number = 1): AiMatchResult {
   const parsed = parseQueryEntities(query, userProdi, userSemester);
 
   // Filter jadwal sesuai grup yang ditarget
@@ -305,9 +302,7 @@ export function analyzeScheduleAndFreeTime(
     const occupiedPerGroup: Set<number>[] = [];
 
     for (const group of parsed.targetGroups) {
-      const groupSchedules = relevantSchedules.filter(
-        (s) => s.prodi === group.prodi && s.semester === group.semester && group.classes.includes(s.kelas as string) && s.day === dayNum,
-      );
+      const groupSchedules = relevantSchedules.filter((s) => s.prodi === group.prodi && s.semester === group.semester && group.classes.includes(s.kelas as string) && s.day === dayNum);
 
       const groupOccupied = new Set<number>();
       const coursesSet = new Set<string>();
@@ -364,9 +359,7 @@ export function analyzeScheduleAndFreeTime(
     const endStr = STANDARD_SESSIONS[endSess]?.end || "18:50";
     const duration = timeToMinutes(endStr) - timeToMinutes(startStr);
 
-    const classesFree = parsed.isCrossProdi
-      ? groups.map((g) => g.label)
-      : Array.from(new Set(groups.flatMap((g) => g.classes))).sort();
+    const classesFree = parsed.isCrossProdi ? groups.map((g) => g.label) : Array.from(new Set(groups.flatMap((g) => g.classes))).sort();
 
     slots.push({
       dayName: dName,
@@ -408,14 +401,9 @@ export function analyzeScheduleAndFreeTime(
   }
 
   // Format ringkasan eksekutif
-  const targetDesc = parsed.isCrossProdi
-    ? parsed.targetGroups.map((g) => g.label).join(" dan ")
-    : `${parsed.targetGroups.map((g) => `Kelas ${g.classes.join(" & ")}`).join(", ")} (${parsed.targetGroups[0]?.label})`;
+  const targetDesc = parsed.isCrossProdi ? parsed.targetGroups.map((g) => g.label).join(" dan ") : `${parsed.targetGroups.map((g) => `Kelas ${g.classes.join(" & ")}`).join(", ")} (${parsed.targetGroups[0]?.label})`;
 
-  const summary =
-    freeSlots.length > 0
-      ? `Ditemukan ${freeSlots.length} slot waktu luang bersama untuk ${targetDesc}.`
-      : `Tidak ditemukan slot luang bersama yang cocok untuk ${targetDesc} pada hari yang diteliti.`;
+  const summary = freeSlots.length > 0 ? `Ditemukan ${freeSlots.length} slot waktu luang bersama untuk ${targetDesc}.` : `Tidak ditemukan slot luang bersama yang cocok untuk ${targetDesc} pada hari yang diteliti.`;
 
   // Susun Jawaban Markdown yang bersih dan terstruktur
   let markdownAnswer = "";

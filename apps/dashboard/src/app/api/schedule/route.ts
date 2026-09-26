@@ -224,10 +224,7 @@ export async function GET(request: NextRequest) {
 
     // Pastikan urutan ruangan 100% konsisten dengan kolom Google Sheets aslinya
     const distinctRooms: string[] = isGrandMode
-      ? [
-          ...officialRooms,
-          ...roomsFromSchedules.filter((r) => !officialRooms.includes(r)),
-        ]
+      ? [...officialRooms, ...roomsFromSchedules.filter((r) => !officialRooms.includes(r))]
       : roomsFromSchedules.sort((a, b) => {
           const idxA = officialRooms.indexOf(a);
           const idxB = officialRooms.indexOf(b);

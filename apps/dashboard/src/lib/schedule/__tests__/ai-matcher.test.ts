@@ -123,4 +123,3 @@ describe("AI Schedule Free-Time Calculation Engine", () => {
     expect(lateSlot).toBeDefined();
   });
 });
-
