@@ -201,6 +201,10 @@ export function parseScheduleCsv(csv: string, prodi: Prodi): ParsedScheduleEntry
 
     if (isDay(dayCell)) {
       currentDay = dayCell;
+    } else if (dayCell.length > 0) {
+      // Row has non-empty text in day column that is NOT a day (e.g. "2024", "Catatan", footer)
+      currentDay = null;
+      continue;
     }
 
     if (!currentDay) {

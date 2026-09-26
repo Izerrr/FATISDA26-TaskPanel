@@ -7,6 +7,7 @@ import type { Prodi } from "@prisma/client";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ScheduleAiMatcher } from "@/components/schedule/ScheduleAiMatcher";
+import { OFFICIAL_PRODI_ROOMS } from "@/lib/schedule/constants";
 
 interface ScheduleItem {
   id: string;
@@ -88,7 +89,7 @@ export default function GrandSchedulePage() {
   const [search, setSearch] = useState("");
 
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
-  const [rooms, setRooms] = useState<string[]>([]);
+  const [rooms, setRooms] = useState<string[]>(OFFICIAL_PRODI_ROOMS[selectedProdi] || []);
   const [loading, setLoading] = useState(true);
   const [showAiMatcher, setShowAiMatcher] = useState(false);
   const [selectedCellItem, setSelectedCellItem] = useState<ScheduleItem | null>(null);
@@ -104,9 +105,7 @@ export default function GrandSchedulePage() {
         if (data.rooms && Array.isArray(data.rooms) && data.rooms.length > 0) {
           setRooms(data.rooms);
         } else {
-          // Fallback ekstraksi ruangan unik dari entri
-          const extractedRooms = Array.from(new Set((data.entries || []).map((e: ScheduleItem) => e.room?.trim()).filter(Boolean))) as string[];
-          setRooms(extractedRooms.sort());
+          setRooms(OFFICIAL_PRODI_ROOMS[prodi] || []);
         }
       }
     } catch (e) {
@@ -117,6 +116,7 @@ export default function GrandSchedulePage() {
   }
 
   useEffect(() => {
+    setRooms(OFFICIAL_PRODI_ROOMS[selectedProdi] || []);
     fetchGrandSchedule(selectedProdi);
   }, [selectedProdi]);
 

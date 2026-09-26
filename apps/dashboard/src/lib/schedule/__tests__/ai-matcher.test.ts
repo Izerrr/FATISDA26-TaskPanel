@@ -83,4 +83,44 @@ describe("AI Schedule Free-Time Calculation Engine", () => {
     const morningFree = analysis.freeSlots.find((s) => s.dayNumber === 1 && s.startSession === 1);
     expect(morningFree).toBeDefined();
   });
+
+  it("accurately handles cross-prodi queries (Informatika vs Sains Data)", () => {
+    const crossQuery = "Kelas B smt 1 infor sama kelas a b smt 1 sains data freenya yang bareng kapan aja ya?";
+    const parsed = parseQueryEntities(crossQuery, "INFORMATIKA");
+
+    expect(parsed.isCrossProdi).toBe(true);
+    expect(parsed.targetGroups).toHaveLength(2);
+    expect(parsed.targetGroups[0].prodi).toBe("INFORMATIKA");
+    expect(parsed.targetGroups[0].classes).toEqual(["B"]);
+    expect(parsed.targetGroups[1].prodi).toBe("SAINS_DATA");
+    expect(parsed.targetGroups[1].classes).toEqual(["A", "B"]);
+
+    const crossSchedules = [
+      ...mockSchedules,
+      // Sains Data: Kelas A kuliah sesi 6-7 di hari Senin
+      {
+        prodi: "SAINS_DATA" as const,
+        kelas: "A",
+        semester: 1,
+        day: 1,
+        startTime: "13:00",
+        endTime: "14:45",
+        sourceSlots: [6, 7],
+        courseName: "Sains Data Dasar",
+      },
+    ];
+
+    const analysis = analyzeScheduleAndFreeTime(crossQuery, crossSchedules, [], "INFORMATIKA", 1);
+    expect(analysis.isCrossProdi).toBe(true);
+    expect(analysis.freeSlots.length).toBeGreaterThan(0);
+
+    // Infor B sibuk di sesi 4-5. Sains Data A sibuk di sesi 6-7.
+    // Sesi 1-3 (07:30 - 10:10) dan sesi 8-10 (15:30+) harus saling free!
+    const morningSlot = analysis.freeSlots.find((s) => s.dayNumber === 1 && s.startSession === 1 && s.endSession === 3);
+    expect(morningSlot).toBeDefined();
+
+    const lateSlot = analysis.freeSlots.find((s) => s.dayNumber === 1 && s.startSession >= 8);
+    expect(lateSlot).toBeDefined();
+  });
 });
+

@@ -10,7 +10,101 @@ interface ScheduleAiMatcherProps {
   onClose?: () => void;
 }
 
-const QUICK_PROMPTS = ["Kelas A sama Kelas B freenya kapan?", "Kelas B smt 1 freenya kapan aja ya?", "Kapan slot kosong bareng hari Rabu?", "Cari jam rapat semua kelas semester 1", "Hari apa jadwal kuliah paling santai?"];
+const QUICK_PROMPTS = [
+  "Kelas A sama Kelas B freenya kapan?",
+  "Kelas B smt 1 infor sama kelas A smt 1 sains data",
+  "Kelas B smt 1 freenya kapan aja ya?",
+  "Kapan slot kosong bareng hari Rabu?",
+  "Cari jam rapat semua kelas semester 1",
+];
+
+/**
+ * Komponen untuk merender jawaban markdown dari AI secara rapi, bersih,
+ * tanpa menampilkan simbol ** atau ### mentah ke pengguna.
+ */
+function MarkdownBlock({ text }: { text: string }) {
+  if (!text) return null;
+
+  // Helper untuk mengubah text dengan **bold** menjadi elemen <strong>
+  const renderInline = (str: string) => {
+    const parts = str.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={i} className="font-bold text-slate-900 dark:text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
+
+  const lines = text.split("\n");
+  const renderedElements: React.ReactNode[] = [];
+
+  lines.forEach((rawLine, idx) => {
+    const line = rawLine.trim();
+    if (!line) {
+      renderedElements.push(<div key={`spacer-${idx}`} className="h-1.5" />);
+      return;
+    }
+
+    // 1. Heading 3: ### Title
+    if (line.startsWith("### ")) {
+      const headingText = line.replace(/^###\s+/, "");
+      renderedElements.push(
+        <div key={`h3-${idx}`} className="flex items-center gap-2 pt-2 pb-1 text-sm font-bold text-slate-800 dark:text-slate-100 border-b border-slate-200/60 dark:border-slate-700/60 mb-1.5">
+          <span>{renderInline(headingText)}</span>
+        </div>,
+      );
+      return;
+    }
+
+    // 2. Heading 4: #### Title
+    if (line.startsWith("#### ")) {
+      const subHeadingText = line.replace(/^####\s+/, "");
+      renderedElements.push(
+        <div key={`h4-${idx}`} className="flex items-center gap-1.5 pt-2 pb-0.5 text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+          <span>{renderInline(subHeadingText)}</span>
+        </div>,
+      );
+      return;
+    }
+
+    // 3. Blockquote: > Advice
+    if (line.startsWith("> ")) {
+      const quoteText = line.replace(/^>\s+/, "");
+      renderedElements.push(
+        <div key={`quote-${idx}`} className="rounded-xl border-l-4 border-amber-400 bg-amber-50/70 p-2.5 my-1.5 text-xs text-amber-950 dark:border-amber-500 dark:bg-amber-950/30 dark:text-amber-200 leading-relaxed shadow-xs">
+          {renderInline(quoteText)}
+        </div>,
+      );
+      return;
+    }
+
+    // 4. List items: - item or * item
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      const itemText = line.replace(/^[-*]\s+/, "");
+      renderedElements.push(
+        <div key={`li-${idx}`} className="flex items-start gap-2 py-0.5 text-xs text-slate-700 dark:text-slate-300">
+          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500 dark:bg-sky-400" />
+          <div className="flex-1 leading-relaxed">{renderInline(itemText)}</div>
+        </div>,
+      );
+      return;
+    }
+
+    // 5. Normal text line
+    renderedElements.push(
+      <p key={`p-${idx}`} className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed py-0.5">
+        {renderInline(line)}
+      </p>,
+    );
+  });
+
+  return <div className="space-y-0.5">{renderedElements}</div>;
+}
 
 export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemester = 1, onClose }: ScheduleAiMatcherProps) {
   const [query, setQuery] = useState("");
@@ -66,7 +160,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
               <span>AI Free-Time & Schedule Matcher</span>
               <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">Live Engine</span>
             </h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Analisis matematis jadwal kuliah & pencarian jam kosong bersama antar kelas.</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Analisis matematis jadwal kuliah & pencarian jam kosong bersama antar kelas / lintas prodi.</p>
           </div>
         </div>
 
@@ -106,7 +200,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ketik pertanyaan (cth: 'Kapan kelas A sama kelas B freenya?', 'kelas b smt 1 free kapan aja?')..."
+            placeholder="Ketik pertanyaan (cth: 'Kelas B infor sama kelas A sadat freenya kapan?', 'kelas b smt 1 free kapan aja?')..."
             className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
@@ -154,25 +248,31 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
               <div className="rounded-2xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">Tidak ada slot jam kosong bersama pada hari yang dipilih.</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {result.freeSlots.map((slot, idx) => (
-                  <div key={idx} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-xs hover:border-sky-200 dark:border-slate-800 dark:bg-slate-800/90 transition">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-                      <Clock className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{slot.dayName}</span>
-                        <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">{slot.durationMinutes} mnt</span>
+                {result.freeSlots.map((slot, idx) => {
+                  const classesDisplay = slot.classesFree.every((c) => c.length === 1)
+                    ? slot.classesFree.map((c) => `Kls ${c}`).join(" & ")
+                    : slot.classesFree.join(" ✕ ");
+
+                  return (
+                    <div key={idx} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-xs hover:border-sky-200 dark:border-slate-800 dark:bg-slate-800/90 transition">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                        <Clock className="h-4 w-4" />
                       </div>
-                      <p className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 mt-0.5">
-                        {slot.startTime} - {slot.endTime} WIB
-                      </p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-                        {slot.label} · {slot.classesFree.map((c) => `Kls ${c}`).join(" & ")}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{slot.dayName}</span>
+                          <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">{slot.durationMinutes} mnt</span>
+                        </div>
+                        <p className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 mt-0.5">
+                          {slot.startTime} - {slot.endTime} WIB
+                        </p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate" title={classesDisplay}>
+                          {slot.label} · {classesDisplay}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -183,7 +283,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
               <Bot className="h-4 w-4 text-sky-500" />
               <span className="text-xs font-bold">Analisis Detail AI:</span>
             </div>
-            <div className="whitespace-pre-line text-xs leading-relaxed text-slate-700 dark:text-slate-300 prose-sm">{result.markdownAnswer}</div>
+            <MarkdownBlock text={result.markdownAnswer} />
           </div>
         </div>
       )}

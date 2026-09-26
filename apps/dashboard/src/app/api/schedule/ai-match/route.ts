@@ -4,7 +4,7 @@ import type { Prodi } from "@prisma/client";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { analyzeScheduleAndFreeTime } from "@/lib/schedule/ai-matcher";
+import { analyzeScheduleAndFreeTime, parseQueryEntities } from "@/lib/schedule/ai-matcher";
 
 export const dynamic = "force-dynamic";
 
@@ -31,10 +31,27 @@ export async function POST(request: NextRequest) {
     const requestedProdi: Prodi = (body.prodi as Prodi) || user?.prodi || "INFORMATIKA";
     const requestedSemester: number = typeof body.semester === "number" ? body.semester : (user?.semester ?? 1);
 
-    // Ambil seluruh jadwal untuk prodi dan semester terkait
+    // Parse entitas terlebih dahulu untuk menentukan semua prodi yang terlibat (termasuk lintas prodi)
+    const initialParsed = parseQueryEntities(query, requestedProdi, requestedSemester);
+    const targetProdis = Array.from(new Set(initialParsed.targetGroups.map((g) => g.prodi)));
+
+    // Pastikan prodi yang terlibat sudah memiliki data di database (auto-sync jika masih kosong)
+    for (const p of targetProdis) {
+      const count = await prisma.schedule.count({ where: { prodi: p } });
+      if (count === 0) {
+        try {
+          const { syncSchedule } = await import("@/lib/schedule");
+          await syncSchedule(p);
+        } catch (err) {
+          console.warn(`[POST /api/schedule/ai-match] Auto-sync gagal untuk prodi ${p}:`, err);
+        }
+      }
+    }
+
+    // Ambil seluruh jadwal untuk semua prodi yang terlibat
     const schedules = await prisma.schedule.findMany({
       where: {
-        prodi: requestedProdi,
+        prodi: { in: targetProdis },
       },
       select: {
         prodi: true,
@@ -53,7 +70,7 @@ export async function POST(request: NextRequest) {
     const tasks = await prisma.task.findMany({
       where: {
         status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] },
-        prodi: requestedProdi,
+        prodi: { in: targetProdis },
       },
       select: {
         title: true,

@@ -5,6 +5,7 @@ import type { Prodi, Kelas } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getScheduleSource, syncSchedule } from "@/lib/schedule";
+import { OFFICIAL_PRODI_ROOMS } from "@/lib/schedule/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -218,7 +219,23 @@ export async function GET(request: NextRequest) {
     }
     const uniqueSchedules = Array.from(uniqueMap.values());
 
-    const distinctRooms = Array.from(new Set(uniqueSchedules.map((s) => s.room?.trim()).filter((r): r is string => Boolean(r && r.length > 0)))).sort();
+    const officialRooms = OFFICIAL_PRODI_ROOMS[prodi] || [];
+    const roomsFromSchedules = Array.from(new Set(uniqueSchedules.map((s) => s.room?.trim()).filter((r): r is string => Boolean(r && r.length > 0))));
+
+    // Pastikan urutan ruangan 100% konsisten dengan kolom Google Sheets aslinya
+    const distinctRooms: string[] = isGrandMode
+      ? [
+          ...officialRooms,
+          ...roomsFromSchedules.filter((r) => !officialRooms.includes(r)),
+        ]
+      : roomsFromSchedules.sort((a, b) => {
+          const idxA = officialRooms.indexOf(a);
+          const idxB = officialRooms.indexOf(b);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+          return a.localeCompare(b);
+        });
 
     return NextResponse.json({
       success: true,
