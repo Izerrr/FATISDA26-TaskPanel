@@ -48,14 +48,15 @@ export async function GET(request: NextRequest) {
     }
 
     /*
-     * Baca parameter dari query URL jika disediakan (misal saat ganti tab semester di UI).
-     * Fallback ke profil user di DB, dan fallback semester default ke 2.
+     * Baca parameter dari query URL jika disediakan (misal saat ganti tab semester di UI atau grand spreadsheet).
+     * Fallback ke profil user di DB, dan fallback semester default ke 1.
      */
     const { searchParams } = new URL(request.url);
     const rawProdi = searchParams.get("prodi");
     const rawKelas = searchParams.get("kelas");
     const semesterParam = searchParams.get("semester");
     const agamaParam = searchParams.get("agama");
+    const isGrandMode = searchParams.get("mode") === "grand" || searchParams.get("all") === "true";
 
     const validProdis: Prodi[] = ["INFORMATIKA", "SAINS_DATA", "INFORMATIKA_PSDKU_KEBUMEN"];
     const validKelas: Kelas[] = ["A", "B", "C", "D", "E"];
@@ -63,12 +64,12 @@ export async function GET(request: NextRequest) {
     const prodiParam = rawProdi && validProdis.includes(rawProdi as Prodi) ? (rawProdi as Prodi) : null;
     const kelasParam = rawKelas && validKelas.includes(rawKelas as Kelas) ? (rawKelas as Kelas) : null;
 
-    const prodi = prodiParam || user.prodi;
+    const prodi = prodiParam || user.prodi || "INFORMATIKA";
     const kelas = kelasParam || user.kelas;
     const parsedSemester = semesterParam ? parseInt(semesterParam, 10) : NaN;
     const semester = !Number.isNaN(parsedSemester) ? parsedSemester : (user.semester ?? 1);
 
-    if (!prodi || !kelas) {
+    if (!isGrandMode && (!prodi || !kelas)) {
       return NextResponse.json({
         success: true,
         profile: {
@@ -89,8 +90,12 @@ export async function GET(request: NextRequest) {
     const source = getScheduleSource(prodi);
 
     if (!source) {
+      const fallbackWhere: any = { prodi };
+      if (!isGrandMode && kelas) fallbackWhere.kelas = kelas;
+      if (!isGrandMode) fallbackWhere.semester = semester;
+
       const existingInDb = await prisma.schedule.findMany({
-        where: { prodi, semester, kelas },
+        where: fallbackWhere,
         include: { course: true },
         orderBy: [{ day: "asc" }, { startTime: "asc" }],
       });
@@ -139,12 +144,21 @@ export async function GET(request: NextRequest) {
     /*
      * Ambil jadwal berdasarkan prodi, kelas, dan semester yang dipilih.
      */
+    const whereClause: any = { prodi };
+    if (!isGrandMode) {
+      if (semester) whereClause.semester = semester;
+      if (kelas) whereClause.kelas = kelas;
+    } else {
+      if (!Number.isNaN(parsedSemester) && parsedSemester > 0) {
+        whereClause.semester = parsedSemester;
+      }
+      if (rawKelas && rawKelas !== "ALL" && validKelas.includes(rawKelas as Kelas)) {
+        whereClause.kelas = rawKelas as Kelas;
+      }
+    }
+
     const schedules = await prisma.schedule.findMany({
-      where: {
-        prodi,
-        semester,
-        kelas,
-      },
+      where: whereClause,
       orderBy: [
         {
           day: "asc",
@@ -197,12 +211,14 @@ export async function GET(request: NextRequest) {
     // Deduplikasi jadwal agar sesi yang sama (batch-wide seperti Olahraga) tidak muncul berulang
     const uniqueMap = new Map<string, (typeof schedules)[number]>();
     for (const s of filteredSchedules) {
-      const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}`;
+      const key = `${s.day}|${s.startTime}|${s.endTime}|${s.room ?? ""}|${s.courseName.toLowerCase().trim()}${isGrandMode ? `|${s.kelas}` : ""}`;
       if (!uniqueMap.has(key) || s.kelas === kelas) {
         uniqueMap.set(key, s);
       }
     }
     const uniqueSchedules = Array.from(uniqueMap.values());
+
+    const distinctRooms = Array.from(new Set(uniqueSchedules.map((s) => s.room?.trim()).filter((r): r is string => Boolean(r && r.length > 0)))).sort();
 
     return NextResponse.json({
       success: true,
@@ -212,6 +228,7 @@ export async function GET(request: NextRequest) {
         kelas,
         semester,
       },
+      rooms: distinctRooms,
       sync: {
         lastSyncedAt:
           (

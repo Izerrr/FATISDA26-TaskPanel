@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, CalendarDays, Clock3, MapPin } from "lucide-react";
+import Link from "next/link";
+import { Calendar, CalendarDays, Clock3, MapPin, Sparkles, Table } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
 import { useRole } from "@/hooks/useRole";
@@ -9,6 +10,7 @@ import { useRole } from "@/hooks/useRole";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ScheduleSyncPanel } from "@/components/schedule/ScheduleSyncPanel";
 import { ScheduleExportModal } from "@/components/schedule/ScheduleExportModal";
+import { ScheduleAiMatcher } from "@/components/schedule/ScheduleAiMatcher";
 
 const DAYS = [
   { value: 1, label: "Senin" },
@@ -74,10 +76,45 @@ export default function SchedulePage() {
   const isAdmin = user?.roles?.includes("ADMIN");
 
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [showAiMatcher, setShowAiMatcher] = useState(false);
 
   return (
     <DashboardFrame>
       <div className="space-y-6">
+        {/* Navigation Bar between Personal, Grand, and AI */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-liquid-border dark:border-slate-800 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-2xl bg-liquid-accent/10 px-3.5 py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
+              <CalendarDays className="h-4 w-4" />
+              <span>Jadwal Saya (Personal)</span>
+            </div>
+
+            <Link
+              href="/dashboard/schedule/grand"
+              className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-sky-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <Table className="h-3.5 w-3.5 text-sky-500" />
+              <span>Grand Spreadsheet (Semua Prodi)</span>
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAiMatcher(!showAiMatcher)}
+            className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition shadow-sm ${
+              showAiMatcher
+                ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sky-500/20"
+                : "border border-sky-300/80 bg-sky-50/80 text-sky-700 hover:bg-sky-100/80 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50"
+            }`}
+          >
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span>{showAiMatcher ? "Tutup AI Matcher" : "Buka AI Matcher & Jam Kosong"}</span>
+          </button>
+        </div>
+
+        {/* AI Matcher Panel (Expandable) */}
+        {showAiMatcher && <ScheduleAiMatcher defaultProdi={user?.prodi || "INFORMATIKA"} defaultSemester={selectedSemester} onClose={() => setShowAiMatcher(false)} />}
+
         {/* Header with Title & Actions */}
         <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

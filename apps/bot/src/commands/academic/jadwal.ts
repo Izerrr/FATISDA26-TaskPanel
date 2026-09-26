@@ -23,6 +23,13 @@ const command: Command = {
     .setDescription("Lihat jadwal kuliah dari TaskPanel")
     .addStringOption((option) =>
       option
+        .setName("prodi")
+        .setDescription("Program studi target (Informatika / Sains Data / PSDKU Kebumen)")
+        .setRequired(false)
+        .addChoices({ name: "Informatika (Solo)", value: "INFORMATIKA" }, { name: "Sains Data", value: "SAINS_DATA" }, { name: "Informatika PSDKU Kebumen", value: "INFORMATIKA_PSDKU_KEBUMEN" }),
+    )
+    .addStringOption((option) =>
+      option
         .setName("hari")
         .setDescription("Pilih hari jadwal yang ingin dilihat")
         .setRequired(false)
@@ -55,15 +62,28 @@ const command: Command = {
 
   async run(_client, context, args) {
     const authorId = isSlash(context) ? context.user.id : context.author.id;
+    let prodiOpt = isSlash(context) ? (context.options.getString("prodi") as Prodi | null) : null;
     const hariOpt = isSlash(context) ? context.options.getString("hari") : args[0]?.toUpperCase();
     let kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
     let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : null;
     const agamaOpt = isSlash(context) ? context.options.getString("agama")?.toUpperCase() : args[2]?.toUpperCase();
 
+    // Deteksi argumen prodi jika dipanggil lewat prefix command
+    if (!isSlash(context) && args.length > 0) {
+      const joined = args.join(" ").toUpperCase();
+      if (joined.includes("SADAT") || joined.includes("SAINS")) {
+        prodiOpt = "SAINS_DATA";
+      } else if (joined.includes("PSDKU") || joined.includes("KEBUMEN")) {
+        prodiOpt = "INFORMATIKA_PSDKU_KEBUMEN";
+      } else if (joined.includes("INFOR") || joined.includes("IF")) {
+        prodiOpt = "INFORMATIKA";
+      }
+    }
+
     try {
-      let userProdi: Prodi = "INFORMATIKA";
+      let userProdi: Prodi = prodiOpt || "INFORMATIKA";
       const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
-      if (dbUser?.prodi) {
+      if (!prodiOpt && dbUser?.prodi) {
         userProdi = dbUser.prodi;
       }
 
@@ -149,15 +169,29 @@ const command: Command = {
       }
       const schedules = Array.from(uniqueScheduleMap.values());
 
-      const scheduleButton = new ButtonBuilder().setLabel("Buka Jadwal Lengkap Web").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
+      function getProdiName(prodi: Prodi): string {
+        switch (prodi) {
+          case "INFORMATIKA":
+            return "Informatika";
+          case "SAINS_DATA":
+            return "Sains Data";
+          case "INFORMATIKA_PSDKU_KEBUMEN":
+            return "Informatika PSDKU Kebumen";
+          default:
+            return prodi;
+        }
+      }
 
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(scheduleButton);
+      const scheduleButton = new ButtonBuilder().setLabel("Jadwal Pribadi").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
+      const grandButton = new ButtonBuilder().setLabel("Grand Jadwal (Semua Prodi)").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule/grand");
+
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(scheduleButton, grandButton);
 
       if (schedules.length === 0) {
         const emptyEmbed = new EmbedBuilder()
-          .setTitle(`📅 Jadwal Kuliah — ${dayLabel}`)
+          .setTitle(`📅 Jadwal Kuliah — ${getProdiName(userProdi)} (${dayLabel})`)
           .setColor(BRAND_COLOR)
-          .setDescription(`🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""}). Selamat beristirahat!`)
+          .setDescription(`🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** di program studi **${getProdiName(userProdi)}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""}). Selamat beristirahat!`)
           .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
           .setTimestamp();
 
@@ -169,9 +203,11 @@ const command: Command = {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle(`📅 Jadwal Perkuliahan — ${DAY_NAMES[targetDayNumber]} (Semester ${semesterOpt})`)
+        .setTitle(`📅 Jadwal Kuliah — ${getProdiName(userProdi)} (${DAY_NAMES[targetDayNumber]})`)
         .setColor(BRAND_COLOR)
-        .setDescription(`Ditemukan **${schedules.length}** sesi kuliah ${kelasOpt ? `untuk Kelas ${kelasOpt}` : ""}\n*💡 Tips: Gunakan opsi \`agama:\` untuk melihat jadwal Kristen, Katholik, atau Budha.*\n`)
+        .setDescription(
+          `Ditemukan **${schedules.length}** sesi kuliah untuk **${getProdiName(userProdi)}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""})\n*💡 Tips: Gunakan opsi \`prodi:\` untuk melihat prodi lain, atau \`agama:\` untuk melihat jadwal non-Islam.*\n`,
+        )
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
