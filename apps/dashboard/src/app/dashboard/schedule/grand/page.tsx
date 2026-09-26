@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Download, Filter, Layers, MapPin, RefreshCw, Search, Sparkles, Table as TableIcon, UserRound } from "lucide-react";
 import type { Prodi } from "@prisma/client";
@@ -346,15 +346,23 @@ export default function GrandSchedulePage() {
             <div className="p-16 text-center text-xs text-slate-500">Tidak ada data ruangan atau jadwal ditemukan untuk prodi ini.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
+              <table className="min-w-full table-fixed border-collapse text-left text-xs">
+                {/* Definisi Lebar Kolom yang Mutlak Sinkron antara Header dan Sel */}
+                <colgroup>
+                  <col className="w-28 min-w-[7rem]" />
+                  {rooms.map((room) => (
+                    <col key={room} className="w-48 min-w-[12rem]" />
+                  ))}
+                </colgroup>
+
                 {/* Header Row: Ruangan */}
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-100/90 backdrop-blur sticky top-0 z-20 dark:border-slate-800 dark:bg-slate-950/90">
-                    <th className="sticky left-0 z-30 min-w-32 border-r border-slate-200 bg-slate-100/95 p-3 text-center font-bold text-slate-700 dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                    <th className="sticky left-0 z-30 w-28 min-w-[7rem] border-r border-slate-200 bg-slate-100/95 p-3 text-center font-bold text-slate-700 dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                       Sesi & Waktu
                     </th>
                     {rooms.map((room) => (
-                      <th key={room} className="min-w-44 max-w-60 border-r border-slate-200 p-3 text-center font-bold text-slate-800 dark:border-slate-800 dark:text-slate-200">
+                      <th key={room} className="w-48 min-w-[12rem] border-r border-slate-200 p-3 text-center font-bold text-slate-800 dark:border-slate-800 dark:text-slate-200">
                         <div className="flex items-center justify-center gap-1">
                           <MapPin className="h-3 w-3 text-sky-500 shrink-0" />
                           <span className="truncate">{room}</span>
@@ -364,14 +372,14 @@ export default function GrandSchedulePage() {
                   </tr>
                 </thead>
 
-                {/* Table Body */}
+                {/* Table Body (Single tbody dengan Fragment per Hari) */}
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                   {activeDays.map((dayNum) => {
                     const dayLabel = DAYS.find((d) => d.value === dayNum)?.label || `Hari ${dayNum}`;
 
                     return (
-                      <tbody key={dayNum} className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                        {/* Day Banner (if viewing All Days) */}
+                      <Fragment key={dayNum}>
+                        {/* Day Banner (jika memilih Semua Hari) */}
                         {activeDays.length > 1 && (
                           <tr className="bg-sky-50/70 dark:bg-sky-950/30">
                             <td colSpan={rooms.length + 1} className="px-4 py-2 font-bold text-sky-800 dark:text-sky-300 text-xs uppercase tracking-wider">
@@ -385,7 +393,7 @@ export default function GrandSchedulePage() {
                           return (
                             <tr key={`${dayNum}-${sess.num}`} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                               {/* Sticky Time Header */}
-                              <td className="sticky left-0 z-10 border-r border-slate-200 bg-white/95 p-2.5 text-center dark:border-slate-800 dark:bg-slate-900/95 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                              <td className="sticky left-0 z-10 w-28 min-w-[7rem] border-r border-slate-200 bg-white/95 p-2.5 text-center dark:border-slate-800 dark:bg-slate-900/95 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                                 <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">Sesi {sess.num}</div>
                                 <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{sess.time}</div>
                               </td>
@@ -418,14 +426,14 @@ export default function GrandSchedulePage() {
 
                                 if (items.length === 0) {
                                   return (
-                                    <td key={room} className="border-r border-slate-100 p-2 text-center text-slate-300 dark:border-slate-800/80 dark:text-slate-700 select-none">
+                                    <td key={room} className="w-48 min-w-[12rem] border-r border-slate-100 p-2 text-center text-slate-300 dark:border-slate-800/80 dark:text-slate-700 select-none">
                                       —
                                     </td>
                                   );
                                 }
 
                                 return (
-                                  <td key={room} className="border-r border-slate-100 p-1.5 align-top dark:border-slate-800/80">
+                                  <td key={room} className="w-48 min-w-[12rem] border-r border-slate-100 p-1.5 align-top dark:border-slate-800/80">
                                     <div className="space-y-1.5">
                                       {items.map((item) => {
                                         const colorClass = getSemesterColor(item.semester);
@@ -459,7 +467,7 @@ export default function GrandSchedulePage() {
                             </tr>
                           );
                         })}
-                      </tbody>
+                      </Fragment>
                     );
                   })}
                 </tbody>
