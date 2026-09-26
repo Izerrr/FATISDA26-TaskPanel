@@ -21,9 +21,7 @@ export function TaskCreateModal({ open, guildId, courses, roles, onClose, onCrea
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const canCreateClass = roles.some((role) =>
-    ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role),
-  );
+  const canCreateClass = roles.some((role) => ["ADMIN", "PJ_KELAS", "PJ_MATKUL"].includes(role));
 
   if (!open) return null;
 
@@ -74,17 +72,19 @@ export function TaskCreateModal({ open, guildId, courses, roles, onClose, onCrea
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-3xl border border-white/70 bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+      <div className="w-full max-w-xl rounded-3xl border border-white/70 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-5">
           <div>
-            <h2 className="text-lg font-bold text-liquid-text">Tugas Baru</h2>
-            <p className="mt-1 text-xs text-liquid-text-secondary">Tambahkan tugas ke workspace aktif.</p>
+            <h2 className="text-lg font-bold text-liquid-text dark:text-slate-100">Tugas Baru</h2>
+            <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Tambahkan tugas ke workspace aktif.</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 hover:text-slate-700">Tutup</button>
+          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-sm text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200">
+            Tutup
+          </button>
         </div>
 
         <form onSubmit={submit} className="space-y-5 p-6">
-          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+          {error && <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
           <div className="grid grid-cols-2 gap-3">
             {(["PERSONAL", "CLASS"] as const).map((value) => {
@@ -95,7 +95,7 @@ export function TaskCreateModal({ open, guildId, courses, roles, onClose, onCrea
                   type="button"
                   disabled={disabled}
                   onClick={() => setScope(value)}
-                  className={`rounded-xl border px-4 py-3 text-sm font-semibold ${scope === value ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent" : "border-slate-200 text-slate-500 hover:bg-slate-50"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
+                  className={`rounded-xl border px-4 py-3 text-sm font-semibold ${scope === value ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent dark:bg-sky-950/50 dark:text-sky-400" : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"} ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
                 >
                   {value === "PERSONAL" ? "Personal" : "Kelas"}
                 </button>
@@ -105,31 +105,59 @@ export function TaskCreateModal({ open, guildId, courses, roles, onClose, onCrea
 
           <div>
             <label className="label mb-2 block">Judul</label>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" placeholder="Contoh: Laporan Praktikum" />
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm outline-none focus:border-liquid-accent dark:focus:border-sky-500"
+              placeholder="Contoh: Laporan Praktikum"
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="label mb-2 block">Mata Kuliah</label>
-              <select value={courseId} onChange={(event) => setCourseId(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent">
+              <select
+                value={courseId}
+                onChange={(event) => setCourseId(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm outline-none focus:border-liquid-accent dark:focus:border-sky-500"
+              >
                 <option value="">Tanpa mata kuliah</option>
-                {courses.map((course) => <option key={course.id} value={course.id}>{course.code} — {course.name}</option>)}
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.code} — {course.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
               <label className="label mb-2 block">Deadline</label>
-              <input type="datetime-local" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" />
+              <input
+                type="datetime-local"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm outline-none focus:border-liquid-accent dark:focus:border-sky-500"
+              />
             </div>
           </div>
 
           <div>
             <label className="label mb-2 block">Deskripsi</label>
-            <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-liquid-accent" placeholder="Detail tugas..." />
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={4}
+              className="w-full resize-none rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm outline-none focus:border-liquid-accent dark:focus:border-sky-500"
+              placeholder="Detail tugas..."
+            />
           </div>
 
-          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Batal</button>
-            <button type="submit" disabled={saving} className="rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan Tugas"}</button>
+          <div className="flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-5">
+            <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Batal
+            </button>
+            <button type="submit" disabled={saving} className="rounded-xl bg-liquid-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+              {saving ? "Menyimpan..." : "Simpan Tugas"}
+            </button>
           </div>
         </form>
       </div>
