@@ -25,3 +25,5 @@ pm2.log
 .vscode/
 .DS_Store
 Thumbs.db
+.vercel
+.env*
