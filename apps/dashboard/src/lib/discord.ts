@@ -229,13 +229,19 @@ function mappedKelas(discordRoles: string[]): Kelas | null {
 }
 
 export async function syncCurrentUser(userId: string): Promise<void> {
-  const guildId = process.env.DISCORD_GUILD_ID;
+  const candidateGuildIds = Array.from(new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
 
-  if (!guildId) {
-    throw new Error("DISCORD_GUILD_ID belum dikonfigurasi.");
+  let member: DiscordMember | null = null;
+  let guild: DiscordGuildDetails | null = null;
+
+  for (const gid of candidateGuildIds) {
+    const [m, g] = await Promise.all([fetchGuildMember(gid, userId), fetchGuildDetails(gid)]);
+    if (m && g) {
+      member = m;
+      guild = g;
+      break;
+    }
   }
-
-  const [member, guild] = await Promise.all([fetchGuildMember(guildId, userId), fetchGuildDetails(guildId)]);
 
   if (!member) {
     throw new Error("Akun Discord kamu tidak ditemukan di server FATISDA 2026.");

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useGuilds } from "@/hooks/useGuilds";
@@ -30,7 +31,9 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const effectiveGuild = selectedGuild ?? guilds[0]?.id ?? null;
+  // Jika user aktif tapi guilds list lambat/kosong, fallback ke server default FATISDA agar tidak memblokir akses
+  const defaultFallbackGuild = "1547427568599302287";
+  const effectiveGuild = selectedGuild ?? guilds[0]?.id ?? (user ? defaultFallbackGuild : null);
 
   useEffect(() => {
     if (guilds.length > 0) {
@@ -87,7 +90,7 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
   if (guildsError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-liquid-bg p-6 dark:bg-slate-950">
-        <div className="max-w-md rounded-2xl border border-red-200 bg-white p-6 text-center shadow-glass dark:border-red-900/50 dark:bg-slate-900">
+        <div className="max-w-md w-full rounded-3xl border border-red-200 bg-white p-6 sm:p-8 text-center shadow-glass dark:border-red-900/50 dark:bg-slate-900">
           <h1 className="text-lg font-bold text-liquid-text dark:text-slate-100">Gagal memuat workspace</h1>
           <p className="mt-2 text-sm leading-6 text-liquid-text-secondary dark:text-slate-400">TaskPanel tidak dapat memverifikasi koneksi workspace FATISDA 2026.</p>
           <button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-xl bg-liquid-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-95">
@@ -101,9 +104,35 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
   if (!effectiveGuild) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-liquid-bg p-6 dark:bg-slate-950">
-        <div className="max-w-md rounded-2xl border border-liquid-border bg-white p-6 text-center shadow-glass dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-lg font-bold text-liquid-text dark:text-slate-100">Workspace belum terhubung</h1>
-          <p className="mt-2 text-sm leading-6 text-liquid-text-secondary dark:text-slate-400">Akun Discord ini belum terhubung ke server FATISDA 2026 yang dapat dikelola TaskPanel.</p>
+        <div className="max-w-md w-full rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 text-center shadow-glass dark:border-slate-800 dark:bg-slate-900">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 mb-4">
+            <AlertCircle className="h-7 w-7" />
+          </div>
+          <h1 className="text-lg font-bold text-liquid-text dark:text-slate-100">Workspace Belum Terhubung</h1>
+          <p className="mt-2 text-xs leading-relaxed text-liquid-text-secondary dark:text-slate-400">Akun Discord ini belum terdeteksi di dalam server FATISDA 2026 atau sesi token Discord perlu disegarkan kembali.</p>
+
+          <div className="mt-6 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedGuild(defaultFallbackGuild);
+                window.location.reload();
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-sky-500"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Muat Ulang Workspace</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Ganti Akun Discord / Keluar</span>
+            </button>
+          </div>
         </div>
       </div>
     );

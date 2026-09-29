@@ -57,23 +57,20 @@ export const authOptions: NextAuthOptions = {
         token.avatar = avatar;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
+        token.accessTokenExpires = account.expires_at ? account.expires_at * 1000 : Date.now() + 604800 * 1000;
 
         /*
          * Pastikan user memang berada di
-         * server FATISDA yang dikonfigurasi.
+         * salah satu server FATISDA yang didukung.
          */
         const accessToken = account.access_token;
 
-        const guildId = process.env.DISCORD_GUILD_ID;
-
-        if (!guildId) {
-          throw new Error("DISCORD_GUILD_ID belum dikonfigurasi.");
-        }
+        const candidateGuildIds = Array.from(new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
 
         if (accessToken) {
           const guilds = await fetchUserGuilds(accessToken);
 
-          const isFatisdaMember = guilds.some((guild) => guild.id === guildId);
+          const isFatisdaMember = guilds.some((guild) => candidateGuildIds.includes(guild.id));
 
           if (!isFatisdaMember) {
             throw new Error("Akun Discord kamu belum menjadi anggota server FATISDA 2026.");
@@ -106,6 +103,31 @@ export const authOptions: NextAuthOptions = {
         token.prodi = user?.prodi ?? null;
 
         token.kelas = user?.kelas ?? null;
+      }
+
+      // Refresh Discord OAuth2 token jika telah kedaluwarsa
+      if (typeof token.accessTokenExpires === "number" && Date.now() > token.accessTokenExpires && token.refreshToken) {
+        try {
+          const response = await fetch("https://discord.com/api/v10/oauth2/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: process.env.DISCORD_CLIENT_ID!,
+              client_secret: process.env.DISCORD_CLIENT_SECRET!,
+              grant_type: "refresh_token",
+              refresh_token: token.refreshToken as string,
+            }),
+          });
+
+          const refreshed = await response.json();
+          if (response.ok && refreshed.access_token) {
+            token.accessToken = refreshed.access_token;
+            token.refreshToken = refreshed.refresh_token ?? token.refreshToken;
+            token.accessTokenExpires = Date.now() + (refreshed.expires_in ?? 604800) * 1000;
+          }
+        } catch (err) {
+          console.error("[NextAuth] Failed to refresh Discord access token", err);
+        }
       }
 
       return token;
