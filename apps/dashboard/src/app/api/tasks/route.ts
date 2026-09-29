@@ -21,12 +21,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const guildId = searchParams.get("guildId");
-    const configuredGuildId = process.env.DISCORD_GUILD_ID;
+    const configuredGuildId = process.env.DISCORD_GUILD_ID || "1547427568599302287";
     const targetGuildId = (guildId && guildId.trim()) || configuredGuildId;
-
-    if (!targetGuildId) {
-      return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
-    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -72,7 +68,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const guildCondition = configuredGuildId ? { in: Array.from(new Set([targetGuildId, configuredGuildId].filter(Boolean) as string[])) } : targetGuildId;
+    const candidateGuildIds = Array.from(new Set([targetGuildId, configuredGuildId, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
+    const guildCondition = { in: candidateGuildIds };
 
     const tasks = await prisma.task.findMany({
       where: {
@@ -126,12 +123,8 @@ export async function POST(req: NextRequest) {
 
     const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId } = body;
 
-    const configuredGuildId = process.env.DISCORD_GUILD_ID;
-    const targetGuildId = configuredGuildId || (typeof guildId === "string" && guildId.trim() ? guildId.trim() : null);
-
-    if (!targetGuildId) {
-      return NextResponse.json({ error: "Server wajib dipilih" }, { status: 400 });
-    }
+    const configuredGuildId = process.env.DISCORD_GUILD_ID || "1547427568599302287";
+    const targetGuildId = (typeof guildId === "string" && guildId.trim() ? guildId.trim() : null) || configuredGuildId;
 
     if (typeof title !== "string" || !title.trim()) {
       return NextResponse.json({ error: "Judul tugas wajib diisi" }, { status: 400 });
