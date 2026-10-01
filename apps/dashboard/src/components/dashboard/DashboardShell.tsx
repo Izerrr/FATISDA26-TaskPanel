@@ -13,7 +13,7 @@ import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
 import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
-import { AnnouncementBanner } from "@/components/dashboard/AnnouncementBanner";
+import { AnnouncementToast } from "@/components/dashboard/AnnouncementToast";
 import { SlidersHorizontal, Link2, CheckCircle2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
@@ -146,7 +146,7 @@ export function DashboardShell() {
         )}
       </section>
 
-      <AnnouncementBanner user={user} />
+      <AnnouncementToast user={user} />
 
       {tasksLoading || coursesLoading || schedulesLoading ? (
         <div className="space-y-6">

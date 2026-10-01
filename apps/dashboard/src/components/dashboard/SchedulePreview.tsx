@@ -3,51 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
 import { useSchedule } from "@/hooks/useSchedule";
-
-const DAY_NAMES = ["", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
-
-function getCurrentDay() {
-  const day = new Date().getDay();
-
-  return day === 0 ? 7 : day;
-}
-
-function getNextSchedules(schedules: ReturnType<typeof useSchedule>["schedules"]) {
-  const now = new Date();
-  const currentDay = getCurrentDay();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-
-  const today = schedules
-    .filter((schedule) => schedule.day === currentDay)
-    .filter((schedule) => {
-      const [hour, minute] = schedule.startTime.split(":").map(Number);
-
-      return hour * 60 + minute >= currentTime;
-    })
-    .sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-  if (today.length > 0) {
-    return today.slice(0, 3);
-  }
-
-  return schedules
-    .filter((schedule) => {
-      return schedule.day > currentDay;
-    })
-    .sort((a, b) => {
-      if (a.day !== b.day) {
-        return a.day - b.day;
-      }
-
-      return a.startTime.localeCompare(b.startTime);
-    })
-    .slice(0, 3);
-}
+import { getDayLabel, getNextSchedules } from "@/lib/schedule-utils";
 
 export function SchedulePreview() {
   const { schedules, isLoading, isError } = useSchedule();
 
-  const upcoming = getNextSchedules(schedules);
+  const result = getNextSchedules(schedules);
+  const upcoming = result.schedules.slice(0, 4);
 
   return (
     <section className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-glass">
@@ -55,14 +17,20 @@ export function SchedulePreview() {
         <div>
           <div className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-blue-600 dark:text-sky-400" />
-
-            <h2 className="font-bold text-liquid-text dark:text-slate-100">Jadwal Berikutnya</h2>
+            <h2 className="font-bold text-liquid-text dark:text-slate-100">
+              {result.isToday ? "Jadwal Hari Ini" : "Jadwal Berikutnya"}
+            </h2>
           </div>
 
-          <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Kelas yang akan datang berdasarkan jadwal kamu.</p>
+          <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">
+            {getDayLabel(result.day)} · Kelas perkuliahan terdekat
+          </p>
         </div>
 
-        <Link href="/dashboard/schedule" className="flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-sky-400 dark:hover:text-sky-300">
+        <Link
+          href="/dashboard/schedule"
+          className="flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-sky-400 dark:hover:text-sky-300 transition"
+        >
           Lihat semua
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
@@ -75,24 +43,34 @@ export function SchedulePreview() {
             <div className="h-16 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
           </>
         ) : isError ? (
-          <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 p-4 text-xs text-red-600 dark:text-red-400">Gagal memuat jadwal.</div>
+          <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/50 p-4 text-xs text-red-600 dark:text-red-400">
+            Gagal memuat jadwal.
+          </div>
         ) : upcoming.length === 0 ? (
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-5 text-sm text-liquid-text-secondary dark:text-slate-400">Tidak ada jadwal kuliah berikutnya.</div>
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-5 text-sm text-liquid-text-secondary dark:text-slate-400 text-center">
+            Tidak ada jadwal kuliah berikutnya.
+          </div>
         ) : (
           upcoming.map((schedule) => (
-            <div key={schedule.id} className="flex items-center gap-4 rounded-xl border border-slate-100 dark:border-slate-800/80 p-4 transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/50">
+            <div
+              key={schedule.id}
+              className="flex items-center gap-4 rounded-xl border border-slate-100 dark:border-slate-800/80 p-4 transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/50"
+            >
               <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
-                <span className="text-[9px] font-semibold uppercase">{DAY_NAMES[schedule.day]?.slice(0, 3)}</span>
-
+                <span className="text-[9px] font-semibold uppercase">
+                  {getDayLabel(schedule.day)?.slice(0, 3)}
+                </span>
                 <Clock3 className="mt-0.5 h-3.5 w-3.5" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
+                <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">
+                  {schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}
+                </p>
 
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">
                   <span>
-                    {schedule.startTime}–{schedule.endTime}
+                    {schedule.startTime}–{schedule.endTime} WIB
                   </span>
 
                   {schedule.room && (

@@ -28,7 +28,6 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
 
   const { courses, isLoading: coursesLoading } = useCourses();
 
-  const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Jika user aktif tapi guilds list lambat/kosong, fallback ke server default FATISDA agar tidak memblokir akses
@@ -143,7 +142,7 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
       <Sidebar courses={courses} user={user} guildId={effectiveGuild} mobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopNav onToggleMobileMenu={() => setMobileMenuOpen(true)} onNewTask={onNewTask} search={search} onSearchChange={setSearch} />
+        <TopNav onToggleMobileMenu={() => setMobileMenuOpen(true)} onNewTask={onNewTask} />
 
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="mx-auto max-w-[1500px] space-y-6">{children}</div>
