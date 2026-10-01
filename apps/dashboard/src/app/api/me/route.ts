@@ -22,9 +22,10 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord
+    // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord (hanya untuk Discord user)
+    const isGoogle = token.provider === "google" || (typeof token.discordId === "string" && token.discordId.startsWith("google_"));
     const forceSync = req.nextUrl.searchParams.get("sync") === "true";
-    if (forceSync || (user && !user.prodi)) {
+    if (!isGoogle && (forceSync || (user && !user.prodi))) {
       try {
         await syncCurrentUser(token.discordId as string);
         user = await prisma.user.findUnique({
@@ -59,7 +60,9 @@ export async function PATCH(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
@@ -100,7 +103,7 @@ export async function PATCH(req: NextRequest) {
     // Update Database via Prisma
     const updatedUser = await prisma.user.update({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
       data: updateData,
     });

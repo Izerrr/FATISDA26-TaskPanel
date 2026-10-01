@@ -11,6 +11,8 @@ import { useSchedule } from "@/hooks/useSchedule";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
+import { SlidersHorizontal } from "lucide-react";
 
 import type { Course } from "@/types";
 
@@ -19,7 +21,7 @@ import { NewTaskModal } from "@/components/kanban/NewTaskModal";
 export function DashboardShell() {
   const { selectedGuild } = useGuild();
 
-  const { roles, user } = useRole();
+  const { roles, user, isGoogle } = useRole();
 
   const { courses, isLoading: coursesLoading } = useCourses();
 
@@ -30,6 +32,7 @@ export function DashboardShell() {
   const [search, setSearch] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [classModalOpen, setClassModalOpen] = useState(false);
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -51,7 +54,7 @@ export function DashboardShell() {
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-liquid-text-secondary dark:text-slate-400">
-            {user?.prodi === "INFORMATIKA" ? "Informatika" : user?.prodi === "SAINS_DATA" ? "Sains Data" : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Informatika PSDKU Kebumen" : "Prodi belum tersinkron"}
+            {user?.prodi === "INFORMATIKA" ? "Informatika" : user?.prodi === "SAINS_DATA" ? "Sains Data" : user?.prodi === "INFORMATIKA_PSDKU_KEBUMEN" ? "Informatika PSDKU Kebumen" : "Prodi belum ditentukan"}
           </span>
 
           {user?.kelas && (
@@ -60,6 +63,15 @@ export function DashboardShell() {
               <span className="text-sm font-medium text-liquid-text-secondary dark:text-slate-400">Kelas {user.kelas}</span>
             </>
           )}
+
+          <button
+            type="button"
+            onClick={() => setClassModalOpen(true)}
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <SlidersHorizontal className="h-2.5 w-2.5" />
+            <span>{user?.kelas ? "Ubah Kelas" : "Pilih Kelas"}</span>
+          </button>
 
           {roles.map((role) => {
             const roleText = role === "ADMIN" ? "Administrator" : role === "PJ_KELAS" ? "PJ Kelas" : role === "PJ_MATKUL" ? "PJ Mata Kuliah" : null;
@@ -75,6 +87,28 @@ export function DashboardShell() {
             );
           })}
         </div>
+
+        {isGoogle && (!user?.prodi || !user?.kelas) && (
+          <div className="mt-4 rounded-2xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/80 dark:bg-sky-950/40 p-4 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-sky-900 dark:text-sky-200">
+                  Lengkapi Kelas &amp; Program Studi
+                </p>
+                <p className="text-[11px] text-sky-700 dark:text-sky-300 leading-relaxed">
+                  Kamu masuk dengan Akun Google UNS. Pilih prodi dan kelas kamu agar jadwal kuliah dan daftar tugas kelas dapat ditampilkan dengan benar.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setClassModalOpen(true)}
+                className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-700 active:scale-95 shrink-0"
+              >
+                Pilih Kelas
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {tasksLoading || coursesLoading || schedulesLoading ? (
@@ -124,6 +158,17 @@ export function DashboardShell() {
       )}
 
       <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles.map((role) => String(role))} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
+
+      <ClassSelectorModal
+        open={classModalOpen}
+        initialProdi={user?.prodi}
+        initialKelas={user?.kelas}
+        initialSemester={user?.semester}
+        onClose={() => setClassModalOpen(false)}
+        onSaved={() => {
+          window.location.reload();
+        }}
+      />
     </DashboardFrame>
   );
 }

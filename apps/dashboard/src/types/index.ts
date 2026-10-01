@@ -10,6 +10,9 @@ export type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 
 export interface User {
   id: string;
+  provider?: "discord" | "google";
+  email?: string | null;
+  nim?: string | null;
   username: string;
   avatar: string | null;
   prodi: Prodi | null;

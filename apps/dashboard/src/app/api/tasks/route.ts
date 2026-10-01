@@ -144,7 +144,8 @@ export async function POST(req: NextRequest) {
 
     const taskStatus: TaskStatus = typeof status === "string" && VALID_TASK_STATUSES.includes(status as TaskStatus) ? (status as TaskStatus) : "TODO";
 
-    const canCreateClassTask = user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
+    const isGoogle = user.provider === "google" || user.id.startsWith("google_");
+    const canCreateClassTask = !isGoogle && user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
 
     if (taskScope === "CLASS" && !canCreateClassTask) {
       return NextResponse.json(

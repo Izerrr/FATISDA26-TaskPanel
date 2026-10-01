@@ -55,6 +55,9 @@ model Guild {
 
 model User {
   id       String  @id
+  provider String  @default("discord")
+  email    String? @unique
+  nim      String?
   username String
   avatar   String?
 

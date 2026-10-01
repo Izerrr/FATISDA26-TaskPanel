@@ -16,16 +16,20 @@ async function fetcher(url: string) {
 export function useRole() {
   const { data, error, isLoading } = useSWR<{ user: User }>("/api/me", fetcher);
 
-  const roles: Role[] = data?.user.roles ?? ["STUDENT"];
+  const user = data?.user ?? null;
+  const isGoogle = user?.provider === "google" || Boolean(user?.id?.startsWith("google_"));
+  const roles: Role[] = isGoogle ? ["STUDENT"] : (user?.roles ?? ["STUDENT"]);
 
   return {
     role: roles[0],
     roles,
-    isAdmin: roles.includes("ADMIN"),
-    isPJKelas: roles.includes("PJ_KELAS"),
-    isPJMatkul: roles.includes("PJ_MATKUL"),
-    isStudent: roles.includes("STUDENT"),
-    user: data?.user ?? null,
+    isGoogle,
+    isAdmin: !isGoogle && roles.includes("ADMIN"),
+    isPJKelas: !isGoogle && roles.includes("PJ_KELAS"),
+    isPJMatkul: !isGoogle && roles.includes("PJ_MATKUL"),
+    isStudent: true,
+    canCreateClassTask: !isGoogle && roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r)),
+    user,
     isLoading,
     isError: Boolean(error),
   };
