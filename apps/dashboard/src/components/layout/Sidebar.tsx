@@ -383,7 +383,15 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
             onClick={onClose}
             className="hover:text-slate-600 dark:hover:text-slate-300 transition underline underline-offset-2"
           >
-            Syarat &amp; Ketentuan (T&amp;C)
+            T&amp;C
+          </Link>
+          <span>•</span>
+          <Link
+            href="/privacy"
+            onClick={onClose}
+            className="hover:text-slate-600 dark:hover:text-slate-300 transition underline underline-offset-2"
+          >
+            Privasi
           </Link>
           <span>•</span>
           <span>v3.0 Beta</span>

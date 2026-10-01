@@ -180,8 +180,16 @@ function LoginContent() {
             href="/terms"
             className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition"
           >
-            Syarat &amp; Ketentuan Layanan
+            Syarat &amp; Ketentuan
           </Link>
+          {" "}serta{" "}
+          <Link
+            href="/privacy"
+            className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition"
+          >
+            Kebijakan Privasi
+          </Link>
+          .
         </p>
       </div>
 

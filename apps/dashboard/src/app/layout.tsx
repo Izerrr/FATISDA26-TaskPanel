@@ -5,6 +5,7 @@ import { GuildProvider } from "@/components/providers/GuildProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SessionManager } from "@/components/providers/SessionManager";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { NetworkStatus } from "@/components/ui/NetworkStatus";
 import "./globals.css";
 
 const inter = Inter({
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <GuildProvider>
                 {children}
                 <InstallPrompt />
+                <NetworkStatus />
               </GuildProvider>
             </SessionManager>
           </AuthProvider>

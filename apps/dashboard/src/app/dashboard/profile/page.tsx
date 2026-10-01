@@ -315,19 +315,28 @@ export default function ProfilePage() {
           <div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <FileText className="h-4 w-4 text-liquid-accent dark:text-sky-400" />
-              Syarat &amp; Ketentuan Layanan (T &amp; C)
+              Ketentuan &amp; Kebijakan Privasi
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Pelajari hak akses mahasiswa, kode etik penggunaan, serta kebijakan privasi data FATISDA26-TaskPanel.
+              Pelajari hak akses mahasiswa, kode etik penggunaan, serta kebijakan perlindungan data FATISDA26-TaskPanel.
             </p>
           </div>
-          <Link
-            href="/terms"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition shrink-0"
-          >
-            <span>Baca Dokumen T &amp; C</span>
-            <ExternalLink className="h-3.5 w-3.5 opacity-60" />
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/terms"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition"
+            >
+              <span>Syarat &amp; Ketentuan</span>
+              <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+            </Link>
+            <Link
+              href="/privacy"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition"
+            >
+              <span>Kebijakan Privasi</span>
+              <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+            </Link>
+          </div>
         </section>
 
         {/* Danger Zone: Logout */}

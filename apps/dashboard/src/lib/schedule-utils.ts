@@ -92,3 +92,63 @@ export function getDayLabel(day: number) {
 
   return labels[day] ?? "Hari";
 }
+
+export type LiveClassStatus =
+  | { state: "ONGOING"; schedule: Schedule; minutesRemaining: number }
+  | { state: "UPCOMING_SOON"; schedule: Schedule; minutesUntilStart: number }
+  | { state: "DONE_FOR_DAY" }
+  | { state: "NO_CLASS_TODAY" }
+  | { state: "FUTURE_CLASS"; nextDayLabel: string; schedule: Schedule };
+
+export function getCurrentLiveClassStatus(schedules: Schedule[]): LiveClassStatus {
+  if (!schedules || schedules.length === 0) {
+    return { state: "NO_CLASS_TODAY" };
+  }
+
+  const now = new Date();
+  const today = getTodayDay();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const todaySchedules = sortSchedules(schedules.filter((s) => s.day === today));
+
+  if (todaySchedules.length === 0) {
+    const nextDayResult = getNextSchedules(schedules);
+    if (nextDayResult.schedules.length > 0 && !nextDayResult.isToday) {
+      return {
+        state: "FUTURE_CLASS",
+        nextDayLabel: getDayLabel(nextDayResult.day),
+        schedule: nextDayResult.schedules[0],
+      };
+    }
+    return { state: "NO_CLASS_TODAY" };
+  }
+
+  // 1. Cek apakah ada kuliah yang sedang berlangsung saat ini
+  for (const s of todaySchedules) {
+    const start = timeToMinutes(s.startTime);
+    const end = timeToMinutes(s.endTime);
+    if (currentMinutes >= start && currentMinutes < end) {
+      return {
+        state: "ONGOING",
+        schedule: s,
+        minutesRemaining: Math.max(1, end - currentMinutes),
+      };
+    }
+  }
+
+  // 2. Cek apakah ada kuliah berikutnya hari ini
+  const upcomingToday = todaySchedules.filter((s) => timeToMinutes(s.startTime) > currentMinutes);
+  if (upcomingToday.length > 0) {
+    const nextClass = upcomingToday[0];
+    const diff = timeToMinutes(nextClass.startTime) - currentMinutes;
+    return {
+      state: "UPCOMING_SOON",
+      schedule: nextClass,
+      minutesUntilStart: diff,
+    };
+  }
+
+  // 3. Semua kuliah hari ini telah selesai
+  return { state: "DONE_FOR_DAY" };
+}
+

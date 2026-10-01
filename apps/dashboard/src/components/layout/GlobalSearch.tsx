@@ -13,12 +13,22 @@ export function GlobalSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isMac, setIsMac] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setIsMac(typeof navigator !== "undefined" && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform));
+
     function handleGlobalKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        setIsOpen(true);
+      } else if (event.key === "Escape") {
         setIsOpen(false);
+        inputRef.current?.blur();
       }
     }
     
@@ -90,6 +100,7 @@ export function GlobalSearch() {
           <SearchIcon className="h-4 w-4 text-slate-400" />
         </div>
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => {
@@ -100,19 +111,28 @@ export function GlobalSearch() {
             if (query.trim().length >= 2) setIsOpen(true);
           }}
           placeholder="Cari tugas, mata kuliah..."
-          className="block w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700 rounded-2xl leading-5 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-liquid-accent focus:border-liquid-accent sm:text-xs transition-colors"
+          className="block w-full pl-9 pr-14 py-2 border border-slate-200 dark:border-slate-700 rounded-2xl leading-5 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-liquid-accent focus:border-liquid-accent sm:text-xs transition-colors"
         />
-        {query && (
+        {query ? (
           <button 
+            type="button"
             onClick={() => {
               setQuery("");
               setResults(null);
               setIsOpen(false);
+              inputRef.current?.focus();
             }}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+            aria-label="Bersihkan pencarian"
           >
             <X className="h-3.5 w-3.5" />
           </button>
+        ) : (
+          <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+            <kbd className="inline-flex items-center rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 dark:text-slate-500 shadow-2xs font-mono">
+              {isMac ? "⌘K" : "Ctrl K"}
+            </kbd>
+          </div>
         )}
       </div>
 

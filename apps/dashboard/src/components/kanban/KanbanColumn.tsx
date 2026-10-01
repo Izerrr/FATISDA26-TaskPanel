@@ -1,6 +1,6 @@
-"use client";
-
+import { useState, useEffect } from "react";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import { KANBAN_META } from "./types";
 import { KanbanTaskCard } from "./KanbanTaskCard";
@@ -18,12 +18,36 @@ interface Props {
 
 export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
   const meta = KANBAN_META[status];
+  const [isExpanded, setIsExpanded] = useState(status !== "DONE");
+
+  // Jika ada tugas yang baru saja dipindahkan ke kolom ini di luar 5 teratas, otomatis buka agar terlihat
+  useEffect(() => {
+    if (justMovedTaskId && tasks.some((t, idx) => t.id === justMovedTaskId && idx >= 5)) {
+      setIsExpanded(true);
+    }
+  }, [justMovedTaskId, tasks]);
+
+  const hasExcess = tasks.length > 5;
+  const visibleTasks = hasExcess && !isExpanded ? tasks.slice(0, 5) : tasks;
 
   return (
     <section className={`flex min-w-[280px] flex-1 flex-col rounded-3xl border bg-white/80 dark:bg-slate-900/90 shadow-xs transition-all duration-200 ${meta.border}`}>
       <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70 dark:border-slate-800">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
-        <span className="text-xs font-semibold text-liquid-text-secondary dark:text-slate-400">{tasks.length}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-liquid-text-secondary dark:text-slate-400">{tasks.length}</span>
+          {hasExcess && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded((prev) => !prev)}
+              title={isExpanded ? "Lipat tugas lebih dari 5" : `Tampilkan ${tasks.length - 5} tugas lainnya`}
+              className="rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              aria-label={isExpanded ? "Lipat tugas" : "Buka semua tugas"}
+            >
+              {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
       </header>
 
       <Droppable droppableId={status}>
@@ -33,7 +57,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
             {...provided.droppableProps}
             className={`min-h-[220px] flex-1 space-y-3 rounded-b-3xl p-3 transition-all duration-200 ${snapshot.isDraggingOver ? `${meta.dropBg} ring-2 ${meta.activeRing} shadow-inner` : isDraggingAny ? "bg-slate-50/40 dark:bg-slate-800/30" : ""}`}
           >
-            {tasks.map((task, index) => (
+            {visibleTasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(dragProvided, dragSnapshot) => (
                   <div
@@ -55,6 +79,26 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
             ))}
 
             {provided.placeholder}
+
+            {hasExcess && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded((prev) => !prev)}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 py-2 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition active:scale-98 cursor-pointer mt-1"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="h-3.5 w-3.5" />
+                    <span>Sembunyikan ({tasks.length - 5} tugas)</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    <span>+{tasks.length - 5} tugas lainnya</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {tasks.length === 0 && (
               <div
