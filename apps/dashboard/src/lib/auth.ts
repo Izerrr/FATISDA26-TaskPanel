@@ -49,62 +49,118 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, account, profile }) {
       if (account && profile) {
+        // Cek apakah ada linking cookie aktif
+        let linkUserId: string | null = null;
+        try {
+          const { cookies } = await import("next/headers");
+          linkUserId = cookies().get("fatisda_link_user_id")?.value ?? null;
+        } catch {
+          linkUserId = null;
+        }
+
         if (account.provider === "google") {
           const googleAccountId = account.providerAccountId;
-          const googleId = `google_${googleAccountId}`;
           const email = ((profile as { email?: string }).email ?? "").toLowerCase();
           const nim = email.split("@")[0].toUpperCase();
           const username = (profile as { name?: string }).name ?? nim;
           const avatar = (profile as { picture?: string }).picture ?? null;
 
-          token.provider = "google";
-          token.userId = googleId;
-          token.discordId = googleId;
-          token.email = email;
-          token.nim = nim;
-          token.username = username;
-          token.avatar = avatar;
-          token.roles = ["STUDENT"];
+          // 1. Cek apakah ada target user dari linking cookie
+          let targetUser: any = null;
+          if (linkUserId) {
+            targetUser = await (prisma.user as any).findUnique({
+              where: { id: linkUserId },
+            });
+          }
 
-          // Upsert Google student ke database
-          await prisma.user.upsert({
-            where: {
-              id: googleId,
-            },
-            create: {
-              id: googleId,
-              provider: "google",
-              email,
-              nim,
-              username,
-              avatar,
-              roles: ["STUDENT"],
-              discordRoles: [],
-            },
-            update: {
-              username,
-              avatar,
-              email,
-              nim,
-            },
-          });
+          // 2. Jika tidak ada linking cookie, cari apakah user ini sudah pernah ditautkan
+          if (!targetUser) {
+            targetUser = await (prisma.user as any).findFirst({
+              where: {
+                OR: [
+                  { googleId: googleAccountId },
+                  { email: email },
+                  { id: `google_${googleAccountId}` },
+                ],
+              },
+            });
+          }
 
-          // Ambil prodi, kelas, semester jika sudah pernah diset
-          const user = await prisma.user.findUnique({
-            where: {
-              id: googleId,
-            },
-            select: {
-              roles: true,
-              prodi: true,
-              kelas: true,
-              semester: true,
-            },
-          });
+          if (targetUser) {
+            // Tautkan Google ID & Email ke user yang ditemukan
+            const tempGoogleId = `google_${googleAccountId}`;
+            if (tempGoogleId !== targetUser.id) {
+              try {
+                // Migrasikan tugas yang mungkin pernah dibuat dengan temp Google ID
+                await prisma.task.updateMany({
+                  where: { createdById: tempGoogleId },
+                  data: { createdById: targetUser.id },
+                });
+                await prisma.task.updateMany({
+                  where: { assignedTo: tempGoogleId },
+                  data: { assignedTo: targetUser.id },
+                });
+                await (prisma.user as any).deleteMany({
+                  where: { id: tempGoogleId },
+                });
+              } catch (migrateErr) {
+                console.warn("[NextAuth] Gagal migrasi tugas temp google user:", migrateErr);
+              }
+            }
 
-          token.roles = ["STUDENT"];
-          token.prodi = user?.prodi ?? null;
-          token.kelas = user?.kelas ?? null;
+            const updatedUser = await (prisma.user as any).update({
+              where: { id: targetUser.id },
+              data: {
+                googleId: googleAccountId,
+                email,
+                nim,
+                avatar: targetUser.avatar ?? avatar,
+              },
+            });
+
+            token.userId = updatedUser.id;
+            token.discordId = updatedUser.discordId ?? updatedUser.id;
+            token.provider = updatedUser.discordId ? "discord" : "google";
+            token.email = email;
+            token.nim = nim;
+            token.username = updatedUser.username;
+            token.avatar = updatedUser.avatar;
+            token.roles = updatedUser.roles;
+            token.prodi = updatedUser.prodi;
+            token.kelas = updatedUser.kelas;
+          } else {
+            // Akun Google baru murni
+            const googleId = `google_${googleAccountId}`;
+            await (prisma.user as any).create({
+              data: {
+                id: googleId,
+                provider: "google",
+                googleId: googleAccountId,
+                email,
+                nim,
+                username,
+                avatar,
+                roles: ["STUDENT"],
+                discordRoles: [],
+              },
+            });
+
+            token.userId = googleId;
+            token.discordId = googleId;
+            token.provider = "google";
+            token.email = email;
+            token.nim = nim;
+            token.username = username;
+            token.avatar = avatar;
+            token.roles = ["STUDENT"];
+            token.prodi = null;
+            token.kelas = null;
+          }
+
+          try {
+            const { cookies } = await import("next/headers");
+            cookies().delete("fatisda_link_user_id");
+          } catch {}
         } else {
           // Discord provider
           const discordId = account.providerAccountId;
@@ -163,24 +219,71 @@ export const authOptions: NextAuthOptions = {
            */
           await syncCurrentUser(discordId);
 
+          // Cek apakah ada linking cookie dari user google yang sedang aktif
+          let targetUser: any = null;
+          if (linkUserId && linkUserId !== discordId) {
+            targetUser = await (prisma.user as any).findUnique({
+              where: { id: linkUserId },
+            });
+          }
+
+          if (targetUser && targetUser.id.startsWith("google_")) {
+            // Gabungkan user Google ke Discord (akun Discord jadi id utama)
+            try {
+              const { googleId, email, nim } = targetUser;
+
+              await prisma.task.updateMany({
+                where: { createdById: targetUser.id },
+                data: { createdById: discordId },
+              });
+              await prisma.task.updateMany({
+                where: { assignedTo: targetUser.id },
+                data: { assignedTo: discordId },
+              });
+
+              await (prisma.user as any).update({
+                where: { id: discordId },
+                data: {
+                  discordId,
+                  googleId: googleId ?? undefined,
+                  email: email ?? undefined,
+                  nim: nim ?? undefined,
+                },
+              });
+
+              await (prisma.user as any).delete({
+                where: { id: targetUser.id },
+              });
+            } catch (mergeErr) {
+              console.warn("[NextAuth] Gagal merge google user ke discord:", mergeErr);
+            }
+          } else {
+            await (prisma.user as any).update({
+              where: { id: discordId },
+              data: { discordId },
+            });
+          }
+
           /*
            * Ambil data terbaru setelah sync supaya
            * JWT memiliki informasi role terbaru.
            */
-          const user = await prisma.user.findUnique({
+          const user = await (prisma.user as any).findUnique({
             where: {
               id: discordId,
-            },
-            select: {
-              roles: true,
-              prodi: true,
-              kelas: true,
             },
           });
 
           token.roles = user?.roles ?? ["STUDENT"];
           token.prodi = user?.prodi ?? null;
           token.kelas = user?.kelas ?? null;
+          token.email = user?.email ?? null;
+          token.nim = user?.nim ?? null;
+
+          try {
+            const { cookies } = await import("next/headers");
+            cookies().delete("fatisda_link_user_id");
+          } catch {}
         }
       }
 

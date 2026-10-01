@@ -13,6 +13,8 @@ export interface User {
   provider?: "discord" | "google";
   email?: string | null;
   nim?: string | null;
+  discordId?: string | null;
+  googleId?: string | null;
   username: string;
   avatar: string | null;
   prodi: Prodi | null;

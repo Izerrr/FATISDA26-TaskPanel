@@ -257,13 +257,14 @@ export async function syncCurrentUser(userId: string): Promise<void> {
 
   const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
 
-  await prisma.user.upsert({
+  await (prisma.user as any).upsert({
     where: {
       id: member.user.id,
     },
 
     create: {
       id: member.user.id,
+      discordId: member.user.id,
       username: member.nick ?? member.user.username,
       avatar,
       discordRoles,
@@ -273,6 +274,7 @@ export async function syncCurrentUser(userId: string): Promise<void> {
     },
 
     update: {
+      discordId: member.user.id,
       username: member.nick ?? member.user.username,
       avatar,
       discordRoles,

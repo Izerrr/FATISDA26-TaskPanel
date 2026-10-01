@@ -12,7 +12,9 @@ import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
-import { SlidersHorizontal } from "lucide-react";
+import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
+import { SlidersHorizontal, Link2, CheckCircle2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import type { Course } from "@/types";
 
@@ -31,8 +33,12 @@ export function DashboardShell() {
 
   const [search, setSearch] = useState("");
 
+  const searchParams = useSearchParams();
+  const linkedSuccess = searchParams.get("linked");
+
   const [createOpen, setCreateOpen] = useState(false);
   const [classModalOpen, setClassModalOpen] = useState(false);
+  const [linkingModalOpen, setLinkingModalOpen] = useState(false);
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -73,6 +79,23 @@ export function DashboardShell() {
             <span>{user?.kelas ? "Ubah Kelas" : "Pilih Kelas"}</span>
           </button>
 
+          {/* Tombol Tautkan Akun Discord / Google */}
+          <button
+            type="button"
+            onClick={() => setLinkingModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            title="Kelola sambungan akun Discord dan Google UNS"
+          >
+            <Link2 className="h-2.5 w-2.5 text-liquid-accent dark:text-sky-400" />
+            <span>
+              {user?.email && (user?.discordId || !user?.id.startsWith("google_"))
+                ? "Akun Terhubung"
+                : user?.email
+                ? "Tautkan Discord"
+                : "Tautkan Google UNS"}
+            </span>
+          </button>
+
           {roles.map((role) => {
             const roleText = role === "ADMIN" ? "Administrator" : role === "PJ_KELAS" ? "PJ Kelas" : role === "PJ_MATKUL" ? "PJ Mata Kuliah" : null;
 
@@ -87,6 +110,17 @@ export function DashboardShell() {
             );
           })}
         </div>
+
+        {linkedSuccess && (
+          <div className="mt-4 flex items-center justify-between rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/40 p-3.5 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>
+                Akun berhasil ditautkan! Data tugas personal, jadwal, dan peran kamu sekarang otomatis tersinkronisasi.
+              </span>
+            </div>
+          </div>
+        )}
 
         {isGoogle && (!user?.prodi || !user?.kelas) && (
           <div className="mt-4 rounded-2xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/80 dark:bg-sky-950/40 p-4 animate-in fade-in duration-200">
@@ -168,6 +202,12 @@ export function DashboardShell() {
         onSaved={() => {
           window.location.reload();
         }}
+      />
+
+      <AccountLinkingModal
+        open={linkingModalOpen}
+        user={user}
+        onClose={() => setLinkingModalOpen(false)}
       />
     </DashboardFrame>
   );

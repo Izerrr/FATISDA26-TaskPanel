@@ -12,25 +12,27 @@ export async function GET(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
     let user = await prisma.user.findUnique({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
     });
 
-    // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord (hanya untuk Discord user)
-    const isGoogle = token.provider === "google" || (typeof token.discordId === "string" && token.discordId.startsWith("google_"));
+    // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord jika user memiliki discordId
+    const targetDiscordId = (user as any)?.discordId || (!userId.startsWith("google_") ? userId : null);
     const forceSync = req.nextUrl.searchParams.get("sync") === "true";
-    if (!isGoogle && (forceSync || (user && !user.prodi))) {
+    if (targetDiscordId && (forceSync || (user && !user.prodi))) {
       try {
-        await syncCurrentUser(token.discordId as string);
+        await syncCurrentUser(targetDiscordId);
         user = await prisma.user.findUnique({
           where: {
-            id: token.discordId as string,
+            id: userId,
           },
         });
       } catch (syncErr) {

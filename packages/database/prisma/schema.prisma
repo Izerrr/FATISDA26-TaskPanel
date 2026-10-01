@@ -54,12 +54,14 @@ model Guild {
 }
 
 model User {
-  id       String  @id
-  provider String  @default("discord")
-  email    String? @unique
-  nim      String?
-  username String
-  avatar   String?
+  id        String   @id
+  provider  String   @default("discord")
+  email     String?  @unique
+  nim       String?
+  discordId String?  @unique
+  googleId  String?  @unique
+  username  String
+  avatar    String?
 
   prodi    Prodi?
   kelas    Kelas?
