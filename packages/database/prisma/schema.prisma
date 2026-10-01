@@ -79,6 +79,9 @@ model User {
   taskActivities TaskActivity[] @relation("TaskActivities")
   announcements  Announcement[] @relation("Announcements")
 
+  courseDiscussions CourseDiscussion[] @relation("CourseDiscussions")
+  discussionReplies DiscussionReply[]  @relation("DiscussionReplies")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -120,9 +123,10 @@ model Course {
   kelas      Kelas?
   pjMatkulId String?
 
-  tasks     Task[]
-  schedules Schedule[]
-  vaults    CourseVault[]
+  tasks       Task[]
+  schedules   Schedule[]
+  vaults      CourseVault[]
+  discussions CourseDiscussion[]
 
   createdAt DateTime @default(now())
 
@@ -256,4 +260,36 @@ model Announcement {
   updatedAt DateTime @updatedAt
 
   @@index([prodi, kelas])
+}
+
+model CourseDiscussion {
+  id         String   @id @default(cuid())
+  courseId   String?
+  course     Course?  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseName String?
+  prodi      Prodi?
+  kelas      Kelas?
+  title      String
+  content    String
+  isPinned   Boolean  @default(false)
+  authorId   String
+  author     User     @relation("CourseDiscussions", fields: [authorId], references: [id])
+  replies    DiscussionReply[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([prodi, kelas])
+}
+
+model DiscussionReply {
+  id           String           @id @default(cuid())
+  discussionId String
+  discussion   CourseDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User             @relation("DiscussionReplies", fields: [authorId], references: [id])
+  content      String
+  createdAt    DateTime         @default(now())
+
+  @@index([discussionId])
 }
