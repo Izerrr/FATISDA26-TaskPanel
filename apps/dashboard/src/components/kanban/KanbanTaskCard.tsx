@@ -14,6 +14,7 @@ interface KanbanTaskCardProps {
   isJustMoved?: boolean;
   isGhost?: boolean;
   commentCount?: number;
+  onSelect?: (task: Task) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
@@ -33,7 +34,7 @@ const statusIcon: Record<TaskStatus, typeof Clock3> = {
   DONE: CheckCircle2,
 };
 
-export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, isGhost = false, commentCount, onEdit, onDelete, onMoveStatus }: KanbanTaskCardProps) {
+export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, isGhost = false, commentCount, onSelect, onEdit, onDelete, onMoveStatus }: KanbanTaskCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const StatusIcon = statusIcon[task.status];
@@ -85,7 +86,8 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
 
   return (
     <article
-      className={`group relative rounded-2xl border p-4 transition-all duration-200 ${menuOpen ? "z-40" : ""} ${
+      onClick={() => onSelect?.(task)}
+      className={`group relative rounded-2xl border p-4 transition-all duration-200 cursor-pointer ${menuOpen ? "z-40" : ""} ${
         isDragging
           ? "border-liquid-accent/40 dark:border-sky-500/40 bg-white/95 dark:bg-slate-900/95 shadow-2xl ring-2 ring-liquid-accent/30 dark:ring-sky-500/30 backdrop-blur-md"
           : isJustMoved

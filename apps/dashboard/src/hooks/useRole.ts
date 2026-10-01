@@ -14,7 +14,7 @@ async function fetcher(url: string) {
 }
 
 export function useRole() {
-  const { data, error, isLoading } = useSWR<{ user: User }>("/api/me", fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ user: User }>("/api/me", fetcher);
 
   const user = data?.user ?? null;
   const isGoogle = user?.provider === "google" || Boolean(user?.id?.startsWith("google_"));
@@ -32,5 +32,6 @@ export function useRole() {
     user,
     isLoading,
     isError: Boolean(error),
+    mutate,
   };
 }

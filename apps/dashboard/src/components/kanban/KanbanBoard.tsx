@@ -9,6 +9,7 @@ import { EditTaskModal } from "@/components/tasks/EditTaskModal";
 import { DeleteTaskModal } from "@/components/tasks/DeleteTaskModal";
 import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
+import { TaskDetailModal } from "./TaskDetailModal";
 
 interface Props {
   tasks: Task[];
@@ -24,6 +25,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
   const [activeMobileTab, setActiveMobileTab] = useState<TaskStatus>("TODO");
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
@@ -251,6 +253,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
                 tasks={items.filter((task) => task.status === status)}
                 isDraggingAny={isDragging}
                 justMovedTaskId={justMovedTaskId}
+                onSelect={(task) => setDetailTask(task)}
                 onMoveStatus={handleMoveTask}
                 onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
                 onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
@@ -259,6 +262,28 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           ))}
         </div>
       </DragDropContext>
+
+      {detailTask && (
+        <TaskDetailModal
+          task={detailTask}
+          courses={courses}
+          roles={roles}
+          userId={user?.id}
+          onClose={() => setDetailTask(null)}
+          onEdit={(task) => {
+            setDetailTask(null);
+            setEditingTask(task);
+          }}
+          onDelete={(task) => {
+            setDetailTask(null);
+            setDeletingTask(task);
+          }}
+          onStatusChange={async (task, newStatus) => {
+            await handleMoveTask(task, newStatus);
+            setDetailTask((prev) => (prev ? { ...prev, status: newStatus } : null));
+          }}
+        />
+      )}
 
       {editingTask && (
         <EditTaskModal

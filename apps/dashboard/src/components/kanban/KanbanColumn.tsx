@@ -10,12 +10,13 @@ interface Props {
   tasks: Task[];
   isDraggingAny?: boolean;
   justMovedTaskId?: string | null;
+  onSelect?: (task: Task) => void;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
 }
 
-export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onMoveStatus, onEdit, onDelete }: Props) {
+export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
   const meta = KANBAN_META[status];
 
   return (
@@ -47,7 +48,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
                       dragSnapshot.isDragging ? "z-50 rotate-1 scale-[1.03] shadow-2xl ring-2 ring-liquid-accent/30 dark:ring-sky-500/30 rounded-2xl" : "transition-transform duration-150"
                     }`}
                   >
-                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onMoveStatus={onMoveStatus} onEdit={onEdit} onDelete={onDelete} />
+                    <KanbanTaskCard task={task} index={index} isDragging={dragSnapshot.isDragging} isJustMoved={task.id === justMovedTaskId} onSelect={onSelect} onMoveStatus={onMoveStatus} onEdit={onEdit} onDelete={onDelete} />
                   </div>
                 )}
               </Draggable>

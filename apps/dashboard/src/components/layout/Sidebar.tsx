@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, X } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, UserRound, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
@@ -44,6 +44,11 @@ const navItems = [
     href: "/dashboard/discussions",
     label: "Diskusi",
     icon: MessageSquare,
+  },
+  {
+    href: "/dashboard/profile",
+    label: "Profil Saya",
+    icon: UserRound,
   },
 ] as const;
 

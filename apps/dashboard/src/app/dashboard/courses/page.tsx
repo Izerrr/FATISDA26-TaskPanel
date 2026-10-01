@@ -2,16 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronRight, FileText, FolderGit2, HardDrive, Search, Sparkles } from "lucide-react";
+import { BookOpen, ChevronRight, FileText, FolderGit2, HardDrive, Search, Sparkles, ClipboardList } from "lucide-react";
 
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
+import { useTasks } from "@/hooks/useTasks";
+import { useGuild } from "@/components/providers/GuildProvider";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import type { Course } from "@/types";
 
 export default function CoursesPage() {
   const { courses, isLoading, isError } = useCourses();
   const { user, roles } = useRole();
+  const { selectedGuild } = useGuild();
+  const { tasks } = useTasks(selectedGuild);
   const [search, setSearch] = useState("");
 
   const canManageVault = useMemo(() => {
@@ -123,36 +127,74 @@ export default function CoursesPage() {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredCourses.map((course: Course) => (
-                <Link
-                  key={course.id}
-                  href={`/dashboard/courses/${course.id}`}
-                  className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/50 hover:shadow-md hover:ring-2 hover:ring-sky-500/10"
-                >
-                  <div>
-                    {/* Top Row */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 transition-colors group-hover:bg-sky-600 group-hover:text-white">
-                          <BookOpen className="h-4 w-4" />
+              {filteredCourses.map((course: Course) => {
+                const courseTasks = tasks.filter((t) => t.courseId === course.id);
+                const doneTasks = courseTasks.filter((t) => t.status === "DONE");
+                const progressPercent = courseTasks.length > 0 ? Math.round((doneTasks.length / courseTasks.length) * 100) : null;
+
+                return (
+                  <Link
+                    key={course.id}
+                    href={`/dashboard/courses/${course.id}`}
+                    className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-sky-400/50 hover:shadow-md hover:ring-2 hover:ring-sky-500/10"
+                  >
+                    <div>
+                      {/* Top Row */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 transition-colors group-hover:bg-sky-600 group-hover:text-white">
+                            <BookOpen className="h-4 w-4" />
+                          </div>
+
+                          <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
+
+                          {course.kelas && <span className="rounded-lg bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
                         </div>
 
-                        <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
-
-                        {course.kelas && <span className="rounded-lg bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
+                        <div className="flex items-center gap-0.5 text-[11px] font-semibold text-sky-600 dark:text-sky-400 opacity-80 group-hover:opacity-100 transition-opacity">
+                          <span>Buka</span>
+                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-0.5 text-[11px] font-semibold text-sky-600 dark:text-sky-400 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <span>Buka</span>
-                        <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                      {/* Title */}
+                      <div className="mt-3.5 mb-3">
+                        <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 transition-colors group-hover:text-sky-600 dark:group-hover:text-sky-400 line-clamp-2 leading-snug">{course.name}</h3>
+                      </div>
+
+                      {/* Task Progress Bar */}
+                      <div className="mb-4">
+                        {progressPercent !== null ? (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                                {progressPercent === 100 ? "Semua tugas selesai ✓" : "Progress Tugas"}
+                              </span>
+                              <span className="font-bold text-slate-700 dark:text-slate-200">
+                                {doneTasks.length}/{courseTasks.length} ({progressPercent}%)
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${
+                                  progressPercent === 100
+                                    ? "bg-emerald-500"
+                                    : progressPercent >= 50
+                                    ? "bg-sky-500"
+                                    : "bg-amber-500"
+                                }`}
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                            <ClipboardList className="h-3 w-3" />
+                            <span>Belum ada tugas</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    {/* Title */}
-                    <div className="mt-3.5 mb-4">
-                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 transition-colors group-hover:text-sky-600 dark:group-hover:text-sky-400 line-clamp-2 leading-snug">{course.name}</h3>
-                    </div>
-                  </div>
 
                   {/* Bottom Vault Resources Footer */}
                   <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-3 text-[11px]">
@@ -170,8 +212,9 @@ export default function CoursesPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
+          </div>
           )}
         </section>
       </div>
