@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BookOpen, CalendarDays, ClipboardList } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarDays, ClipboardList, MessageSquare } from "lucide-react";
 import { useMemo } from "react";
 import { useCourses } from "@/hooks/useCourses";
 import { useMe } from "@/hooks/useMe";
@@ -126,9 +126,9 @@ export default function CourseDetailPage() {
 
         {/* Workspace Quick Links */}
         <section>
-          <p className="label px-1">Tugas & Jadwal Terkait</p>
+          <p className="label px-1">Tugas, Jadwal & Diskusi Terkait</p>
 
-          <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Link
               href={`/dashboard#tasks?courseId=${course.id}`}
               className="group rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass transition hover:-translate-y-0.5 hover:border-liquid-accent/20 dark:hover:border-sky-500/30 hover:shadow-md"
@@ -159,6 +159,22 @@ export default function CourseDetailPage() {
 
               <h2 className="mt-5 text-sm font-bold text-liquid-text dark:text-slate-100">Jadwal Perkuliahan</h2>
               <p className="mt-1 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">Lihat jadwal perkuliahan mingguan untuk {course.name}.</p>
+            </Link>
+
+            <Link
+              href={`/dashboard/discussions?courseId=${course.id}`}
+              className="group rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass transition hover:-translate-y-0.5 hover:border-violet-500/30 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400 transition group-hover:bg-violet-600 group-hover:text-white dark:group-hover:bg-violet-600">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+
+                <span className="text-xs font-semibold text-violet-600 dark:text-violet-400">Buka →</span>
+              </div>
+
+              <h2 className="mt-5 text-sm font-bold text-liquid-text dark:text-slate-100">Forum Diskusi</h2>
+              <p className="mt-1 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">Diskusi materi, tanya jawab tugas, dan koordinasi dengan teman sekelas.</p>
             </Link>
           </div>
         </section>

@@ -81,6 +81,7 @@ model User {
 
   courseDiscussions CourseDiscussion[] @relation("CourseDiscussions")
   discussionReplies DiscussionReply[]  @relation("DiscussionReplies")
+  feedbacks         Feedback[]         @relation("UserFeedback")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -292,4 +293,20 @@ model DiscussionReply {
   createdAt    DateTime         @default(now())
 
   @@index([discussionId])
+}
+
+model Feedback {
+  id         String   @id @default(cuid())
+  category   String   @default("GENERAL") // "BUG", "JADWAL", "TUGAS", "FEATURE", "GENERAL"
+  message    String
+  authorId   String?
+  author     User?    @relation("UserFeedback", fields: [authorId], references: [id], onDelete: SetNull)
+  authorName String?
+  userAgent  String?
+  pageUrl    String?
+  status     String   @default("OPEN") // "OPEN", "RESOLVED"
+  createdAt  DateTime @default(now())
+
+  @@index([category])
+  @@index([status])
 }

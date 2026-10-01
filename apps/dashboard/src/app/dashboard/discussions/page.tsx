@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   MessageSquare,
   Users,
@@ -33,16 +34,31 @@ import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useDiscussions, type CourseDiscussionItem } from "@/hooks/useDiscussions";
 import type { Course } from "@/types";
 
-export default function DiscussionsPage() {
+function DiscussionsContent() {
   const { courses, isLoading: coursesLoading } = useCourses();
   const { user, roles } = useRole();
   const { announcements, isLoading: annLoading, mutate: mutateAnnouncements } = useAnnouncements(user?.prodi, user?.kelas);
+
+  const searchParams = useSearchParams();
+  const paramCourseId = searchParams.get("courseId");
+  const paramCourseName = searchParams.get("courseName");
 
   // Main Tabs: "courses" (Diskusi Per Matkul & Kelas), "announcements", "discord"
   const [activeTab, setActiveTab] = useState<"courses" | "announcements" | "discord">("courses");
 
   // Selected Channel: null = Forum Umum Kelas, or courseId/courseName
   const [selectedChannel, setSelectedChannel] = useState<{ id?: string; name: string } | null>(null);
+
+  useEffect(() => {
+    if (paramCourseId && courses.length > 0) {
+      const match = courses.find((c) => c.id === paramCourseId);
+      if (match) {
+        setSelectedChannel({ id: match.id, name: match.name });
+      }
+    } else if (paramCourseName) {
+      setSelectedChannel({ name: paramCourseName });
+    }
+  }, [paramCourseId, paramCourseName, courses]);
 
   // Active course ID / name for fetching discussions
   const channelCourseId = selectedChannel?.id?.startsWith("sched-") ? undefined : selectedChannel?.id;
@@ -747,5 +763,13 @@ export default function DiscussionsPage() {
         </div>
       )}
     </DashboardFrame>
+  );
+}
+
+export default function DiscussionsPage() {
+  return (
+    <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-2xl bg-white/50 dark:bg-slate-900/50" />}>
+      <DiscussionsContent />
+    </Suspense>
   );
 }

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, UserRound, X } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Sparkles, UserRound, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
 
 import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
 import { useSessionManager } from "@/components/providers/SessionManager";
+import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
 
 interface SidebarProps {
   courses: Course[];
@@ -102,6 +103,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const prodiLabel = getProdiLabel(user?.prodi ?? null);
 
@@ -346,6 +348,18 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
       {/* Bottom */}
       <div className="mt-auto border-t border-liquid-border p-4 dark:border-slate-800">
+        <button
+          type="button"
+          onClick={() => {
+            onClose?.();
+            setFeedbackOpen(true);
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3.5 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100/80 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50 shadow-2xs mb-2.5"
+        >
+          <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+          <span>Lapor Bug &amp; Masukan Beta</span>
+        </button>
+
         <SidebarInstallButton />
 
         <div className="my-2" />
@@ -379,6 +393,8 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         {/* Drawer content */}
         <div className={`relative z-10 h-full w-72 shadow-2xl transform transition-transform duration-300 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>
       </div>
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 }

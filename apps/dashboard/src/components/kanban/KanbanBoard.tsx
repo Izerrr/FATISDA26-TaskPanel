@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import { LayoutGrid, List } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
@@ -10,6 +11,7 @@ import { DeleteTaskModal } from "@/components/tasks/DeleteTaskModal";
 import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskDetailModal } from "./TaskDetailModal";
+import { TaskListView } from "./TaskListView";
 
 interface Props {
   tasks: Task[];
@@ -21,6 +23,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const { courses } = useCourses();
   const { roles, user } = useRole();
 
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [items, setItems] = useState<Task[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
@@ -28,6 +31,22 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("fatisda_task_view");
+      if (saved === "list" || saved === "kanban") {
+        setViewMode(saved);
+      }
+    } catch {}
+  }, []);
+
+  const handleToggleView = (mode: "kanban" | "list") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("fatisda_task_view", mode);
+    } catch {}
+  };
 
   const columnRefs = useRef<Record<string, HTMLElement | null>>({});
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -213,55 +232,102 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   }
 
   return (
-    <div>
-      {/* Mobile Status Switcher Tabs (< md) */}
-      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1 no-scrollbar md:hidden">
-        {KANBAN_COLUMNS.map((status) => {
-          const meta = KANBAN_META[status];
-          const count = items.filter((task) => task.status === status).length;
-          const isActive = activeMobileTab === status;
+    <div className="space-y-4">
+      {/* View Mode Toggle: Kanban vs List */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 p-1 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => handleToggleView("kanban")}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+              viewMode === "kanban"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            <span>Papan Kanban</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleToggleView("list")}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+              viewMode === "list"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
+          >
+            <List className="h-3.5 w-3.5" />
+            <span>Daftar / Tabel</span>
+          </button>
+        </div>
 
-          return (
-            <button
-              key={status}
-              type="button"
-              onClick={() => scrollToColumn(status)}
-              className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                isActive ? "bg-liquid-accent text-white shadow-sm scale-[1.02]" : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <span>{meta.label}</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>{count}</span>
-            </button>
-          );
-        })}
+        <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+          Tampilan: {viewMode === "kanban" ? "Papan 4 Kolom" : "Daftar Terurut"}
+        </div>
       </div>
 
-      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        {/* Unified Responsive Kanban Layout (No duplicate droppables!) */}
-        <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar md:grid md:grid-cols-4 md:min-w-[960px] md:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
-          {KANBAN_COLUMNS.map((status) => (
-            <div
-              key={status}
-              ref={(el) => {
-                columnRefs.current[status] = el;
-              }}
-              className={`w-[85vw] max-w-[360px] shrink-0 md:w-auto md:max-w-none md:shrink md:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
-            >
-              <KanbanColumn
-                status={status}
-                tasks={items.filter((task) => task.status === status)}
-                isDraggingAny={isDragging}
-                justMovedTaskId={justMovedTaskId}
-                onSelect={(task) => setDetailTask(task)}
-                onMoveStatus={handleMoveTask}
-                onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
-                onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
-              />
+      {viewMode === "list" ? (
+        <TaskListView
+          tasks={items}
+          onSelect={(task) => setDetailTask(task)}
+          onMoveStatus={handleMoveTask}
+          onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+          onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+          justMovedTaskId={justMovedTaskId}
+        />
+      ) : (
+        <>
+          {/* Mobile Status Switcher Tabs (< md) */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar md:hidden">
+            {KANBAN_COLUMNS.map((status) => {
+              const meta = KANBAN_META[status];
+              const count = items.filter((task) => task.status === status).length;
+              const isActive = activeMobileTab === status;
+
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => scrollToColumn(status)}
+                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+                    isActive ? "bg-liquid-accent text-white shadow-sm scale-[1.02]" : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  <span>{meta.label}</span>
+                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            {/* Unified Responsive Kanban Layout (No duplicate droppables!) */}
+            <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar md:grid md:grid-cols-4 md:min-w-[960px] md:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
+              {KANBAN_COLUMNS.map((status) => (
+                <div
+                  key={status}
+                  ref={(el) => {
+                    columnRefs.current[status] = el;
+                  }}
+                  className={`w-[85vw] max-w-[360px] shrink-0 md:w-auto md:max-w-none md:shrink md:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
+                >
+                  <KanbanColumn
+                    status={status}
+                    tasks={items.filter((task) => task.status === status)}
+                    isDraggingAny={isDragging}
+                    justMovedTaskId={justMovedTaskId}
+                    onSelect={(task) => setDetailTask(task)}
+                    onMoveStatus={handleMoveTask}
+                    onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+                    onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </DragDropContext>
+          </DragDropContext>
+        </>
+      )}
 
       {detailTask && (
         <TaskDetailModal
