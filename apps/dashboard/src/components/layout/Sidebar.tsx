@@ -376,6 +376,18 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
           <LogOut className="h-4 w-4" />
           Keluar
         </button>
+
+        <div className="mt-3 flex items-center justify-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
+          <Link
+            href="/terms"
+            onClick={onClose}
+            className="hover:text-slate-600 dark:hover:text-slate-300 transition underline underline-offset-2"
+          >
+            Syarat &amp; Ketentuan (T&amp;C)
+          </Link>
+          <span>•</span>
+          <span>v3.0 Beta</span>
+        </div>
       </div>
     </div>
   );

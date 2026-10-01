@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import { 
   UserRound, 
   GraduationCap, 
@@ -15,7 +16,9 @@ import {
   BookOpen, 
   Mail, 
   RefreshCw,
-  Sparkles
+  Sparkles,
+  FileText,
+  ExternalLink
 } from "lucide-react";
 import { useRole } from "@/hooks/useRole";
 import { useTasks } from "@/hooks/useTasks";
@@ -305,6 +308,26 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
+        </section>
+
+        {/* Ketentuan Layanan & Kebijakan Privasi */}
+        <section className="rounded-3xl border border-liquid-border dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <FileText className="h-4 w-4 text-liquid-accent dark:text-sky-400" />
+              Syarat &amp; Ketentuan Layanan (T &amp; C)
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Pelajari hak akses mahasiswa, kode etik penggunaan, serta kebijakan privasi data FATISDA26-TaskPanel.
+            </p>
+          </div>
+          <Link
+            href="/terms"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition shrink-0"
+          >
+            <span>Baca Dokumen T &amp; C</span>
+            <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+          </Link>
         </section>
 
         {/* Danger Zone: Logout */}
