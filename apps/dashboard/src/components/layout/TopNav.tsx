@@ -1,5 +1,3 @@
-"use client";
-
 import { Menu, Moon, Plus, Sun } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { ProfileMenu } from "./ProfileMenu";

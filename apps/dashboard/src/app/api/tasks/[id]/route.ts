@@ -20,13 +20,14 @@ export async function PATCH(
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
     });
 
@@ -119,7 +120,8 @@ export async function PATCH(
     });
 
     if (task.scope === "CLASS" && status && status !== existing.status) {
-      await sendDiscordNotification(task.guildId, [`**${task.title}**`, `Status: ${existing.status} → **${status}**`, `Oleh: <@${user.id}>`].join("\n"), {
+      const authorMention = user.discordId ? `<@${user.discordId}>` : user.username;
+      await sendDiscordNotification(task.guildId, [`**${task.title}**`, `Status: ${existing.status} → **${status}**`, `Oleh: ${authorMention}`].join("\n"), {
         prodi: task.prodi,
         kelas: task.kelas,
       });
@@ -177,13 +179,14 @@ export async function DELETE(
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
     });
 
@@ -215,7 +218,8 @@ export async function DELETE(
     });
 
     if (task.scope === "CLASS") {
-      await sendDiscordNotification(task.guildId, `**${task.title}** dihapus oleh <@${user.id}>`, {
+      const authorMention = user.discordId ? `<@${user.discordId}>` : user.username;
+      await sendDiscordNotification(task.guildId, `**${task.title}** dihapus oleh ${authorMention}`, {
         prodi: task.prodi,
         kelas: task.kelas,
       });

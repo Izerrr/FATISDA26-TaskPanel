@@ -72,6 +72,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Judul dan isi diskusi wajib diisi" }, { status: 400 });
     }
 
+    // Proteksi anti-spam / rate limit 15 detik
+    const recentDiscussion = await (prisma as any).courseDiscussion.findFirst({
+      where: {
+        authorId: user.id,
+        createdAt: { gte: new Date(Date.now() - 15 * 1000) },
+      },
+    });
+
+    if (recentDiscussion) {
+      return NextResponse.json(
+        { error: "Mohon tunggu 15 detik sebelum membuat diskusi baru." },
+        { status: 429 },
+      );
+    }
+
     const isPrivileged = user.roles?.some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r));
 
     const discussion = await (prisma as any).courseDiscussion.create({

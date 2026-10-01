@@ -3,6 +3,7 @@ import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
 import { fetchUserGuilds, syncCurrentUser } from "./discord";
+import { verifyLinkIntent } from "./link-token";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -49,11 +50,15 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        // Cek apakah ada linking cookie aktif
+        // Cek apakah ada cryptographically signed linking intent aktif
         let linkUserId: string | null = null;
         try {
           const { cookies } = await import("next/headers");
-          linkUserId = cookies().get("fatisda_link_user_id")?.value ?? null;
+          const signedIntent = cookies().get("fatisda_link_intent")?.value;
+          if (signedIntent) {
+            const secret = process.env.NEXTAUTH_SECRET || "fatisda_default_auth_secret";
+            linkUserId = verifyLinkIntent(signedIntent, secret);
+          }
         } catch {
           linkUserId = null;
         }
@@ -159,6 +164,7 @@ export const authOptions: NextAuthOptions = {
 
           try {
             const { cookies } = await import("next/headers");
+            cookies().delete("fatisda_link_intent");
             cookies().delete("fatisda_link_user_id");
           } catch {}
         } else {
@@ -282,6 +288,7 @@ export const authOptions: NextAuthOptions = {
 
           try {
             const { cookies } = await import("next/headers");
+            cookies().delete("fatisda_link_intent");
             cookies().delete("fatisda_link_user_id");
           } catch {}
         }

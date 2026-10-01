@@ -12,13 +12,14 @@ async function getAuthedUser(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  if (!token?.discordId) {
+  const userId = (token?.userId ?? token?.discordId) as string | undefined;
+  if (!userId) {
     return null;
   }
 
   return prisma.user.findUnique({
     where: {
-      id: token.discordId as string,
+      id: userId,
     },
   });
 }
@@ -39,9 +40,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
-    if (!user.prodi) {
+    if (!user.prodi && user.discordId) {
       try {
-        await syncCurrentUser(user.id);
+        await syncCurrentUser(user.discordId);
         const refreshed = await prisma.user.findUnique({ where: { id: user.id } });
         if (refreshed) user = refreshed;
       } catch (err) {

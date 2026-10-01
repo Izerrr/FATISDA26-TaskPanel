@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
       select: {
         id: true,
@@ -74,7 +75,7 @@ export async function GET(req: NextRequest) {
     const tasks = await prisma.task.findMany({
       where: {
         guildId: guildCondition,
-        OR: [classTaskFilter, { scope: "PERSONAL", createdById: token.discordId as string }, { scope: "PERSONAL", assignedTo: token.discordId as string }],
+        OR: [classTaskFilter, { scope: "PERSONAL", createdById: userId }, { scope: "PERSONAL", assignedTo: userId }],
       },
       include: {
         createdBy: {
@@ -115,7 +116,8 @@ export async function POST(req: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token?.discordId) {
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+    if (!userId) {
       return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
     }
 
@@ -132,7 +134,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: {
-        id: token.discordId as string,
+        id: userId,
       },
     });
 
@@ -234,7 +236,7 @@ export async function POST(req: NextRequest) {
         `📚 **Mata Kuliah:** ${task.course ? `${task.course.code} (${task.course.name})` : "Umum"}`,
         `⏰ **Deadline:** ${dueDateFormatted}`,
         `🏷️ **Tipe:** Tugas Kelas (${prodiNameFormatted} ${targetKelas ?? "-"})`,
-        `👤 **Dibuat oleh:** <@${user.id}>`,
+        `👤 **Dibuat oleh:** ${user.discordId ? `<@${user.discordId}>` : user.username}`,
       ].filter(Boolean);
 
       await sendDiscordNotification(guildId, embedLines.join("\n"), {

@@ -24,13 +24,14 @@ async function getAuthedUser(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  if (!token?.discordId) {
+  const userId = (token?.userId ?? token?.discordId) as string | undefined;
+  if (!userId) {
     return null;
   }
 
   return prisma.user.findUnique({
     where: {
-      id: token.discordId as string,
+      id: userId,
     },
   });
 }

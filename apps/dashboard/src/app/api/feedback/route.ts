@@ -26,6 +26,25 @@ export async function POST(req: NextRequest) {
 
     const userAgent = req.headers.get("user-agent") || null;
 
+    // Proteksi anti-spam / rate limit 30 detik
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+    const recentFeedback = await (prisma as any).feedback.findFirst({
+      where: {
+        OR: [
+          ...(user?.id ? [{ authorId: user.id }] : []),
+          ...(userAgent ? [{ userAgent, authorId: null }] : []),
+        ],
+        createdAt: { gte: thirtySecondsAgo },
+      },
+    });
+
+    if (recentFeedback) {
+      return NextResponse.json(
+        { error: "Mohon tunggu 30 detik sebelum mengirim masukan berikutnya." },
+        { status: 429 },
+      );
+    }
+
     const feedback = await (prisma as any).feedback.create({
       data: {
         category: chosenCategory,

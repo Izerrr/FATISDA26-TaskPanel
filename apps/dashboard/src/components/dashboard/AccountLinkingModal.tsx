@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { X, CheckCircle2, AlertCircle, Link2, ArrowRight } from "lucide-react";
@@ -29,15 +27,23 @@ export function AccountLinkingModal({ open, user, onClose }: AccountLinkingModal
   const isDiscordConnected = Boolean(user.discordId || (!user.id.startsWith("google_") && user.id.length > 5));
   const isGoogleConnected = Boolean(user.googleId || user.email?.endsWith("@student.uns.ac.id"));
 
-  function handleLink(provider: "discord" | "google") {
+  async function handleLink(provider: "discord" | "google") {
     if (!user) return;
     setLoadingProvider(provider);
 
-    // Set linking cookie yang mengarahkan OAuth ke akun user yang sedang aktif
-    document.cookie = `fatisda_link_user_id=${user.id}; path=/; max-age=300; SameSite=Lax`;
+    try {
+      // Buat signed session intent di server (httpOnly cookie)
+      const res = await fetch("/api/auth/link-intent", { method: "POST" });
+      if (!res.ok) {
+        throw new Error("Gagal menginisialisasi penautan akun");
+      }
 
-    // Trigger OAuth NextAuth
-    signIn(provider, { callbackUrl: `/dashboard?linked=${provider}` });
+      // Trigger OAuth NextAuth
+      signIn(provider, { callbackUrl: `/dashboard?linked=${provider}` });
+    } catch (err) {
+      console.error("[AccountLinkingModal] Error starting link:", err);
+      setLoadingProvider(null);
+    }
   }
 
   return (
