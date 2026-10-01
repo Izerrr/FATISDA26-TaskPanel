@@ -2,20 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { 
-  MessageSquare, 
-  Users, 
-  BookOpen, 
-  Sparkles, 
-  ArrowLeft, 
-  Bot, 
-  Search, 
-  CalendarClock, 
-  ChevronRight, 
-  ExternalLink, 
-  Pin, 
-  Plus, 
-  Trash2, 
+import {
+  MessageSquare,
+  Users,
+  BookOpen,
+  Sparkles,
+  ArrowLeft,
+  Bot,
+  Search,
+  CalendarClock,
+  ChevronRight,
+  ExternalLink,
+  Pin,
+  Plus,
+  Trash2,
   Loader2,
   Send,
   HelpCircle,
@@ -24,7 +24,7 @@ import {
   MessageCircle,
   Share2,
   CheckCircle2,
-  FolderGit2
+  FolderGit2,
 } from "lucide-react";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { useCourses } from "@/hooks/useCourses";
@@ -48,10 +48,7 @@ export default function DiscussionsPage() {
   const channelCourseId = selectedChannel?.id?.startsWith("sched-") ? undefined : selectedChannel?.id;
   const channelCourseName = selectedChannel?.name === "Forum Umum Kelas" ? "Forum Umum Kelas" : selectedChannel?.name;
 
-  const { discussions, isLoading: discLoading, mutate: mutateDiscussions } = useDiscussions(
-    channelCourseId,
-    channelCourseName
-  );
+  const { discussions, isLoading: discLoading, mutate: mutateDiscussions } = useDiscussions(channelCourseId, channelCourseName);
 
   // Search filter
   const [search, setSearch] = useState("");
@@ -74,9 +71,7 @@ export default function DiscussionsPage() {
   const [annPinned, setAnnPinned] = useState(false);
   const [annSubmitting, setAnnSubmitting] = useState(false);
 
-  const isPrivileged = roles?.some((r: string) =>
-    ["PJ_KELAS", "PJ_MATKUL", "ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(String(r))
-  );
+  const isPrivileged = roles?.some((r: string) => ["PJ_KELAS", "PJ_MATKUL", "ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(String(r)));
 
   // Active channel title
   const currentChannelTitle = selectedChannel ? selectedChannel.name : "Forum Umum Kelas";
@@ -84,12 +79,7 @@ export default function DiscussionsPage() {
   const filteredDiscussions = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return discussions;
-    return discussions.filter(
-      (d) =>
-        d.title.toLowerCase().includes(q) ||
-        d.content.toLowerCase().includes(q) ||
-        d.author.username.toLowerCase().includes(q)
-    );
+    return discussions.filter((d) => d.title.toLowerCase().includes(q) || d.content.toLowerCase().includes(q) || d.author.username.toLowerCase().includes(q));
   }, [discussions, search]);
 
   const handleCreateTopic = async (e: React.FormEvent) => {
@@ -209,9 +199,7 @@ export default function DiscussionsPage() {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold tracking-tight text-liquid-text dark:text-slate-100 md:text-2xl">
-                    Forum Diskusi &amp; Tanya Jawab
-                  </h1>
+                  <h1 className="text-xl font-bold tracking-tight text-liquid-text dark:text-slate-100 md:text-2xl">Forum Diskusi &amp; Tanya Jawab</h1>
                   <span className="inline-flex items-center gap-1 rounded-full border border-sky-200 dark:border-sky-900/50 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">
                     <Sparkles className="h-3 w-3" />
                     Per Mata Kuliah
@@ -252,9 +240,7 @@ export default function DiscussionsPage() {
             type="button"
             onClick={() => setActiveTab("courses")}
             className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
-              activeTab === "courses"
-                ? "bg-liquid-accent text-white shadow-xs"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              activeTab === "courses" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             <BookOpen className="h-3.5 w-3.5" />
@@ -265,9 +251,7 @@ export default function DiscussionsPage() {
             type="button"
             onClick={() => setActiveTab("announcements")}
             className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
-              activeTab === "announcements"
-                ? "bg-liquid-accent text-white shadow-xs"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              activeTab === "announcements" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             <Pin className="h-3.5 w-3.5" />
@@ -278,9 +262,7 @@ export default function DiscussionsPage() {
             type="button"
             onClick={() => setActiveTab("discord")}
             className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
-              activeTab === "discord"
-                ? "bg-liquid-accent text-white shadow-xs"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              activeTab === "discord" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             <Bot className="h-3.5 w-3.5" />
@@ -303,9 +285,7 @@ export default function DiscussionsPage() {
                 type="button"
                 onClick={() => setSelectedChannel(null)}
                 className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold text-left transition-all ${
-                  selectedChannel === null
-                    ? "bg-liquid-accent text-white shadow-xs"
-                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  selectedChannel === null ? "bg-liquid-accent text-white shadow-xs" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -316,9 +296,7 @@ export default function DiscussionsPage() {
               </button>
 
               <div className="pt-2">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
-                  Mata Kuliah ({user?.kelas ? `Kelas ${user.kelas}` : "Semua"})
-                </span>
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 px-1">Mata Kuliah ({user?.kelas ? `Kelas ${user.kelas}` : "Semua"})</span>
 
                 {coursesLoading ? (
                   <div className="space-y-1.5 py-2">
@@ -336,9 +314,7 @@ export default function DiscussionsPage() {
                           type="button"
                           onClick={() => setSelectedChannel({ id: c.id, name: c.name })}
                           className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium text-left transition-all ${
-                            isSelected
-                              ? "bg-liquid-accent text-white shadow-xs font-bold"
-                              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            isSelected ? "bg-liquid-accent text-white shadow-xs font-bold" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                           }`}
                         >
                           <div className="min-w-0 flex-1">
@@ -365,12 +341,8 @@ export default function DiscussionsPage() {
                     <BookOpen className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                      {currentChannelTitle}
-                    </h2>
-                    <p className="text-[11px] text-slate-400">
-                      Ruang tanya jawab materi, kisi-kisi ujian, dan diskusi kelas
-                    </p>
+                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">{currentChannelTitle}</h2>
+                    <p className="text-[11px] text-slate-400">Ruang tanya jawab materi, kisi-kisi ujian, dan diskusi kelas</p>
                   </div>
                 </div>
 
@@ -408,12 +380,8 @@ export default function DiscussionsPage() {
               ) : filteredDiscussions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
                   <MessageCircle className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
-                  <p className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    Belum ada topik diskusi di {currentChannelTitle}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
-                    Punya pertanyaan materi, kendala praktikum, atau ingin berbagi kisi-kisi? Klik tombol di bawah untuk memulai!
-                  </p>
+                  <p className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">Belum ada topik diskusi di {currentChannelTitle}</p>
+                  <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">Punya pertanyaan materi, kendala praktikum, atau ingin berbagi kisi-kisi? Klik tombol di bawah untuk memulai!</p>
                   <button
                     type="button"
                     onClick={() => setTopicModalOpen(true)}
@@ -429,31 +397,21 @@ export default function DiscussionsPage() {
                     <article
                       key={d.id}
                       className={`rounded-2xl border p-5 transition-all ${
-                        d.isPinned
-                          ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/20 dark:bg-amber-950/20 shadow-xs"
-                          : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
+                        d.isPinned ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/20 dark:bg-amber-950/20 shadow-xs" : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
                       }`}
                     >
                       {/* Topic Author Header */}
                       <div className="flex items-start justify-between gap-3 mb-2.5">
                         <div className="flex items-center gap-2.5">
                           {d.author.avatar ? (
-                            <img
-                              src={d.author.avatar}
-                              alt={d.author.username}
-                              className="h-8 w-8 rounded-lg object-cover ring-2 ring-slate-100 dark:ring-slate-800"
-                            />
+                            <img src={d.author.avatar} alt={d.author.username} className="h-8 w-8 rounded-lg object-cover ring-2 ring-slate-100 dark:ring-slate-800" />
                           ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-liquid-accent text-xs font-bold text-white shadow-xs">
-                              {d.author.username.charAt(0).toUpperCase()}
-                            </div>
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-liquid-accent text-xs font-bold text-white shadow-xs">{d.author.username.charAt(0).toUpperCase()}</div>
                           )}
 
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                                {d.author.username}
-                              </span>
+                              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{d.author.username}</span>
                               {d.isPinned && (
                                 <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.2 text-[9px] font-bold text-amber-800 dark:text-amber-300">
                                   <Pin className="h-2.5 w-2.5" /> Pinned
@@ -466,25 +424,18 @@ export default function DiscussionsPage() {
                                 month: "short",
                                 hour: "2-digit",
                                 minute: "2-digit",
-                              })} WIB
+                              })}{" "}
+                              WIB
                             </span>
                           </div>
                         </div>
 
-                        {d.courseName && (
-                          <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 shrink-0">
-                            {d.courseName}
-                          </span>
-                        )}
+                        {d.courseName && <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 shrink-0">{d.courseName}</span>}
                       </div>
 
                       {/* Topic Title & Content */}
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1.5 leading-snug">
-                        {d.title}
-                      </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {d.content}
-                      </p>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1.5 leading-snug">{d.title}</h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{d.content}</p>
 
                       {/* Replies List */}
                       <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
@@ -502,19 +453,11 @@ export default function DiscussionsPage() {
                                 <div className="flex items-center justify-between gap-2 mb-1">
                                   <div className="flex items-center gap-1.5">
                                     {reply.author.avatar ? (
-                                      <img
-                                        src={reply.author.avatar}
-                                        alt={reply.author.username}
-                                        className="h-4 w-4 rounded-full object-cover"
-                                      />
+                                      <img src={reply.author.avatar} alt={reply.author.username} className="h-4 w-4 rounded-full object-cover" />
                                     ) : (
-                                      <div className="h-4 w-4 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-[9px] font-bold text-white">
-                                        {reply.author.username.charAt(0)}
-                                      </div>
+                                      <div className="h-4 w-4 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-[9px] font-bold text-white">{reply.author.username.charAt(0)}</div>
                                     )}
-                                    <span className="font-semibold text-slate-700 dark:text-slate-200 text-[11px]">
-                                      {reply.author.username}
-                                    </span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-200 text-[11px]">{reply.author.username}</span>
                                   </div>
                                   <span className="text-[10px] text-slate-400">
                                     {new Date(reply.createdAt).toLocaleDateString("id-ID", {
@@ -525,9 +468,7 @@ export default function DiscussionsPage() {
                                     })}
                                   </span>
                                 </div>
-                                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-5">
-                                  {reply.content}
-                                </p>
+                                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-5">{reply.content}</p>
                               </div>
                             ))}
                           </div>
@@ -544,9 +485,7 @@ export default function DiscussionsPage() {
                           <input
                             type="text"
                             value={replyInputs[d.id] || ""}
-                            onChange={(e) =>
-                              setReplyInputs((prev) => ({ ...prev, [d.id]: e.target.value }))
-                            }
+                            onChange={(e) => setReplyInputs((prev) => ({ ...prev, [d.id]: e.target.value }))}
                             placeholder="Tulis jawaban atau tanggapan..."
                             className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-liquid-accent"
                           />
@@ -555,11 +494,7 @@ export default function DiscussionsPage() {
                             disabled={!replyInputs[d.id]?.trim() || submittingReply[d.id]}
                             className="inline-flex items-center gap-1 rounded-xl bg-liquid-accent px-3 py-2 text-xs font-semibold text-white shadow-xs hover:brightness-95 disabled:opacity-50 transition"
                           >
-                            {submittingReply[d.id] ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Send className="h-3.5 w-3.5" />
-                            )}
+                            {submittingReply[d.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                             <span className="hidden sm:inline">Kirim</span>
                           </button>
                         </form>
@@ -582,11 +517,7 @@ export default function DiscussionsPage() {
               </div>
 
               {isPrivileged && (
-                <button
-                  type="button"
-                  onClick={() => setAnnModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-liquid-accent px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:brightness-95 transition"
-                >
+                <button type="button" onClick={() => setAnnModalOpen(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-liquid-accent px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:brightness-95 transition">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Buat Pengumuman</span>
                 </button>
@@ -609,9 +540,7 @@ export default function DiscussionsPage() {
                   <div
                     key={ann.id}
                     className={`rounded-2xl border p-5 transition-all ${
-                      ann.isPinned
-                        ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20 shadow-xs"
-                        : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
+                      ann.isPinned ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20 shadow-xs" : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -625,28 +554,24 @@ export default function DiscussionsPage() {
                       </div>
 
                       {(isPrivileged || user?.id === ann.authorId) && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteAnnouncement(ann.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
-                          title="Hapus"
-                        >
+                        <button type="button" onClick={() => handleDeleteAnnouncement(ann.id)} className="rounded-lg p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition" title="Hapus">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                      {ann.content}
-                    </p>
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
 
                     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>Diposting oleh: <strong className="text-slate-600 dark:text-slate-300">{ann.author.username}</strong></span>
+                      <span>
+                        Diposting oleh: <strong className="text-slate-600 dark:text-slate-300">{ann.author.username}</strong>
+                      </span>
                       <span>
                         {new Date(ann.createdAt).toLocaleDateString("id-ID", {
                           dateStyle: "medium",
                           timeStyle: "short",
-                        })} WIB
+                        })}{" "}
+                        WIB
                       </span>
                     </div>
                   </div>
@@ -694,9 +619,7 @@ export default function DiscussionsPage() {
                 <div className="space-y-2">
                   {discordCommands.map((c) => (
                     <div key={c.cmd} className="flex items-start gap-2.5 text-xs">
-                      <code className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono font-bold text-sky-600 dark:text-sky-400 shrink-0">
-                        {c.cmd}
-                      </code>
+                      <code className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono font-bold text-sky-600 dark:text-sky-400 shrink-0">{c.cmd}</code>
                       <span className="text-slate-600 dark:text-slate-300">{c.desc}</span>
                     </div>
                   ))}
@@ -714,21 +637,17 @@ export default function DiscussionsPage() {
             <div className="flex items-center justify-between p-4 border-b border-liquid-border dark:border-slate-800">
               <div>
                 <h2 className="text-sm font-semibold text-liquid-text dark:text-slate-100">Mulai Topik Diskusi Baru</h2>
-                <p className="text-[11px] text-slate-400">Saluran: <strong>{currentChannelTitle}</strong></p>
+                <p className="text-[11px] text-slate-400">
+                  Saluran: <strong>{currentChannelTitle}</strong>
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setTopicModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg"
-              >
+              <button type="button" onClick={() => setTopicModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg">
                 ✕
               </button>
             </div>
             <form onSubmit={handleCreateTopic} className="p-4 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-liquid-text dark:text-slate-300 mb-1">
-                  Judul Pertanyaan / Topik
-                </label>
+                <label className="block text-xs font-medium text-liquid-text dark:text-slate-300 mb-1">Judul Pertanyaan / Topik</label>
                 <input
                   type="text"
                   required
@@ -740,9 +659,7 @@ export default function DiscussionsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-liquid-text dark:text-slate-300 mb-1">
-                  Penjelasan / Detail Pertanyaan
-                </label>
+                <label className="block text-xs font-medium text-liquid-text dark:text-slate-300 mb-1">Penjelasan / Detail Pertanyaan</label>
                 <textarea
                   required
                   rows={4}
@@ -755,13 +672,7 @@ export default function DiscussionsPage() {
 
               {isPrivileged && (
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="pin-topic"
-                    checked={topicPinned}
-                    onChange={(e) => setTopicPinned(e.target.checked)}
-                    className="rounded border-slate-300 text-liquid-accent focus:ring-liquid-accent"
-                  />
+                  <input type="checkbox" id="pin-topic" checked={topicPinned} onChange={(e) => setTopicPinned(e.target.checked)} className="rounded border-slate-300 text-liquid-accent focus:ring-liquid-accent" />
                   <label htmlFor="pin-topic" className="text-xs text-liquid-text dark:text-slate-300">
                     Sematkan topik (Pin di atas)
                   </label>
@@ -769,18 +680,10 @@ export default function DiscussionsPage() {
               )}
 
               <div className="flex justify-end gap-2 pt-2 border-t border-liquid-border dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setTopicModalOpen(false)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
+                <button type="button" onClick={() => setTopicModalOpen(false)} className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  disabled={submittingTopic}
-                  className="px-4 py-1.5 rounded-xl text-xs font-medium bg-liquid-accent text-white hover:bg-opacity-90 disabled:opacity-50"
-                >
+                <button type="submit" disabled={submittingTopic} className="px-4 py-1.5 rounded-xl text-xs font-medium bg-liquid-accent text-white hover:bg-opacity-90 disabled:opacity-50">
                   {submittingTopic ? "Mengirim..." : "Kirim Topik"}
                 </button>
               </div>
@@ -795,11 +698,7 @@ export default function DiscussionsPage() {
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-liquid-border dark:border-slate-800">
               <h2 className="text-sm font-semibold text-liquid-text dark:text-slate-100">Buat Pengumuman Baru</h2>
-              <button
-                type="button"
-                onClick={() => setAnnModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg"
-              >
+              <button type="button" onClick={() => setAnnModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg">
                 ✕
               </button>
             </div>
@@ -829,31 +728,17 @@ export default function DiscussionsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="pin-announcement-discussions"
-                  checked={annPinned}
-                  onChange={(e) => setAnnPinned(e.target.checked)}
-                  className="rounded border-slate-300 text-liquid-accent focus:ring-liquid-accent"
-                />
+                <input type="checkbox" id="pin-announcement-discussions" checked={annPinned} onChange={(e) => setAnnPinned(e.target.checked)} className="rounded border-slate-300 text-liquid-accent focus:ring-liquid-accent" />
                 <label htmlFor="pin-announcement-discussions" className="text-xs text-liquid-text dark:text-slate-300">
                   Sematkan pengumuman (Pin di atas)
                 </label>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-liquid-border dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setAnnModalOpen(false)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
+                <button type="button" onClick={() => setAnnModalOpen(false)} className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  disabled={annSubmitting}
-                  className="px-4 py-1.5 rounded-xl text-xs font-medium bg-liquid-accent text-white hover:bg-opacity-90 disabled:opacity-50"
-                >
+                <button type="submit" disabled={annSubmitting} className="px-4 py-1.5 rounded-xl text-xs font-medium bg-liquid-accent text-white hover:bg-opacity-90 disabled:opacity-50">
                   {annSubmitting ? "Menyimpan..." : "Publikasikan"}
                 </button>
               </div>
@@ -864,4 +749,3 @@ export default function DiscussionsPage() {
     </DashboardFrame>
   );
 }
-

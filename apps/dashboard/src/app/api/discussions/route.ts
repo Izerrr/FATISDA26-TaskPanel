@@ -72,9 +72,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Judul dan isi diskusi wajib diisi" }, { status: 400 });
     }
 
-    const isPrivileged = user.roles?.some((r) =>
-      ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r)
-    );
+    const isPrivileged = user.roles?.some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r));
 
     const discussion = await (prisma as any).courseDiscussion.create({
       data: {
@@ -101,4 +99,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Gagal membuat diskusi" }, { status: 500 });
   }
 }
-

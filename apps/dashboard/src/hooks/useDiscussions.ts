@@ -44,10 +44,7 @@ export function useDiscussions(courseId?: string | null, courseName?: string | n
 
   const key = `/api/discussions?${params.toString()}`;
 
-  const { data, error, isLoading, mutate } = useSWR<{ discussions: CourseDiscussionItem[] }>(
-    key,
-    fetcher
-  );
+  const { data, error, isLoading, mutate } = useSWR<{ discussions: CourseDiscussionItem[] }>(key, fetcher);
 
   return {
     discussions: data?.discussions ?? [],
@@ -56,4 +53,3 @@ export function useDiscussions(courseId?: string | null, courseName?: string | n
     mutate,
   };
 }
-
