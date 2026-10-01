@@ -245,6 +245,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Log activity
+    try {
+      await (prisma as any).taskActivity.create({
+        data: {
+          taskId: task.id,
+          userId: user.id,
+          action: 'CREATED',
+          newValue: task.title,
+        },
+      });
+    } catch (logErr) {
+      console.warn('[TaskActivity] Failed to log creation:', logErr);
+    }
+
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/tasks]", error);

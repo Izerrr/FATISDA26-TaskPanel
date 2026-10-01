@@ -75,6 +75,10 @@ model User {
 
   updatedVaults CourseVault[]
 
+  taskComments   TaskComment[]  @relation("TaskComments")
+  taskActivities TaskActivity[] @relation("TaskActivities")
+  announcements  Announcement[] @relation("Announcements")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -177,6 +181,9 @@ model Task {
 
   dueDate DateTime?
 
+  comments   TaskComment[]
+  activities TaskActivity[]
+
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -206,4 +213,47 @@ model ScheduleSync {
 
   @@unique([prodi, spreadsheetId, sheetGid])
   @@index([prodi])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("TaskComments", fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+}
+
+model TaskActivity {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("TaskActivities", fields: [userId], references: [id])
+  action    String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  author    User     @relation("Announcements", fields: [authorId], references: [id])
+  prodi     Prodi?
+  kelas     Kelas?
+  isPinned  Boolean  @default(false)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([prodi, kelas])
 }

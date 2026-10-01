@@ -3,6 +3,7 @@
 import { Bell, Menu, Moon, Plus, Search, Sun } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { ProfileMenu } from "./ProfileMenu";
+import { GlobalSearch } from "./GlobalSearch";
 
 interface TopNavProps {
   onToggleMobileMenu?: () => void;
@@ -39,15 +40,7 @@ export function TopNav({ onToggleMobileMenu, onNewTask, search, onSearchChange }
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="hidden items-center gap-2 rounded-xl bg-black/[0.03] px-3 py-2 transition-colors dark:bg-slate-800/60 sm:flex">
-          <Search className="h-4 w-4 text-liquid-text-tertiary dark:text-slate-400" />
-          <input
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Cari tugas..."
-            className="w-40 bg-transparent text-sm text-liquid-text outline-none placeholder:text-liquid-text-tertiary dark:text-slate-100 dark:placeholder:text-slate-500 lg:w-56"
-          />
-        </div>
+        <GlobalSearch />
 
         {onNewTask && (
           <button type="button" onClick={onNewTask} className="flex items-center gap-2 rounded-xl bg-liquid-accent px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:brightness-95 md:px-4 md:py-2.5 md:text-sm">

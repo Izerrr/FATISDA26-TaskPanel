@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, CalendarClock, CheckCircle2, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2, MessageSquare } from "lucide-react";
 
 import type { Task, TaskStatus } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
@@ -13,6 +13,7 @@ interface KanbanTaskCardProps {
   isDragging?: boolean;
   isJustMoved?: boolean;
   isGhost?: boolean;
+  commentCount?: number;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
@@ -32,7 +33,7 @@ const statusIcon: Record<TaskStatus, typeof Clock3> = {
   DONE: CheckCircle2,
 };
 
-export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, isGhost = false, onEdit, onDelete, onMoveStatus }: KanbanTaskCardProps) {
+export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = false, isGhost = false, commentCount, onEdit, onDelete, onMoveStatus }: KanbanTaskCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const StatusIcon = statusIcon[task.status];
@@ -200,6 +201,13 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
             className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${urgency === "overdue" ? "bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-300" : urgency === "dueSoon" ? "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}
           >
             {formatDueDate(task.dueDate)}
+          </span>
+        )}
+
+        {commentCount !== undefined && commentCount > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+            <MessageSquare className="h-3 w-3" />
+            {commentCount}
           </span>
         )}
       </div>

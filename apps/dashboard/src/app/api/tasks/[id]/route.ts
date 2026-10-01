@@ -125,6 +125,34 @@ export async function PATCH(
       });
     }
 
+    // Log activity
+    try {
+      if (status && status !== existing.status) {
+        await (prisma as any).taskActivity.create({
+          data: {
+            taskId: params.id,
+            userId: user.id,
+            action: 'STATUS_CHANGED',
+            oldValue: existing.status,
+            newValue: status,
+          },
+        });
+      }
+      if (isManager && title && title !== existing.title) {
+        await (prisma as any).taskActivity.create({
+          data: {
+            taskId: params.id,
+            userId: user.id,
+            action: 'TITLE_CHANGED',
+            oldValue: existing.title,
+            newValue: title.trim(),
+          },
+        });
+      }
+    } catch (logErr) {
+      console.warn('[TaskActivity] Failed to log:', logErr);
+    }
+
     return NextResponse.json({
       task,
     });
