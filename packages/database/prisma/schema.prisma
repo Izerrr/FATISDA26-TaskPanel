@@ -83,6 +83,10 @@ model User {
   discussionReplies DiscussionReply[]  @relation("DiscussionReplies")
   feedbacks         Feedback[]         @relation("UserFeedback")
 
+  hasAccessedApp Boolean   @default(false)
+  lastLoginAt    DateTime?
+  lastActiveAt   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -120,6 +120,9 @@ export const authOptions: NextAuthOptions = {
                 email,
                 nim,
                 avatar: targetUser.avatar ?? avatar,
+                hasAccessedApp: true,
+                lastLoginAt: new Date(),
+                lastActiveAt: new Date(),
               },
             });
 
@@ -147,6 +150,9 @@ export const authOptions: NextAuthOptions = {
                 avatar,
                 roles: ["STUDENT"],
                 discordRoles: [],
+                hasAccessedApp: true,
+                lastLoginAt: new Date(),
+                lastActiveAt: new Date(),
               },
             });
 
@@ -254,6 +260,9 @@ export const authOptions: NextAuthOptions = {
                   googleId: googleId ?? undefined,
                   email: email ?? undefined,
                   nim: nim ?? undefined,
+                  hasAccessedApp: true,
+                  lastLoginAt: new Date(),
+                  lastActiveAt: new Date(),
                 },
               });
 
@@ -266,7 +275,12 @@ export const authOptions: NextAuthOptions = {
           } else {
             await (prisma.user as any).update({
               where: { id: discordId },
-              data: { discordId },
+              data: {
+                discordId,
+                hasAccessedApp: true,
+                lastLoginAt: new Date(),
+                lastActiveAt: new Date(),
+              },
             });
           }
 

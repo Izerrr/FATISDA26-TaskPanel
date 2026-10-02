@@ -44,6 +44,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
+    // Perbarui status akses aplikasi dan aktivitas terakhir
+    try {
+      await (prisma.user as any).update({
+        where: { id: user.id },
+        data: {
+          hasAccessedApp: true,
+          lastActiveAt: new Date(),
+        },
+      });
+    } catch (activeErr) {
+      console.warn("[GET /api/me] Gagal update lastActiveAt:", activeErr);
+    }
+
     return NextResponse.json({
       user,
     });

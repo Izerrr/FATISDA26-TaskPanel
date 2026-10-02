@@ -96,6 +96,7 @@ export interface Task {
 
 export interface AnalyticsUserSummary {
   total: number;
+  discordGuildMembersTotal: number;
   googleOnly: number;
   discordOnly: number;
   linkedBoth: number;
@@ -130,6 +131,7 @@ export interface AnalyticsUserSummary {
     kelas: Kelas | null;
     roles: Role[];
     createdAt: string;
+    lastActiveAt?: string | null;
   }>;
 }
 

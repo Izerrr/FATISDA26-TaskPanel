@@ -271,6 +271,9 @@ export async function syncCurrentUser(userId: string): Promise<void> {
       roles: mappedRoles(discordRoles, isGuildOwner),
       prodi: mappedProdi(discordRoles),
       kelas: mappedKelas(discordRoles),
+      hasAccessedApp: true,
+      lastLoginAt: new Date(),
+      lastActiveAt: new Date(),
     },
 
     update: {
@@ -281,6 +284,8 @@ export async function syncCurrentUser(userId: string): Promise<void> {
       roles: mappedRoles(discordRoles, isGuildOwner),
       prodi: mappedProdi(discordRoles),
       kelas: mappedKelas(discordRoles),
+      hasAccessedApp: true,
+      lastActiveAt: new Date(),
     },
   });
 }

@@ -42,9 +42,23 @@ export async function GET(req: NextRequest) {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+    // Filter KHUSUS: Hanya mahasiswa yang pernah mengakses / login / menggunakan web TaskPanel
+    // Tidak menyertakan anggota Discord mentah yang hanya disinkronkan oleh bot
+    const accessedUserWhere: any = {
+      OR: [
+        { hasAccessedApp: true },
+        { lastActiveAt: { not: null } },
+        { lastLoginAt: { not: null } },
+        { googleId: { not: null } },
+        { discordId: { not: null } },
+        { email: { not: null } },
+      ],
+    };
+
     // Jalankan semua query agregasi secara paralel
     const [
-      totalUsers,
+      totalDiscordMembers,
+      totalAccessedUsers,
       googleOnlyUsers,
       discordOnlyUsers,
       linkedUsers,
@@ -71,39 +85,54 @@ export async function GET(req: NextRequest) {
       ketuaAngkatanCount,
       ownerCount,
     ] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({
+      // Total seluruh member Discord yang tersinkronisasi di database
+      (prisma.user as any).count(),
+      // Total mahasiswa yang AKTIF mengakses TaskPanel
+      (prisma.user as any).count({ where: accessedUserWhere }),
+      // Google UNS only (di antara yang mengakses TaskPanel)
+      (prisma.user as any).count({
         where: {
-          googleId: { not: null },
-          discordId: null,
+          AND: [
+            accessedUserWhere,
+            { googleId: { not: null }, discordId: null },
+          ],
         },
       }),
-      prisma.user.count({
+      // Discord only (di antara yang mengakses TaskPanel)
+      (prisma.user as any).count({
         where: {
-          discordId: { not: null },
-          googleId: null,
+          AND: [
+            accessedUserWhere,
+            { discordId: { not: null }, googleId: null },
+          ],
         },
       }),
-      prisma.user.count({
+      // Tertaut ganda UNS + Discord (di antara yang mengakses TaskPanel)
+      (prisma.user as any).count({
         where: {
-          googleId: { not: null },
-          discordId: { not: null },
+          AND: [
+            accessedUserWhere,
+            { googleId: { not: null }, discordId: { not: null } },
+          ],
         },
       }),
-      prisma.user.count({ where: { createdAt: { gte: startOfDay } } }),
-      prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-      prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: startOfDay } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: sevenDaysAgo } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: thirtyDaysAgo } }] } }),
       (prisma.user as any).groupBy({
         by: ["prodi"],
+        where: accessedUserWhere,
         _count: { id: true },
       }),
       (prisma.user as any).groupBy({
         by: ["kelas"],
+        where: accessedUserWhere,
         _count: { id: true },
       }),
-      prisma.user.findMany({
-        take: 12,
-        orderBy: { createdAt: "desc" },
+      (prisma.user as any).findMany({
+        where: accessedUserWhere,
+        take: 15,
+        orderBy: [{ lastActiveAt: "desc" }, { createdAt: "desc" }],
         select: {
           id: true,
           username: true,
@@ -117,6 +146,7 @@ export async function GET(req: NextRequest) {
           kelas: true,
           roles: true,
           createdAt: true,
+          lastActiveAt: true,
         },
       }),
       prisma.task.count(),
@@ -160,14 +190,14 @@ export async function GET(req: NextRequest) {
           },
         })
         .catch(() => []),
-      prisma.user.count({ where: { roles: { has: "ADMIN" } } }),
-      prisma.user.count({ where: { roles: { has: "PJ_KELAS" } } }),
-      prisma.user.count({ where: { roles: { has: "PJ_MATKUL" } } }),
-      prisma.user.count({ where: { roles: { has: "KETUA_ANGKATAN" } } }),
-      prisma.user.count({ where: { roles: { has: "OWNER" } } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "ADMIN" } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_KELAS" } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_MATKUL" } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "KETUA_ANGKATAN" } }] } }),
+      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "OWNER" } }] } }),
     ]);
 
-    // Format sebaran Prodi
+    // Format sebaran Prodi bagi user yang mengakses app
     const prodiCounts: Record<string, number> = {
       INFORMATIKA: 0,
       SAINS_DATA: 0,
@@ -182,7 +212,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Format sebaran Kelas
+    // Format sebaran Kelas bagi user yang mengakses app
     const kelasCounts: Record<string, number> = {
       A: 0,
       B: 0,
@@ -241,13 +271,14 @@ export async function GET(req: NextRequest) {
 
     const studentOnlyCount = Math.max(
       0,
-      totalUsers - (adminCount + ownerCount + ketuaAngkatanCount + pjKelasCount + pjMatkulCount)
+      totalAccessedUsers - (adminCount + ownerCount + ketuaAngkatanCount + pjKelasCount + pjMatkulCount)
     );
 
     return NextResponse.json({
       analytics: {
         users: {
-          total: totalUsers,
+          total: totalAccessedUsers, // Murni yang mengakses TaskPanel
+          discordGuildMembersTotal: totalDiscordMembers, // Raw discord guild members
           googleOnly: googleOnlyUsers,
           discordOnly: discordOnlyUsers,
           linkedBoth: linkedUsers,
@@ -277,6 +308,7 @@ export async function GET(req: NextRequest) {
             kelas: u.kelas,
             roles: u.roles,
             createdAt: u.createdAt.toISOString(),
+            lastActiveAt: u.lastActiveAt ? u.lastActiveAt.toISOString() : null,
           })),
         },
         tasks: {

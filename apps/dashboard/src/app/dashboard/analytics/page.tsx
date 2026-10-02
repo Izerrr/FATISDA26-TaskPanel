@@ -107,20 +107,24 @@ export default function AdminAnalyticsPage() {
   }
 
   const totalUsers = analytics?.users.total ?? 0;
+  const totalDiscordMembers = analytics?.users.discordGuildMembersTotal ?? totalUsers;
   const googleOnly = analytics?.users.googleOnly ?? 0;
   const discordOnly = analytics?.users.discordOnly ?? 0;
   const linkedBoth = analytics?.users.linkedBoth ?? 0;
 
-  // Persentase Provider
+  // Persentase Provider di antara mahasiswa yang aktif mengakses TaskPanel
   const googleTotal = googleOnly + linkedBoth;
   const discordTotal = discordOnly + linkedBoth;
   const googlePct = totalUsers > 0 ? Math.round((googleTotal / totalUsers) * 100) : 0;
   const discordPct = totalUsers > 0 ? Math.round((discordTotal / totalUsers) * 100) : 0;
   const linkedPct = totalUsers > 0 ? Math.round((linkedBoth / totalUsers) * 100) : 0;
 
-  // Persentase sebaran metode
+  // Persentase sebaran metode di web
   const googleOnlyPct = totalUsers > 0 ? Math.round((googleOnly / totalUsers) * 100) : 0;
   const discordOnlyPct = totalUsers > 0 ? Math.round((discordOnly / totalUsers) * 100) : 0;
+
+  // Adopsi dari seluruh member server Discord
+  const adoptionPct = totalDiscordMembers > 0 ? Math.round((totalUsers / totalDiscordMembers) * 100) : 100;
 
   return (
     <DashboardFrame>
@@ -138,10 +142,10 @@ export default function AdminAnalyticsPage() {
               </span>
             </div>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100 sm:text-3xl">
-              Statistik &amp; Analytics Pengguna
+              Statistik Pengguna Aktif TaskPanel
             </h1>
             <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">
-              Pantau adopsi autentikasi Google UNS / Discord, sebaran program studi, kelas, dan aktivitas pengerjaan tugas.
+              Analitik murni mahasiswa yang telah login dan mengakses TaskPanel (bukan sekadar anggota Discord server).
             </p>
           </div>
 
@@ -178,11 +182,11 @@ export default function AdminAnalyticsPage() {
           <>
             {/* Top 4 KPI Metrics */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Card 1: Total Users */}
+              {/* Card 1: Total Users who accessed TaskPanel */}
               <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
-                    Total Mahasiswa
+                    Mahasiswa Aktif TaskPanel
                   </span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">
                     <Users className="h-4 w-4" />
@@ -192,11 +196,11 @@ export default function AdminAnalyticsPage() {
                   <span className="text-3xl font-bold tracking-tight text-liquid-text dark:text-slate-100">
                     {totalUsers}
                   </span>
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">akun terdaftar</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">telah login web</span>
                 </div>
-                <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  <span>+{analytics.users.newThisWeek} akun 7 hari terakhir</span>
+                <div className="mt-3 flex items-center justify-between text-xs text-liquid-text-secondary dark:text-slate-400">
+                  <span>Dari <strong>{totalDiscordMembers}</strong> anggota Discord</span>
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">{adoptionPct}% adopsi</span>
                 </div>
               </div>
 
@@ -219,7 +223,7 @@ export default function AdminAnalyticsPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-liquid-text-secondary dark:text-slate-400">
-                  Terverifikasi domain <code className="text-[11px] font-mono">@student.uns.ac.id</code>
+                  Terverifikasi email <code className="text-[11px] font-mono">@student.uns.ac.id</code>
                 </p>
               </div>
 
@@ -227,7 +231,7 @@ export default function AdminAnalyticsPage() {
               <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
-                    Akun Discord
+                    Login via Discord
                   </span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
                     <Hash className="h-4 w-4" />
@@ -242,7 +246,7 @@ export default function AdminAnalyticsPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-liquid-text-secondary dark:text-slate-400">
-                  Tersinkronisasi server FATISDA UNS 2026
+                  Telah masuk &amp; sinkron ke TaskPanel
                 </p>
               </div>
 
@@ -265,7 +269,7 @@ export default function AdminAnalyticsPage() {
                   </span>
                 </div>
                 <p className="mt-3 text-xs text-liquid-text-secondary dark:text-slate-400">
-                  Terkoneksi Google UNS &amp; Discord sekaligus
+                  Google UNS &amp; Discord aktif
                 </p>
               </div>
             </div>
@@ -345,12 +349,11 @@ export default function AdminAnalyticsPage() {
                   {/* Informational Callout */}
                   <div className="mt-5 rounded-xl border border-liquid-border/60 bg-slate-50/70 p-3 text-xs text-liquid-text-secondary dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
                     <p className="font-semibold text-liquid-text dark:text-slate-200">
-                      💡 Pentingnya Penautan Akun (Dual Auth):
+                      💡 Hanya Menghitung Mahasiswa yang Mengakses Web:
                     </p>
                     <p className="mt-1 leading-relaxed">
-                      Mahasiswa yang menautkan akun Google UNS (@student.uns.ac.id) dengan akun Discord server
-                      mendapatkan verifikasi identitas resmi kampus sekaligus hak akses otomatis untuk PJ Kelas dan PJ
-                      Mata Kuliah.
+                      Metrik di atas murni mencatat mahasiswa yang telah login dan membuka aplikasi web TaskPanel.
+                      Anggota server Discord yang belum pernah masuk ke aplikasi web tidak dimasukkan ke dalam analitik ini.
                     </p>
                   </div>
                 </div>
@@ -712,6 +715,7 @@ export default function AdminAnalyticsPage() {
                       <th className="pb-3 font-semibold">Metode Masuk</th>
                       <th className="pb-3 font-semibold">Program Studi &amp; Kelas</th>
                       <th className="pb-3 font-semibold">Peran</th>
+                      <th className="pb-3 font-semibold">Terakhir Aktif</th>
                       <th className="pb-3 pr-1 text-right font-semibold">Bergabung</th>
                     </tr>
                   </thead>
@@ -794,6 +798,11 @@ export default function AdminAnalyticsPage() {
                                 </span>
                               ))}
                             </div>
+                          </td>
+
+                          {/* Terakhir Aktif */}
+                          <td className="py-3 text-slate-500 dark:text-slate-400">
+                            {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Baru saja"}
                           </td>
 
                           {/* Waktu Bergabung */}
