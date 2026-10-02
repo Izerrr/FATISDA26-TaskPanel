@@ -186,7 +186,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
 
       {task.description && <p className="mt-2.5 pl-6 line-clamp-3 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">{task.description}</p>}
 
-      <div className="mt-3.5 flex flex-wrap items-center gap-2 pl-6">
+      <div className="mt-3.5 flex flex-wrap items-center gap-1.5 sm:gap-2 pl-0 sm:pl-6">
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
           <StatusIcon className="h-3 w-3" />
           {statusLabel[task.status]}
@@ -216,14 +216,14 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
 
       {/* Mobile-Friendly Quick Move Bar (1-tap transition on phone) */}
       {onMoveStatus && (
-        <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-slate-100/90 dark:border-slate-800 pt-2.5 pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-100/90 dark:border-slate-800 pt-2.5 pl-0 sm:pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Pindah:</span>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             {task.status === "TODO" && (
               <button
                 type="button"
                 onClick={() => onMoveStatus(task, "IN_PROGRESS")}
-                className="flex items-center gap-1 rounded-lg bg-amber-500/15 dark:bg-amber-950/60 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition active:scale-95"
+                className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-500/15 dark:bg-amber-950/60 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition active:scale-95"
               >
                 <span>Kerjakan</span>
                 <ArrowRight className="h-3 w-3" />

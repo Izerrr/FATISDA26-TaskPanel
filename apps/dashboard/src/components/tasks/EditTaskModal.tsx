@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, User, Users, X } from "lucide-react";
@@ -136,7 +134,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
           {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/40 p-3 text-xs font-medium text-red-600 dark:text-red-400">{error}</div>}
 
           {/* Scope & Status */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="label mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">Lingkup</label>
               <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
@@ -200,9 +198,9 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
                     key={k}
                     type="button"
                     onClick={() => setTargetKelas(k)}
-                    className={`py-1 rounded-lg text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+                    className={`py-1 rounded-lg text-[11px] sm:text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                   >
-                    {k === "ALL" ? "Semua" : `Kls ${k}`}
+                    {k === "ALL" ? "Semua" : <><span className="hidden sm:inline">Kls </span>{k}</>}
                   </button>
                 ))}
               </div>

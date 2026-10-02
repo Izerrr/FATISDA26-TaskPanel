@@ -195,7 +195,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   }
 
   const sidebarContent = (
-    <div className="flex h-full w-72 flex-col overflow-y-auto bg-white transition-colors dark:bg-slate-900">
+    <div className="flex h-full w-full md:w-72 flex-col overflow-y-auto bg-white transition-colors dark:bg-slate-900">
       {/* Brand */}
       <div className="flex items-center justify-between border-b border-liquid-border px-6 py-5 dark:border-slate-800">
         <div className="flex items-center gap-3">
@@ -436,7 +436,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         <div className={`fixed inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 ease-out ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={onClose} aria-hidden="true" />
 
         {/* Drawer content */}
-        <div className={`relative z-10 h-full w-72 shadow-2xl transform transition-transform duration-300 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>
+        <div className={`relative z-10 h-full w-72 max-w-[85vw] shadow-2xl transform transition-transform duration-300 ease-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>
       </div>
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />

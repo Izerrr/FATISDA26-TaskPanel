@@ -57,7 +57,7 @@ export function AccountLinkingModal({ open, user, onClose }: AccountLinkingModal
       }}
     >
       <div
-        className="relative w-full max-w-lg rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-150"
+        className="relative w-full max-w-lg rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

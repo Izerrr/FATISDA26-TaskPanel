@@ -142,22 +142,22 @@ export default function ProfilePage() {
         </section>
 
         {/* Quick Stats Grid */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-xs">
             <span className="text-[11px] font-medium text-slate-400">Total Tugas</span>
-            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">{totalTasks}</p>
+            <p className="mt-1 text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">{totalTasks}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-xs">
             <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Dalam Proses</span>
-            <p className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-300">{inProgressTasks}</p>
+            <p className="mt-1 text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300">{inProgressTasks}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-xs">
             <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Tugas Selesai</span>
-            <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">{doneTasks}</p>
+            <p className="mt-1 text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">{doneTasks}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-xs">
             <span className="text-[11px] font-medium text-violet-600 dark:text-violet-400">Tugas Personal</span>
-            <p className="mt-1 text-2xl font-bold text-violet-700 dark:text-violet-300">{personalTasks}</p>
+            <p className="mt-1 text-xl sm:text-2xl font-bold text-violet-700 dark:text-violet-300">{personalTasks}</p>
           </div>
         </section>
 

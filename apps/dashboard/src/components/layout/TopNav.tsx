@@ -13,8 +13,8 @@ export function TopNav({ onToggleMobileMenu, onNewTask }: TopNavProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-liquid-border bg-white/90 px-4 backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-900/90 md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-liquid-border bg-white/90 px-3.5 sm:px-4 backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-slate-900/90 md:px-6">
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {onToggleMobileMenu && (
           <button
             type="button"
@@ -36,14 +36,14 @@ export function TopNav({ onToggleMobileMenu, onNewTask }: TopNavProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <GlobalSearch />
 
         {onNewTask && (
           <button
             type="button"
             onClick={onNewTask}
-            className="flex h-9 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl bg-liquid-accent px-3 text-xs font-bold text-white shadow-xs transition hover:brightness-95 active:scale-95"
+            className="flex h-9 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl bg-liquid-accent px-2.5 sm:px-3 text-xs font-bold text-white shadow-xs transition hover:brightness-95 active:scale-95"
             title="Tambah Tugas Baru"
           >
             <Plus className="h-3.5 w-3.5" />

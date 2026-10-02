@@ -251,11 +251,11 @@ function DiscussionsContent() {
         </section>
 
         {/* Tab Selector */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab("courses")}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
               activeTab === "courses" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -266,7 +266,7 @@ function DiscussionsContent() {
           <button
             type="button"
             onClick={() => setActiveTab("announcements")}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
               activeTab === "announcements" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -277,7 +277,7 @@ function DiscussionsContent() {
           <button
             type="button"
             onClick={() => setActiveTab("discord")}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition-all ${
               activeTab === "discord" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -649,7 +649,7 @@ function DiscussionsContent() {
       {/* Modal Buat Topik Diskusi Matkul Baru */}
       {topicModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-liquid-border dark:border-slate-800">
               <div>
                 <h2 className="text-sm font-semibold text-liquid-text dark:text-slate-100">Mulai Topik Diskusi Baru</h2>
@@ -711,7 +711,7 @@ function DiscussionsContent() {
       {/* Modal Buat Pengumuman */}
       {annModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-liquid-border dark:border-slate-800">
               <h2 className="text-sm font-semibold text-liquid-text dark:text-slate-100">Buat Pengumuman Baru</h2>
               <button type="button" onClick={() => setAnnModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg">

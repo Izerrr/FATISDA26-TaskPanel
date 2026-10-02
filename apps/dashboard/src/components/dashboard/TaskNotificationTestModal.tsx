@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { AlertTriangle, CheckCircle2, FlaskConical, Loader2, Send, ShieldCheck, X } from "lucide-react";
 import type { Prodi } from "@/types";

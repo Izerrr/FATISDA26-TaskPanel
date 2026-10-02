@@ -166,13 +166,11 @@ export default function TasksPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Filter className="hidden h-4 w-4 text-slate-400 sm:block" />
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 lg:flex lg:items-center">
               <select
                 value={scopeFilter}
                 onChange={(event) => setScopeFilter(event.target.value as ScopeFilter)}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent"
+                className="w-full lg:w-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent"
               >
                 <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Semua Scope
@@ -184,46 +182,46 @@ export default function TasksPage() {
                   Kelas
                 </option>
               </select>
-            </div>
 
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent"
-            >
-              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                Semua Status
-              </option>
-              <option value="TODO" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                Todo
-              </option>
-              <option value="IN_PROGRESS" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                In Progress
-              </option>
-              <option value="NEED_REVIEW" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                Need Review
-              </option>
-              <option value="DONE" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                Done
-              </option>
-            </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                className="w-full lg:w-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent"
+              >
+                <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Semua Status
+                </option>
+                <option value="TODO" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Todo
+                </option>
+                <option value="IN_PROGRESS" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  In Progress
+                </option>
+                <option value="NEED_REVIEW" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Need Review
+                </option>
+                <option value="DONE" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Done
+                </option>
+              </select>
 
-            <select
-              value={courseFilter}
-              onChange={(event) => setCourseFilter(event.target.value)}
-              disabled={coursesLoading}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent disabled:opacity-50"
-            >
-              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                Semua Mata Kuliah
-              </option>
+              <select
+                value={courseFilter}
+                onChange={(event) => setCourseFilter(event.target.value)}
+                disabled={coursesLoading}
+                className="w-full lg:w-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-liquid-accent disabled:opacity-50"
+              >
+                <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Semua Mata Kuliah
+                </option>
 
               {courses.map((course) => (
                 <option key={course.id} value={course.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   {course.code} — {course.name}
                 </option>
               ))}
-            </select>
+              </select>
+            </div>
           </div>
 
           <p className="mt-3 text-xs text-liquid-text-secondary dark:text-slate-400">

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Calendar, Check, Download, ExternalLink, Info, X } from "lucide-react";
 import type { Schedule } from "@/types";

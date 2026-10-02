@@ -51,28 +51,28 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
       <div className="mt-5">
         {/* Banner Status Kuliah Real-Time */}
         {liveStatus.state === "ONGOING" && (
-          <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 px-3.5 py-2.5 text-xs text-emerald-900 dark:text-emerald-200">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 rounded-xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 px-3.5 py-2.5 text-xs text-emerald-900 dark:text-emerald-200">
             <div className="flex items-center gap-2 min-w-0">
               <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-semibold truncate">
                 Sedang Berlangsung: {liveStatus.schedule.courseName ?? liveStatus.schedule.course?.name}
               </span>
             </div>
-            <span className="font-medium shrink-0 text-[11px] text-emerald-700 dark:text-emerald-400 pl-2">
+            <span className="font-medium shrink-0 text-[11px] text-emerald-700 dark:text-emerald-400 pl-4 sm:pl-2">
               Sisa {liveStatus.minutesRemaining} menit
             </span>
           </div>
         )}
 
         {liveStatus.state === "UPCOMING_SOON" && (
-          <div className="mb-4 flex items-center justify-between rounded-xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/70 dark:bg-sky-950/30 px-3.5 py-2.5 text-xs text-sky-900 dark:text-sky-200">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 rounded-xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/70 dark:bg-sky-950/30 px-3.5 py-2.5 text-xs text-sky-900 dark:text-sky-200">
             <div className="flex items-center gap-2 min-w-0">
               <Clock3 className="h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-400" />
               <span className="font-semibold truncate">
                 Kuliah Berikutnya: {liveStatus.schedule.courseName ?? liveStatus.schedule.course?.name}
               </span>
             </div>
-            <span className="font-medium shrink-0 text-[11px] text-sky-700 dark:text-sky-400 pl-2">
+            <span className="font-medium shrink-0 text-[11px] text-sky-700 dark:text-sky-400 pl-5 sm:pl-2">
               {liveStatus.minutesUntilStart < 60
                 ? `Dalam ${liveStatus.minutesUntilStart} menit`
                 : `Pukul ${liveStatus.schedule.startTime}`}

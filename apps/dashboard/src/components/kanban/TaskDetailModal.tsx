@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { 
   X, 
@@ -127,7 +125,7 @@ export function TaskDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 shrink-0">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3 sm:px-6 sm:py-4 shrink-0">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
@@ -194,7 +192,7 @@ export function TaskDetailModal({
         </div>
 
         {/* Scrollable Modal Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4 sm:space-y-6">
           {/* Title & Course */}
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
@@ -238,7 +236,7 @@ export function TaskDetailModal({
           {/* Due Date & Deadline Banner */}
           {task.dueDate && (
             <div
-              className={`flex items-center justify-between rounded-2xl p-3.5 text-xs ${
+              className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-2xl p-3.5 text-xs ${
                 urgency === "overdue"
                   ? "bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300"
                   : urgency === "dueSoon"
@@ -253,7 +251,7 @@ export function TaskDetailModal({
                   <span>{new Date(task.dueDate).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })} WIB</span>
                 </div>
               </div>
-              <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold shadow-xs">
+              <span className="self-start sm:self-auto rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold shadow-xs">
                 {formatDueDate(task.dueDate)}
               </span>
             </div>
@@ -364,7 +362,7 @@ export function TaskDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-6 py-3.5 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
           <span className="text-[11px] text-slate-400">
             ID: <code className="font-mono text-[10px]">{task.id.slice(0, 10)}...</code>
           </span>

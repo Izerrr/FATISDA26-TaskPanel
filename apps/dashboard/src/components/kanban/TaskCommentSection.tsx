@@ -71,7 +71,7 @@ export function TaskCommentSection({ taskId }: { taskId: string }) {
                     })}
                   </span>
                 </div>
-                <p className="text-xs text-liquid-text whitespace-pre-wrap">
+                <p className="text-xs text-liquid-text whitespace-pre-wrap break-words min-w-0">
                   {comment.content}
                 </p>
               </div>
@@ -86,13 +86,14 @@ export function TaskCommentSection({ taskId }: { taskId: string }) {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Tulis komentar..."
-          className="flex-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-liquid-border px-3 py-2 text-xs text-liquid-text focus:outline-none focus:ring-1 focus:ring-liquid-accent"
+          className="flex-1 min-w-0 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-liquid-border px-3 py-2 text-xs text-liquid-text focus:outline-none focus:ring-1 focus:ring-liquid-accent"
           disabled={isSubmitting}
         />
         <button
           type="submit"
           disabled={isSubmitting || !newComment.trim()}
-          className="p-2 bg-liquid-accent text-white rounded-full hover:bg-opacity-90 disabled:opacity-50 transition-opacity"
+          className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center shrink-0 bg-liquid-accent text-white rounded-full hover:bg-opacity-90 disabled:opacity-50 transition-opacity active:scale-95"
+          aria-label="Kirim komentar"
         >
           {isSubmitting ? (
             <Loader2 className="w-4 h-4 animate-spin" />

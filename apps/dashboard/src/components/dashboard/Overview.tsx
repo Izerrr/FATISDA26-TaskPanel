@@ -73,20 +73,20 @@ export function Overview({ tasks, schedules }: OverviewProps) {
   return (
     <div className="space-y-6">
       {/* 4 Quick Stat Cards */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
 
           return (
-            <div key={stat.label} className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">{stat.label}</p>
-                  <p className="mt-1 text-3xl font-bold text-liquid-text dark:text-slate-100">{stat.value}</p>
+            <div key={stat.label} className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-5 shadow-glass">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400 truncate">{stat.label}</p>
+                  <p className="mt-1 text-2xl sm:text-3xl font-bold text-liquid-text dark:text-slate-100">{stat.value}</p>
                 </div>
 
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.tone}`}>
-                  <Icon className="h-5 w-5" />
+                <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl ${stat.tone}`}>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
               </div>
             </div>
@@ -113,7 +113,7 @@ export function Overview({ tasks, schedules }: OverviewProps) {
           </div>
 
           {closestTask && closestHours !== null && (
-            <div className="flex items-center gap-2 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 px-3.5 py-2 text-xs text-amber-800 dark:text-amber-300 max-w-full sm:max-w-md min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 px-3.5 py-2 text-xs text-amber-800 dark:text-amber-300 w-full sm:w-auto max-w-full sm:max-w-md min-w-0 overflow-hidden">
               <Flame className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 animate-pulse" />
               <div className="min-w-0 truncate">
                 <span>Deadline Terdekat: </span>

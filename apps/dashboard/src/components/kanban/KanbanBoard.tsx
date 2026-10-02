@@ -278,8 +278,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         />
       ) : (
         <>
-          {/* Mobile Status Switcher Tabs (< md) */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar md:hidden">
+          {/* Responsive Status Switcher Tabs (< xl) */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar xl:hidden">
             {KANBAN_COLUMNS.map((status) => {
               const meta = KANBAN_META[status];
               const count = items.filter((task) => task.status === status).length;
@@ -302,15 +302,15 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           </div>
 
           <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            {/* Unified Responsive Kanban Layout (No duplicate droppables!) */}
-            <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar md:grid md:grid-cols-4 md:min-w-[960px] md:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
+            {/* Unified Responsive Kanban Layout (Zero horizontal leakage, full fluid width) */}
+            <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar xl:grid xl:grid-cols-4 xl:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
               {KANBAN_COLUMNS.map((status) => (
                 <div
                   key={status}
                   ref={(el) => {
                     columnRefs.current[status] = el;
                   }}
-                  className={`w-[85vw] max-w-[360px] shrink-0 md:w-auto md:max-w-none md:shrink md:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
+                  className={`w-[85vw] max-w-[340px] shrink-0 sm:w-[320px] xl:w-auto xl:max-w-none xl:shrink xl:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
                 >
                   <KanbanColumn
                     status={status}

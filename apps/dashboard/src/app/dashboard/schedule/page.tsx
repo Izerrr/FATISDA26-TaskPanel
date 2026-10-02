@@ -239,13 +239,13 @@ export default function SchedulePage() {
           ) : (
             <div className="space-y-3">
               {selectedSchedules.map((schedule) => (
-                <div key={schedule.id} className="group flex gap-4 rounded-xl border border-slate-100 dark:border-slate-800 p-4 transition hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm">
-                  <div className="w-20 shrink-0">
+                <div key={schedule.id} className="group flex gap-3 sm:gap-4 rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 sm:p-4 transition hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm">
+                  <div className="w-16 sm:w-20 shrink-0">
                     <p className="text-sm font-bold text-liquid-text dark:text-slate-100">{schedule.startTime}</p>
                     <p className="mt-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">{schedule.endTime}</p>
                   </div>
 
-                  <div className="min-w-0 flex-1 border-l border-slate-100 dark:border-slate-800 pl-4">
+                  <div className="min-w-0 flex-1 border-l border-slate-100 dark:border-slate-800 pl-3 sm:pl-4">
                     <p className="text-sm font-semibold text-liquid-text dark:text-slate-100 group-hover:text-liquid-accent dark:group-hover:text-sky-400 transition-colors">{schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}</p>
 
                     {schedule.course?.code && <p className="mt-0.5 text-[11px] font-medium text-liquid-text-secondary dark:text-slate-400">{schedule.course.code}</p>}

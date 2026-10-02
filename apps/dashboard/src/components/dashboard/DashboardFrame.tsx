@@ -144,7 +144,7 @@ export function DashboardFrame({ children, onNewTask }: DashboardFrameProps) {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopNav onToggleMobileMenu={() => setMobileMenuOpen(true)} onNewTask={onNewTask} />
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="min-h-0 flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-6">
           <div className="mx-auto max-w-[1500px] space-y-6">{children}</div>
         </main>
       </div>

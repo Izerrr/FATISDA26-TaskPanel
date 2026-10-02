@@ -68,25 +68,26 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
     <div className="space-y-4">
       {/* List Sub-filter Tabs */}
       <div className="flex items-center justify-between gap-2 flex-wrap pb-1">
-        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-1 backdrop-blur-sm">
+        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-1 backdrop-blur-sm overflow-x-auto max-w-full no-scrollbar">
           <button
             type="button"
             onClick={() => handleTabChange("ALL")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "ALL" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
+            className={`shrink-0 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "ALL" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
             Semua ({tasks.length})
           </button>
           <button
             type="button"
             onClick={() => handleTabChange("ACTIVE")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "ACTIVE" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
+            className={`shrink-0 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "ACTIVE" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
-            Aktif / Belum Selesai ({activeCount})
+            <span className="hidden sm:inline">Aktif / Belum Selesai</span>
+            <span className="sm:hidden">Aktif</span> ({activeCount})
           </button>
           <button
             type="button"
             onClick={() => handleTabChange("DONE")}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "DONE" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
+            className={`shrink-0 rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${filterTab === "DONE" ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"}`}
           >
             Selesai ({doneCount})
           </button>
@@ -177,7 +178,7 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                     onChange={(e) => {
                       void onMoveStatus(task, e.target.value as TaskStatus);
                     }}
-                    className={`rounded-xl border-none px-2.5 py-1 text-xs font-bold outline-none cursor-pointer ${statusOptions.find((o) => o.value === task.status)?.bg} ${statusOptions.find((o) => o.value === task.status)?.text}`}
+                    className={`rounded-xl border-none px-2 py-1 sm:px-2.5 sm:py-1 text-[11px] sm:text-xs font-bold outline-none cursor-pointer shrink-0 ${statusOptions.find((o) => o.value === task.status)?.bg} ${statusOptions.find((o) => o.value === task.status)?.text}`}
                   >
                     {statusOptions.map((opt) => (
                       <option key={opt.value} value={opt.value} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">

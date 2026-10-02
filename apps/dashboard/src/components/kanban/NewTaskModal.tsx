@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Bot, Check, HelpCircle, Loader2, Sparkles, User, Users, X } from "lucide-react";
@@ -252,9 +250,9 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                           key={k}
                           type="button"
                           onClick={() => setTargetKelas(k)}
-                          className={`py-1 rounded-lg text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+                          className={`py-1 rounded-lg text-[11px] sm:text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                         >
-                          {k === "ALL" ? "Semua" : `Kls ${k}`}
+                          {k === "ALL" ? "Semua" : <><span className="hidden sm:inline">Kls </span>{k}</>}
                         </button>
                       ))}
                     </div>
@@ -417,9 +415,9 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                           key={k}
                           type="button"
                           onClick={() => setTargetKelas(k)}
-                          className={`py-1 rounded-lg text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+                          className={`py-1 rounded-lg text-[11px] sm:text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                         >
-                          {k === "ALL" ? "Semua" : `Kls ${k}`}
+                          {k === "ALL" ? "Semua" : <><span className="hidden sm:inline">Kls </span>{k}</>}
                         </button>
                       ))}
                     </div>

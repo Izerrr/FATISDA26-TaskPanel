@@ -31,7 +31,7 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
   const visibleTasks = hasExcess && !isExpanded ? tasks.slice(0, 5) : tasks;
 
   return (
-    <section className={`flex min-w-[280px] flex-1 flex-col rounded-3xl border bg-white/80 dark:bg-slate-900/90 shadow-xs transition-all duration-200 ${meta.border}`}>
+    <section className={`flex w-full min-w-0 flex-1 flex-col rounded-3xl border bg-white/80 dark:bg-slate-900/90 shadow-xs transition-all duration-200 ${meta.border}`}>
       <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70 dark:border-slate-800">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
         <div className="flex items-center gap-1.5">
