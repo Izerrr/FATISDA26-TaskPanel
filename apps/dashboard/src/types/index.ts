@@ -2,7 +2,7 @@ export type Prodi = "INFORMATIKA" | "SAINS_DATA" | "INFORMATIKA_PSDKU_KEBUMEN";
 
 export type Kelas = "A" | "B" | "C" | "D" | "E";
 
-export type Role = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "ADMIN";
+export type Role = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "ADMIN" | "OWNER";
 
 export type TaskScope = "PERSONAL" | "CLASS";
 
@@ -93,3 +93,88 @@ export interface Task {
 
   course: Course | null;
 }
+
+export interface AnalyticsUserSummary {
+  total: number;
+  googleOnly: number;
+  discordOnly: number;
+  linkedBoth: number;
+  newToday: number;
+  newThisWeek: number;
+  newThisMonth: number;
+  byProdi: {
+    INFORMATIKA: number;
+    SAINS_DATA: number;
+    INFORMATIKA_PSDKU_KEBUMEN: number;
+    UNASSIGNED: number;
+  };
+  byKelas: Record<string, number>;
+  byRole: {
+    ADMIN: number;
+    OWNER: number;
+    KETUA_ANGKATAN: number;
+    PJ_KELAS: number;
+    PJ_MATKUL: number;
+    STUDENT: number;
+  };
+  recentUsers: Array<{
+    id: string;
+    username: string;
+    email: string | null;
+    nim: string | null;
+    avatar: string | null;
+    provider: string;
+    googleId: string | null;
+    discordId: string | null;
+    prodi: Prodi | null;
+    kelas: Kelas | null;
+    roles: Role[];
+    createdAt: string;
+  }>;
+}
+
+export interface AnalyticsTaskSummary {
+  total: number;
+  byStatus: {
+    TODO: number;
+    IN_PROGRESS: number;
+    NEED_REVIEW: number;
+    DONE: number;
+  };
+  byScope: {
+    CLASS: number;
+    PERSONAL: number;
+  };
+  completionRate: number;
+  totalComments: number;
+  totalActivities: number;
+}
+
+export interface AnalyticsCommunitySummary {
+  totalDiscussions: number;
+  totalReplies: number;
+  totalVaults: number;
+  feedback: {
+    total: number;
+    open: number;
+    resolved: number;
+    byCategory: Record<string, number>;
+    recent: Array<{
+      id: string;
+      category: string;
+      message: string;
+      authorName: string | null;
+      status: string;
+      createdAt: string;
+      pageUrl: string | null;
+    }>;
+  };
+}
+
+export interface AnalyticsData {
+  users: AnalyticsUserSummary;
+  tasks: AnalyticsTaskSummary;
+  community: AnalyticsCommunitySummary;
+  generatedAt: string;
+}
+
