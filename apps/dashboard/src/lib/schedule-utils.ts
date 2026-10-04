@@ -1,4 +1,5 @@
 import type { Schedule } from "@/types";
+import { getWibMinutesOfDay, getWibWeekday } from "./datetime";
 
 export interface ScheduleDayResult {
   day: number;
@@ -6,18 +7,14 @@ export interface ScheduleDayResult {
   isToday: boolean;
 }
 
-const DAY_ORDER = [1, 2, 3, 4, 5, 6, 7];
-
 function timeToMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
+  const [hours, minutes] = time.split(/[:.]/).map(Number);
 
-  return hours * 60 + minutes;
+  return (hours || 0) * 60 + (minutes || 0);
 }
 
 export function getTodayDay() {
-  const day = new Date().getDay();
-
-  return day === 0 ? 7 : day;
+  return getWibWeekday();
 }
 
 export function sortSchedules(schedules: Schedule[]) {
@@ -33,11 +30,9 @@ export function getNextSchedules(schedules: Schedule[]): ScheduleDayResult {
     };
   }
 
-  const now = new Date();
-
   const today = getTodayDay();
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentMinutes = getWibMinutesOfDay();
 
   const todaySchedules = sortSchedules(schedules.filter((schedule) => schedule.day === today));
 
@@ -105,9 +100,8 @@ export function getCurrentLiveClassStatus(schedules: Schedule[]): LiveClassStatu
     return { state: "NO_CLASS_TODAY" };
   }
 
-  const now = new Date();
   const today = getTodayDay();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentMinutes = getWibMinutesOfDay();
 
   const todaySchedules = sortSchedules(schedules.filter((s) => s.day === today));
 

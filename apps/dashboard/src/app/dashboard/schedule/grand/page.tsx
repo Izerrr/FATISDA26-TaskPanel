@@ -308,7 +308,7 @@ export default function GrandSchedulePage() {
                     key={sem}
                     type="button"
                     onClick={() => setSelectedSemester(sem)}
-                    className={`h-6 rounded-xl px-2 text-[11px] font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                    className={`h-7 min-w-[28px] shrink-0 rounded-xl px-2 text-xs font-bold transition flex items-center justify-center ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
                   >
                     {sem === 0 ? "Semua" : sem}
                   </button>
@@ -325,7 +325,7 @@ export default function GrandSchedulePage() {
                     key={k}
                     type="button"
                     onClick={() => setSelectedKelas(k)}
-                    className={`h-6 rounded-xl px-2 text-[11px] font-bold transition ${selectedKelas === k ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                    className={`h-7 min-w-[28px] shrink-0 rounded-xl px-2 text-xs font-bold transition flex items-center justify-center ${selectedKelas === k ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
                   >
                     {k === "ALL" ? "Semua" : k}
                   </button>

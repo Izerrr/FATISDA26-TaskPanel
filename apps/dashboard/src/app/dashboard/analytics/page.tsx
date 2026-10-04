@@ -28,6 +28,7 @@ import {
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { useRole } from "@/hooks/useRole";
+import { formatWib } from "@/lib/datetime";
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import type { Prodi } from "@/types";
 
@@ -45,18 +46,13 @@ function formatProdiName(prodi: string | null) {
 }
 
 function formatDate(dateString: string) {
-  try {
-    const d = new Date(dateString);
-    return new Intl.DateTimeFormat("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(d);
-  } catch {
-    return dateString;
-  }
+  return formatWib(dateString, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function getFeedbackCategoryLabel(cat: string) {

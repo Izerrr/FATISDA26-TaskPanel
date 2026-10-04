@@ -85,15 +85,15 @@ export default function CoursesPage() {
               <p className="text-[11px] text-slate-600 dark:text-slate-400">Klik kartu mata kuliah untuk membuka folder Google Drive materi, modul praktikum lab, dan silabus RPS.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[11px] font-semibold">
-            <span className="inline-flex items-center gap-1 rounded-lg bg-white/90 dark:bg-slate-800 px-2 py-1 shadow-xs border border-sky-100 dark:border-slate-700 text-blue-600 dark:text-blue-400">
-              <HardDrive className="h-3 w-3" /> Drive
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white/95 dark:bg-slate-800 px-2.5 py-1 shadow-xs border border-sky-100 dark:border-slate-700 text-blue-600 dark:text-blue-400">
+              <HardDrive className="h-3.5 w-3.5" /> Drive
             </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-white/90 dark:bg-slate-800 px-2 py-1 shadow-xs border border-sky-100 dark:border-slate-700 text-purple-600 dark:text-purple-400">
-              <FolderGit2 className="h-3 w-3" /> Modul
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white/95 dark:bg-slate-800 px-2.5 py-1 shadow-xs border border-purple-100 dark:border-slate-700 text-purple-600 dark:text-purple-400">
+              <FolderGit2 className="h-3.5 w-3.5" /> Modul
             </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-white/90 dark:bg-slate-800 px-2 py-1 shadow-xs border border-sky-100 dark:border-slate-700 text-emerald-600 dark:text-emerald-400">
-              <FileText className="h-3 w-3" /> RPS
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white/95 dark:bg-slate-800 px-2.5 py-1 shadow-xs border border-emerald-100 dark:border-slate-700 text-emerald-600 dark:text-emerald-400">
+              <FileText className="h-3.5 w-3.5" /> RPS
             </span>
           </div>
         </div>
@@ -146,9 +146,9 @@ export default function CoursesPage() {
                             <BookOpen className="h-4 w-4" />
                           </div>
 
-                          <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
+                          <span className="rounded-lg border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
 
-                          {course.kelas && <span className="rounded-lg bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
+                          {course.kelas && <span className="rounded-lg border border-blue-200/50 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
                         </div>
 
                         <div className="flex items-center gap-0.5 text-[11px] font-semibold text-sky-600 dark:text-sky-400 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -197,17 +197,17 @@ export default function CoursesPage() {
                     </div>
 
                   {/* Bottom Vault Resources Footer */}
-                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-3 text-[11px]">
-                    <span className="text-[10px] font-medium text-slate-400">Vault Materi:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 dark:text-blue-400">
-                        <HardDrive className="h-2.5 w-2.5" /> Drive
+                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-3 text-[11px] gap-2 flex-wrap">
+                    <span className="text-[11px] font-medium text-slate-400 shrink-0">Vault:</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-blue-200/50 dark:border-blue-900/40 bg-blue-50/80 dark:bg-blue-950/40 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                        <HardDrive className="h-3 w-3" /> Drive
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-md bg-purple-50 dark:bg-purple-950/40 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
-                        <FolderGit2 className="h-2.5 w-2.5" /> Modul
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-purple-200/50 dark:border-purple-900/40 bg-purple-50/80 dark:bg-purple-950/40 px-2.5 py-1 text-[11px] font-semibold text-purple-600 dark:text-purple-400">
+                        <FolderGit2 className="h-3 w-3" /> Modul
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                        <FileText className="h-2.5 w-2.5" /> RPS
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-emerald-200/50 dark:border-emerald-900/40 bg-emerald-50/80 dark:bg-emerald-950/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <FileText className="h-3 w-3" /> RPS
                       </span>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import type { Kelas, Prodi } from "@prisma/client";
+import { formatWib } from "../datetime";
 
 export interface ScheduleSlotInfo {
   session: number;
@@ -393,8 +394,7 @@ export function analyzeScheduleAndFreeTime(query: string, allSchedules: RawSched
     const pendingTasks = tasks.slice(0, 3);
     for (const t of pendingTasks) {
       if (t.dueDate) {
-        const d = new Date(t.dueDate);
-        const dayStr = d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" });
+        const dayStr = formatWib(t.dueDate, { weekday: "long", day: "numeric", month: "short" });
         taskInsights.push(`Tugas [${t.title}] deadline pada ${dayStr}. Manfaatkan slot luang sebelum hari tersebut.`);
       }
     }

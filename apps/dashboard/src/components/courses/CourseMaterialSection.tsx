@@ -160,7 +160,7 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
         </div>
 
         {canEdit && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={openModal}
@@ -219,11 +219,13 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
                     </div>
 
                     {isAvailable ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="h-3 w-3" /> Siap Diakses
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
+                        <CheckCircle2 className="h-3 w-3 shrink-0" /> Siap Diakses
                       </span>
                     ) : (
-                      <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">Belum Disediakan</span>
+                      <span className="inline-flex items-center rounded-full border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300 shrink-0">
+                        Belum Disediakan
+                      </span>
                     )}
                   </div>
 

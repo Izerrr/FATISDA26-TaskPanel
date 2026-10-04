@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   FolderGit2,
 } from "lucide-react";
+import { formatWib, formatRelativeWib } from "@/lib/datetime";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
@@ -429,13 +430,13 @@ function DiscussionsContent() {
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{d.author.username}</span>
                               {d.isPinned && (
-                                <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.2 text-[9px] font-bold text-amber-800 dark:text-amber-300">
-                                  <Pin className="h-2.5 w-2.5" /> Pinned
+                                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                                  <Pin className="h-3 w-3" /> Pinned
                                 </span>
                               )}
                             </div>
                             <span className="text-[10px] text-slate-400">
-                              {new Date(d.createdAt).toLocaleDateString("id-ID", {
+                              {formatWib(d.createdAt, {
                                 day: "numeric",
                                 month: "short",
                                 hour: "2-digit",
@@ -476,12 +477,7 @@ function DiscussionsContent() {
                                     <span className="font-semibold text-slate-700 dark:text-slate-200 text-[11px]">{reply.author.username}</span>
                                   </div>
                                   <span className="text-[10px] text-slate-400">
-                                    {new Date(reply.createdAt).toLocaleDateString("id-ID", {
-                                      day: "numeric",
-                                      month: "short",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
+                                    {formatRelativeWib(reply.createdAt)}
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-5">{reply.content}</p>
@@ -583,7 +579,7 @@ function DiscussionsContent() {
                         Diposting oleh: <strong className="text-slate-600 dark:text-slate-300">{ann.author.username}</strong>
                       </span>
                       <span>
-                        {new Date(ann.createdAt).toLocaleDateString("id-ID", {
+                        {formatWib(ann.createdAt, {
                           dateStyle: "medium",
                           timeStyle: "short",
                         })}{" "}

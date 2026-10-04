@@ -5,6 +5,7 @@ import { Bell, Pin, Plus, X, Trash2, CheckCheck, Loader2 } from "lucide-react";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useRole } from "@/hooks/useRole";
 import Image from "next/image";
+import { formatWib } from "@/lib/datetime";
 
 export function AnnouncementPopover() {
   const { user, roles } = useRole();
@@ -203,7 +204,7 @@ export function AnnouncementPopover() {
                     <span className="font-medium text-slate-500 dark:text-slate-400">{ann.author.username}</span>
                     <span>•</span>
                     <span>
-                      {new Date(ann.createdAt).toLocaleDateString("id-ID", {
+                      {formatWib(ann.createdAt, {
                         day: "numeric",
                         month: "short",
                         hour: "2-digit",

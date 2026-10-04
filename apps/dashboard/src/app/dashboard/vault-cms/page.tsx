@@ -9,6 +9,7 @@ import { useRole } from "@/hooks/useRole";
 import { useVault, type VaultData, type VaultResourceLink } from "@/hooks/useVault";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import type { Course } from "@/types";
+import { formatWibShort } from "@/lib/datetime";
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -239,7 +240,7 @@ export default function VaultCmsPage() {
                 key={sem}
                 type="button"
                 onClick={() => setSelectedSemester(sem)}
-                className={`h-6 w-6 rounded-lg text-xs font-semibold transition ${selectedSemester === sem ? "bg-sky-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                className={`h-7 min-w-[28px] px-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-center shrink-0 ${selectedSemester === sem ? "bg-sky-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
               >
                 {sem}
               </button>
@@ -278,8 +279,8 @@ export default function VaultCmsPage() {
                       {/* Top Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
-                          {course.kelas && <span className="rounded-lg bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
+                          <span className="rounded-lg border border-slate-200/60 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">{course.code}</span>
+                          {course.kelas && <span className="rounded-lg border border-blue-200/50 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {course.kelas}</span>}
                         </div>
 
                         <button
@@ -355,7 +356,7 @@ export default function VaultCmsPage() {
 
                     {/* Footer with quick action & update time */}
                     <div className="mt-4 border-t border-slate-100 dark:border-slate-800/80 pt-3 flex items-center justify-between text-[11px]">
-                      <span className="text-[10px] text-slate-400">{vault?.updatedAt ? `Update: ${new Date(vault.updatedAt).toLocaleDateString("id-ID")}` : "Belum pernah diset"}</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500">{vault?.updatedAt ? `Update: ${formatWibShort(vault.updatedAt)}` : "Belum pernah diset"}</span>
 
                       {hasDrive && vault?.driveUrl && (
                         <a href={vault.driveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline">
@@ -378,9 +379,9 @@ export default function VaultCmsPage() {
               {/* Modal Header */}
               <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-lg bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 text-[11px] font-bold text-sky-600 dark:text-sky-300">{editingCourse.code}</span>
-                    {editingCourse.kelas && <span className="rounded-lg bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {editingCourse.kelas}</span>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-lg border border-sky-200/60 dark:border-sky-900/40 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 text-[11px] font-bold text-sky-600 dark:text-sky-300">{editingCourse.code}</span>
+                    {editingCourse.kelas && <span className="rounded-lg border border-blue-200/50 dark:border-blue-900/40 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Kelas {editingCourse.kelas}</span>}
                   </div>
                   <h2 className="mt-1.5 text-base font-bold text-slate-900 dark:text-slate-100">Edit Vault: {editingCourse.name}</h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Masukkan link Google Drive, modul, dan silabus yang Anda kelola untuk kelas ini.</p>

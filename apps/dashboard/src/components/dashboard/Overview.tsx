@@ -2,6 +2,7 @@
 
 import { AlertCircle, BarChart3, CheckCircle2, Clock3, Flame, ListTodo, TrendingUp } from "lucide-react";
 import type { Schedule, Task } from "@/types";
+import { formatWib } from "@/lib/datetime";
 import { OverviewSchedule } from "./OverviewSchedule";
 
 interface OverviewProps {
@@ -157,13 +158,13 @@ export function Overview({ tasks, schedules }: OverviewProps) {
 
                   <div className="ml-3 shrink-0 text-right">
                     <p className="text-xs font-semibold text-liquid-text dark:text-slate-100">
-                      {new Date(task.dueDate!).toLocaleDateString("id-ID", {
+                      {formatWib(task.dueDate!, {
                         day: "2-digit",
                         month: "short",
                       })}
                     </p>
                     <p className="text-[11px] text-liquid-text-secondary dark:text-slate-400">
-                      {new Date(task.dueDate!).toLocaleTimeString("id-ID", {
+                      {formatWib(task.dueDate!, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}

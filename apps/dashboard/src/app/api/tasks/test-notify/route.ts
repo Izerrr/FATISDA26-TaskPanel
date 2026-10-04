@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
+import { formatWib } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -107,13 +108,13 @@ export async function POST(req: NextRequest) {
       `### 🧪 ${customTitle}`,
       `> ${customDescription}\n`,
       `📚 **Mata Kuliah:** \`TEST101\` Mata Kuliah Pengujian`,
-      `⏰ **Deadline:** ${new Date(Date.now() + 2 * 86400000).toLocaleString("id-ID", {
+      `⏰ **Deadline:** ${formatWib(Date.now() + 2 * 86400000, {
         day: "numeric",
         month: "short",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      })}`,
+      })} WIB`,
       `🏷️ **Tipe:** Tugas Kelas (${prodiLabel} ${targetKelas})`,
       `👤 **Penguji:** <@${user.id}> (${user.username})`,
       `⚙️ **Metode Pengiriman:** \`${deliveryMethod}\``,

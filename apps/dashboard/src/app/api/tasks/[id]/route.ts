@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
+import { parseWibDateInput } from "@/lib/datetime";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -93,7 +94,7 @@ export async function PATCH(
         updateData.assignedTo = assignedTo || null;
       }
       if (dueDate !== undefined) {
-        updateData.dueDate = dueDate ? new Date(dueDate) : null;
+        updateData.dueDate = parseWibDateInput(dueDate);
       }
       if (validCourseId !== undefined) {
         updateData.courseId = validCourseId;

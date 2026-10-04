@@ -5,6 +5,7 @@ import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { Loader2, Pin, Plus, X, Trash2, CheckCheck, Sparkles } from "lucide-react";
 import Image from "next/image";
 import type { User } from "next-auth";
+import { formatWib } from "@/lib/datetime";
 
 interface AnnouncementBannerProps {
   user: any; // Using any for simplicity since User type is extended
@@ -194,7 +195,7 @@ export function AnnouncementBanner({ user }: AnnouncementBannerProps) {
                 <span className="font-medium text-slate-600 dark:text-slate-400">{ann.author.username}</span>
                 <span>•</span>
                 <span>
-                  {new Date(ann.createdAt).toLocaleDateString("id-ID", {
+                  {formatWib(ann.createdAt, {
                     day: "numeric",
                     month: "short",
                     hour: "2-digit",

@@ -1,3 +1,5 @@
+import { formatWibShort } from "./datetime";
+
 export type DueUrgency =
   | "none"
   | "onTrack"
@@ -25,17 +27,7 @@ export function formatDueDate(
   dueDate: string | Date | null
 ): string {
   if (!dueDate) return "Tanpa deadline";
-
-  const date = new Date(dueDate);
-  if (Number.isNaN(date.getTime())) {
-    return "Tanggal tidak valid";
-  }
-
-  return date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatWibShort(dueDate);
 }
 
 export const fmtDate = formatDueDate;

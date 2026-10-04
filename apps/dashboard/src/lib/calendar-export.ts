@@ -1,4 +1,5 @@
 import type { Schedule } from "@/types";
+import { getWibParts, wibDate, type WibParts } from "./datetime";
 
 const DAY_MAP: Record<number, string> = {
   1: "MO",
@@ -10,41 +11,35 @@ const DAY_MAP: Record<number, string> = {
   7: "SU",
 };
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 /**
- * Format string waktu "07:30" ke Date object pada tanggal tertentu
+ * "07:30" pada tanggal WIB tertentu -> "YYYYMMDDTHHMMSS" (floating, dipasangkan dengan TZID=Asia/Jakarta)
  */
-function parseTimeOnDate(baseDate: Date, timeStr: string): Date {
-  const [hours, minutes] = timeStr.split(":").map((v) => parseInt(v, 10) || 0);
-  const date = new Date(baseDate);
-  date.setHours(hours, minutes, 0, 0);
+function formatWibLocalStamp(date: WibParts, timeStr: string): string {
+  const [hours, minutes] = timeStr.split(/[:.]/).map((v) => parseInt(v, 10) || 0);
+  return `${date.year}${pad(date.month)}${pad(date.day)}T${pad(hours)}${pad(minutes)}00`;
+}
+
+/**
+ * Date -> "YYYYMMDDTHHMMSSZ" (UTC, untuk DTSTAMP / UNTIL)
+ */
+function formatUtcStamp(date: Date): string {
+  return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
+}
+
+function monthsFromNow(months: number): Date {
+  const date = new Date();
+  date.setUTCMonth(date.getUTCMonth() + months);
   return date;
 }
 
 /**
- * Format Date ke format ICS: YYYYMMDDTHHMMSS
+ * Tanggal (WIB) untuk hari tertentu di minggu ini (1 = Senin, ..., 7 = Minggu)
  */
-function formatICSDate(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
-}
-
-/**
- * Menemukan tanggal terdekat dari hari tertentu (1 = Senin, ..., 7 = Minggu)
- */
-function getNearestDateForDay(targetDay: number): Date {
-  const now = new Date();
-  const currentDay = now.getDay() === 0 ? 7 : now.getDay();
-  const diff = targetDay - currentDay;
-
-  const result = new Date(now);
-  result.setDate(now.getDate() + diff);
-  return result;
+function getNearestDateForDay(targetDay: number): WibParts {
+  const now = getWibParts();
+  return getWibParts(wibDate(now.year, now.month, now.day + (targetDay - now.weekday)));
 }
 
 /**
@@ -58,12 +53,10 @@ export function generateICS(
   },
 ): string {
   const alarmMinutes = options?.alarmMinutes ?? 15;
-  const nowStr = formatICSDate(new Date()) + "Z";
+  const nowStr = formatUtcStamp(new Date());
 
   // Batas akhir semester aktif (kurang lebih 5 bulan ke depan)
-  const untilDate = new Date();
-  untilDate.setMonth(untilDate.getMonth() + (options?.semesterUntilMonths ?? 5));
-  const untilStr = formatICSDate(untilDate) + "Z";
+  const untilStr = formatUtcStamp(monthsFromNow(options?.semesterUntilMonths ?? 5));
 
   const events = schedules.map((schedule) => {
     const courseName = schedule.course?.name || schedule.courseName || "Kuliah";
@@ -71,11 +64,8 @@ export function generateICS(
     const summary = `${courseCode}${courseName}`;
 
     const baseDate = getNearestDateForDay(schedule.day);
-    const startDate = parseTimeOnDate(baseDate, schedule.startTime);
-    const endDate = parseTimeOnDate(baseDate, schedule.endTime);
-
-    const startICS = formatICSDate(startDate);
-    const endICS = formatICSDate(endDate);
+    const startICS = formatWibLocalStamp(baseDate, schedule.startTime);
+    const endICS = formatWibLocalStamp(baseDate, schedule.endTime);
 
     const description = [schedule.lecturer ? `Dosen: ${schedule.lecturer}` : "", schedule.room ? `Ruang: ${schedule.room}` : "", `Kelas: ${schedule.kelas} (${schedule.prodi})`, `Sync by TaskPanel FATISDA 2026`].filter(Boolean).join("\\n");
 
@@ -116,15 +106,10 @@ export function getGoogleCalendarUrl(schedule: Schedule): string {
   const title = `${courseCode}${courseName}`;
 
   const baseDate = getNearestDateForDay(schedule.day);
-  const startDate = parseTimeOnDate(baseDate, schedule.startTime);
-  const endDate = parseTimeOnDate(baseDate, schedule.endTime);
+  const startStr = formatWibLocalStamp(baseDate, schedule.startTime);
+  const endStr = formatWibLocalStamp(baseDate, schedule.endTime);
 
-  const startStr = formatICSDate(startDate);
-  const endStr = formatICSDate(endDate);
-
-  const untilDate = new Date();
-  untilDate.setMonth(untilDate.getMonth() + 5);
-  const untilStr = formatICSDate(untilDate) + "Z";
+  const untilStr = formatUtcStamp(monthsFromNow(5));
 
   const details = [
     schedule.lecturer ? `Dosen: ${schedule.lecturer}` : "",

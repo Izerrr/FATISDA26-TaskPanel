@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { getWibParts, wibDate } from "@/lib/datetime";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,8 @@ export async function GET(req: NextRequest) {
     }
 
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const wibNow = getWibParts(now);
+    const startOfDay = wibDate(wibNow.year, wibNow.month, wibNow.day);
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 

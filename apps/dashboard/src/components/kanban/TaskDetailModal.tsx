@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Task, TaskStatus, Course, Role } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
+import { formatWib } from "@/lib/datetime";
 import { TaskCommentSection } from "./TaskCommentSection";
 import useSWR from "swr";
 
@@ -248,7 +249,7 @@ export function TaskDetailModal({
                 <CalendarClock className="h-4 w-4 shrink-0" />
                 <div>
                   <span className="font-bold">Batas Pengumpulan: </span>
-                  <span>{new Date(task.dueDate).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })} WIB</span>
+                  <span>{formatWib(task.dueDate, { dateStyle: "full", timeStyle: "short" })} WIB</span>
                 </div>
               </div>
               <span className="self-start sm:self-auto rounded-full bg-white/80 dark:bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold shadow-xs">
@@ -341,7 +342,7 @@ export function TaskDetailModal({
                             {act.user.username}
                           </span>
                           <span className="text-[10px] text-slate-400">
-                            {new Date(act.createdAt).toLocaleDateString("id-ID", {
+                            {formatWib(act.createdAt, {
                               day: "numeric",
                               month: "short",
                               hour: "2-digit",

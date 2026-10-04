@@ -152,7 +152,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
           <div>
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
               <span>AI Free-Time & Schedule Matcher</span>
-              <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">Live Engine</span>
+              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">Live Engine</span>
             </h3>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">Analisis matematis jadwal kuliah & pencarian jam kosong bersama antar kelas / lintas prodi.</p>
           </div>
@@ -253,7 +253,7 @@ export function ScheduleAiMatcher({ defaultProdi = "INFORMATIKA", defaultSemeste
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{slot.dayName}</span>
-                          <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">{slot.durationMinutes} mnt</span>
+                          <span className="rounded-lg border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">{slot.durationMinutes} mnt</span>
                         </div>
                         <p className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 mt-0.5">
                           {slot.startTime} - {slot.endTime} WIB

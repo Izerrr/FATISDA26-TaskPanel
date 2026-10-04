@@ -1,4 +1,5 @@
 import type { Course, TaskScope } from "@/types";
+import { getWibParts, toWibInputValue, wibDate } from "./datetime";
 
 export interface ParsedTaskResult {
   title: string;
@@ -124,7 +125,8 @@ export function parseTaskNaturalLanguage(input: string, courses: Course[]): Pars
   }
 
   // 4. Detect Day / Target Date
-  const targetDate = new Date(now);
+  const wibNow = getWibParts(now);
+  const currentDay = wibNow.weekday === 7 ? 0 : wibNow.weekday; // 0 for Sunday
   let dayOffset: number | null = null;
 
   if (/\bhari ini\b/i.test(lower)) {
@@ -135,7 +137,6 @@ export function parseTaskNaturalLanguage(input: string, courses: Course[]): Pars
     // Check specific day names: "besok senin", "senin depan", "senin"
     for (const [dayName, dayIndex] of Object.entries(DAY_NAMES)) {
       if (new RegExp(`\\b(besok\\s+)?${dayName}(\\s+depan)?\\b`, "i").test(lower)) {
-        const currentDay = now.getDay();
         let diff = (dayIndex - currentDay + 7) % 7;
         if (diff === 0) diff = 7; // Next week if same day
         dayOffset = diff;
@@ -148,18 +149,9 @@ export function parseTaskNaturalLanguage(input: string, courses: Course[]): Pars
     }
   }
 
-  if (dayOffset !== null) {
-    targetDate.setDate(now.getDate() + dayOffset);
-  } else {
-    // Default: tomorrow
-    targetDate.setDate(now.getDate() + 1);
-  }
-
-  targetDate.setHours(hours, minutes, 0, 0);
-
-  // Format datetime-local string: YYYY-MM-DDTHH:mm
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dueDateStr = `${targetDate.getFullYear()}-${pad(targetDate.getMonth() + 1)}-${pad(targetDate.getDate())}T${pad(targetDate.getHours())}:${pad(targetDate.getMinutes())}`;
+  const finalOffset = dayOffset !== null ? dayOffset : 1;
+  const targetDate = wibDate(wibNow.year, wibNow.month, wibNow.day + finalOffset, hours, minutes);
+  const dueDateStr = toWibInputValue(targetDate);
 
   // 5. Clean Title
   let cleanTitle = text

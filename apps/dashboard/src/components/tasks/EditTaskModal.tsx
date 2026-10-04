@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, User, Users, X } from "lucide-react";
 import type { Course, Role, Task, TaskStatus } from "@/types";
+import { toWibInputValue } from "@/lib/datetime";
 
 interface Props {
   open: boolean;
@@ -44,14 +45,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
       setTitle(task.title || "");
       setDescription(task.description || "");
       setCourseId(task.course?.id || task.courseId || "");
-      if (task.dueDate) {
-        const d = new Date(task.dueDate);
-        const pad = (n: number) => String(n).padStart(2, "0");
-        const formatted = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        setDueDate(formatted);
-      } else {
-        setDueDate("");
-      }
+      setDueDate(toWibInputValue(task.dueDate));
       setStatus(task.status);
       setScope(task.scope);
       setTargetKelas(task.kelas || "ALL");

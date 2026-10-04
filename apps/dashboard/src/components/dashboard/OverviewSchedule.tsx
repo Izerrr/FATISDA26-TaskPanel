@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, MapPin, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import type { Schedule } from "@/types";
@@ -114,7 +114,7 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
                         {schedule.courseName ?? schedule.course?.name ?? "Mata kuliah"}
                       </p>
                       {isCurrentClass && (
-                        <span className="rounded bg-emerald-100 dark:bg-emerald-900/60 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">
+                        <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide shrink-0">
                           Berlangsung
                         </span>
                       )}
@@ -129,14 +129,14 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                     {schedule.room && (
                       <span className="flex items-center gap-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">
-                        <MapPin className="h-3 w-3" />
+                        <MapPin className="h-3 w-3 shrink-0" />
                         {schedule.room}
                       </span>
                     )}
 
                     {schedule.lecturer && (
                       <span className="flex items-center gap-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">
-                        <Clock3 className="h-3 w-3" />
+                        <UserRound className="h-3 w-3 shrink-0" />
                         {schedule.lecturer}
                       </span>
                     )}

@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
+import { formatWib, parseWibDateInput } from "@/lib/datetime";
 type TaskScope = "PERSONAL" | "CLASS";
 type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
         title: title.trim(),
         description: typeof description === "string" && description.trim() ? description.trim() : null,
         assignedTo: typeof assignedTo === "string" && assignedTo ? assignedTo : null,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: parseWibDateInput(dueDate),
         status: taskStatus,
         scope: taskScope,
         prodi: targetProdi,
@@ -219,13 +220,13 @@ export async function POST(req: NextRequest) {
       }
 
       const dueDateFormatted = task.dueDate
-        ? new Date(task.dueDate).toLocaleString("id-ID", {
+        ? `${formatWib(task.dueDate, {
             day: "numeric",
             month: "short",
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
-          })
+          })} WIB`
         : "Tidak ada deadline";
 
       const prodiNameFormatted = targetProdi ? targetProdi.replace(/_/g, " ") : "";

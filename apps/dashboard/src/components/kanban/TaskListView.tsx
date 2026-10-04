@@ -137,12 +137,12 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                       </span>
 
                       {/* Course badge */}
-                      {task.course && <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300">{task.course.code}</span>}
+                      {task.course && <span className="inline-flex shrink-0 items-center rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:text-slate-300">{task.course.code}</span>}
 
                       {/* Scope tag */}
                       <span
-                        className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                          task.scope === "CLASS" ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400" : "bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400"
+                        className={`inline-flex shrink-0 items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          task.scope === "CLASS" ? "border-blue-200/60 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300" : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
                         }`}
                       >
                         {task.scope === "CLASS" ? "Kelas" : "Personal"}

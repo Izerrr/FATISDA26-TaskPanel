@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTaskComments } from "@/hooks/useTaskComments";
 import { Loader2, Send } from "lucide-react";
 import Image from "next/image";
+import { formatRelativeWib } from "@/lib/datetime";
 
 export function TaskCommentSection({ taskId }: { taskId: string }) {
   const { comments, isLoading, mutate } = useTaskComments(taskId);
@@ -63,12 +64,7 @@ export function TaskCommentSection({ taskId }: { taskId: string }) {
                     {comment.author.username}
                   </span>
                   <span className="text-[10px] text-slate-500">
-                    {new Date(comment.createdAt).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatRelativeWib(comment.createdAt)}
                   </span>
                 </div>
                 <p className="text-xs text-liquid-text whitespace-pre-wrap break-words min-w-0">

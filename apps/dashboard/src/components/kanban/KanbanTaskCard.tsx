@@ -187,28 +187,39 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
       {task.description && <p className="mt-2.5 pl-6 line-clamp-3 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">{task.description}</p>}
 
       <div className="mt-3.5 flex flex-wrap items-center gap-1.5 sm:gap-2 pl-0 sm:pl-6">
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-          <StatusIcon className="h-3 w-3" />
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+          <StatusIcon className="h-3 w-3 shrink-0" />
           {statusLabel[task.status]}
         </span>
 
         <span
-          className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${task.scope === "CLASS" ? "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300" : "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300"}`}
+          className={`shrink-0 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
+            task.scope === "CLASS"
+              ? "border-blue-200/60 dark:border-blue-800/50 bg-blue-50/80 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
+              : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50/80 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
+          }`}
         >
           {task.scope === "CLASS" ? "Kelas" : "Personal"}
         </span>
 
         {task.dueDate && (
           <span
-            className={`rounded-lg px-2 py-0.5 text-[10px] font-semibold ${urgency === "overdue" ? "bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-300" : urgency === "dueSoon" ? "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"}`}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
+              urgency === "overdue"
+                ? "border-rose-200/60 dark:border-rose-800/60 bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 font-bold"
+                : urgency === "dueSoon"
+                ? "border-amber-200/60 dark:border-amber-800/60 bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+                : "border-slate-200/60 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+            }`}
           >
-            {formatDueDate(task.dueDate)}
+            <CalendarClock className="h-3 w-3 shrink-0" />
+            <span>{formatDueDate(task.dueDate)}</span>
           </span>
         )}
 
         {commentCount !== undefined && commentCount > 0 && (
-          <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
-            <MessageSquare className="h-3 w-3" />
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200/60 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+            <MessageSquare className="h-3 w-3 shrink-0" />
             {commentCount}
           </span>
         )}

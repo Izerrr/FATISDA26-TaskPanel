@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Calendar, CalendarDays, Clock3, MapPin, Sparkles, Table } from "lucide-react";
+import { Calendar, CalendarDays, MapPin, Sparkles, Table, UserRound } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
 import { useRole } from "@/hooks/useRole";
+import { getTodayDay, sortSchedules } from "@/lib/schedule-utils";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ScheduleSyncPanel } from "@/components/schedule/ScheduleSyncPanel";
@@ -65,11 +66,11 @@ export default function SchedulePage() {
     agama: selectedAgama,
   });
 
-  const today = new Date().getDay() || 7;
-  const [selectedDay, setSelectedDay] = useState(today >= 1 && today <= 7 ? today : 1);
+  const today = getTodayDay();
+  const [selectedDay, setSelectedDay] = useState(today);
 
   const selectedSchedules = useMemo(() => {
-    return schedules.filter((schedule) => schedule.day === selectedDay).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    return sortSchedules(schedules.filter((schedule) => schedule.day === selectedDay));
   }, [schedules, selectedDay]);
 
   const prodiLabel = getProdiLabel(user?.prodi);
@@ -83,32 +84,36 @@ export default function SchedulePage() {
       <div className="space-y-6">
         {/* Navigation Bar between Personal, Grand, and AI */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-liquid-border dark:border-slate-800 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 rounded-2xl bg-liquid-accent/10 px-3.5 py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
-              <CalendarDays className="h-4 w-4" />
-              <span>Jadwal Saya (Personal)</span>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <div className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl bg-liquid-accent/10 px-3.5 py-2.5 sm:py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
+              <CalendarDays className="h-4 w-4 shrink-0" />
+              <span>
+                Jadwal Saya<span className="hidden sm:inline"> (Personal)</span>
+              </span>
             </div>
 
             <Link
               href="/dashboard/schedule/grand"
-              className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-sky-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-600 transition hover:border-sky-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
-              <Table className="h-3.5 w-3.5 text-sky-500" />
-              <span>Grand Spreadsheet (Semua Prodi)</span>
+              <Table className="h-3.5 w-3.5 shrink-0 text-sky-500" />
+              <span>
+                Grand<span className="hidden sm:inline"> Spreadsheet (Semua Prodi)</span>
+              </span>
             </Link>
           </div>
 
           <button
             type="button"
             onClick={() => setShowAiMatcher(!showAiMatcher)}
-            className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition shadow-sm ${
+            className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 sm:py-2 text-xs font-bold transition shadow-sm ${
               showAiMatcher
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sky-500/20"
                 : "border border-sky-300/80 bg-sky-50/80 text-sky-700 hover:bg-sky-100/80 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50"
             }`}
           >
-            <Sparkles className="h-4 w-4 animate-pulse" />
-            <span>{showAiMatcher ? "Tutup AI Matcher" : "Buka AI Matcher & Jam Kosong"}</span>
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span>{showAiMatcher ? "Tutup AI Matcher" : "AI Matcher & Jam Kosong"}</span>
           </button>
         </div>
 
@@ -131,27 +136,27 @@ export default function SchedulePage() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             {/* Export Button */}
             <button
               type="button"
               onClick={() => setExportModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition"
+              className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition"
             >
               <Calendar className="h-4 w-4 text-liquid-accent" />
               <span>Ekspor Kalender</span>
             </button>
 
             {/* Agama Selector */}
-            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
-              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">Agama</span>
-              <div className="flex gap-1 overflow-x-auto">
+            <div className="flex min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
+              <span className="shrink-0 px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">Agama</span>
+              <div className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto">
                 {AGAMA_OPTIONS.map((item) => (
                   <button
                     key={item.value}
                     type="button"
                     onClick={() => setSelectedAgama(item.value)}
-                    className={`h-7 rounded-xl px-2.5 text-xs font-semibold transition ${selectedAgama === item.value ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
+                    className={`h-8 shrink-0 whitespace-nowrap rounded-xl px-2.5 text-xs font-semibold transition ${selectedAgama === item.value ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
                   >
                     {item.label}
                   </button>
@@ -160,15 +165,18 @@ export default function SchedulePage() {
             </div>
 
             {/* Semester Selector */}
-            <div className="flex items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
-              <span className="px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">Semester</span>
-              <div className="flex gap-1 overflow-x-auto">
+            <div className="flex min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
+              <span className="shrink-0 px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">
+                <span className="sm:hidden">Smt</span>
+                <span className="hidden sm:inline">Semester</span>
+              </span>
+              <div className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto">
                 {SEMESTERS.map((sem) => (
                   <button
                     key={sem}
                     type="button"
                     onClick={() => setSelectedSemester(sem)}
-                    className={`h-7 w-7 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
+                    className={`h-8 w-8 shrink-0 rounded-xl text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
                   >
                     {sem}
                   </button>
@@ -252,16 +260,16 @@ export default function SchedulePage() {
 
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-liquid-text-secondary dark:text-slate-400">
                       {schedule.room && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-slate-400 dark:text-slate-500" />
-                          {schedule.room}
+                        <span className="flex min-w-0 items-center gap-1">
+                          <MapPin className="h-3 w-3 shrink-0 text-slate-400 dark:text-slate-500" />
+                          <span className="truncate">{schedule.room}</span>
                         </span>
                       )}
 
                       {schedule.lecturer && (
-                        <span className="flex items-center gap-1">
-                          <Clock3 className="h-3 w-3 text-slate-400 dark:text-slate-500" />
-                          {schedule.lecturer}
+                        <span className="flex min-w-0 items-center gap-1">
+                          <UserRound className="h-3 w-3 shrink-0 text-slate-400 dark:text-slate-500" />
+                          <span className="truncate">{schedule.lecturer}</span>
                         </span>
                       )}
                     </div>
