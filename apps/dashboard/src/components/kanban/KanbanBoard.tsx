@@ -48,45 +48,9 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     } catch {}
   };
 
-  const columnRefs = useRef<Record<string, HTMLElement | null>>({});
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     setItems(tasks);
   }, [tasks]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let timeout: NodeJS.Timeout;
-    const handleScroll = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        const scrollLeft = container.scrollLeft;
-        const width = container.offsetWidth;
-        const center = scrollLeft + width / 2;
-
-        for (const status of KANBAN_COLUMNS) {
-          const el = columnRefs.current[status];
-          if (el) {
-            const left = el.offsetLeft;
-            const right = left + el.offsetWidth;
-            if (center >= left && center <= right) {
-              setActiveMobileTab(status);
-              break;
-            }
-          }
-        }
-      }, 60);
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeout);
-    };
-  }, []);
 
   function handleDragStart() {
     setIsDragging(true);
@@ -213,13 +177,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     }
   }
 
-  function scrollToColumn(status: TaskStatus) {
-    setActiveMobileTab(status);
-    const element = columnRefs.current[status];
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-    }
-  }
+
 
   if (isLoading) {
     return (
@@ -262,8 +220,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           </button>
         </div>
 
-        <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
-          Tampilan: {viewMode === "kanban" ? "Papan 4 Kolom" : "Daftar Terurut"}
+        <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 hidden sm:block">
+          Tampilan: {viewMode === "kanban" ? "Papan Kolom" : "Daftar Terurut"}
         </div>
       </div>
 
@@ -278,8 +236,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         />
       ) : (
         <>
-          {/* Responsive Status Switcher Tabs (< xl) */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar xl:hidden">
+          {/* Mobile Status Switcher Tabs (Segmented 4-Column Bar on < md) */}
+          <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 md:hidden shadow-2xs">
             {KANBAN_COLUMNS.map((status) => {
               const meta = KANBAN_META[status];
               const count = items.filter((task) => task.status === status).length;
@@ -289,43 +247,64 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
                 <button
                   key={status}
                   type="button"
-                  onClick={() => scrollToColumn(status)}
-                  className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
-                    isActive ? "bg-liquid-accent text-white shadow-sm scale-[1.02]" : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60"
+                  onClick={() => setActiveMobileTab(status)}
+                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-white dark:bg-slate-900 text-liquid-accent dark:text-sky-400 shadow-xs font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
                   }`}
                 >
-                  <span>{meta.label}</span>
-                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>{count}</span>
+                  <span className="text-[11px] leading-tight truncate max-w-full">{meta.shortLabel}</span>
+                  <span
+                    className={`mt-1 inline-flex items-center justify-center min-w-[20px] h-4.5 px-1.5 rounded-full text-[10px] font-bold ${
+                      isActive
+                        ? "bg-liquid-accent/15 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300"
+                        : "bg-slate-200/70 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               );
             })}
           </div>
 
-          <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            {/* Unified Responsive Kanban Layout (Zero horizontal leakage, full fluid width) */}
-            <div ref={scrollContainerRef} className={`flex overflow-x-auto gap-4 pb-4 no-scrollbar xl:grid xl:grid-cols-4 xl:overflow-visible ${isDragging ? "snap-none" : "snap-x snap-mandatory"}`}>
-              {KANBAN_COLUMNS.map((status) => (
-                <div
-                  key={status}
-                  ref={(el) => {
-                    columnRefs.current[status] = el;
-                  }}
-                  className={`w-[85vw] max-w-[340px] shrink-0 sm:w-[320px] xl:w-auto xl:max-w-none xl:shrink xl:snap-align-none ${isDragging ? "snap-align-none" : "snap-center"}`}
-                >
-                  <KanbanColumn
-                    status={status}
-                    tasks={items.filter((task) => task.status === status)}
-                    isDraggingAny={isDragging}
-                    justMovedTaskId={justMovedTaskId}
-                    onSelect={(task) => setDetailTask(task)}
-                    onMoveStatus={handleMoveTask}
-                    onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
-                    onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
-                  />
-                </div>
-              ))}
-            </div>
-          </DragDropContext>
+          {/* Mobile Active Column View (Fluid 100% width, zero horizontal snap lag) */}
+          <div className="md:hidden">
+            <KanbanColumn
+              status={activeMobileTab}
+              tasks={items.filter((task) => task.status === activeMobileTab)}
+              isDraggingAny={false}
+              justMovedTaskId={justMovedTaskId}
+              isMobileSingleView={true}
+              onSelect={(task) => setDetailTask(task)}
+              onMoveStatus={handleMoveTask}
+              onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+              onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+            />
+          </div>
+
+          {/* Desktop Multi-Column Kanban Board (>= md) */}
+          <div className="hidden md:block">
+            <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                {KANBAN_COLUMNS.map((status) => (
+                  <div key={status} className="min-w-0">
+                    <KanbanColumn
+                      status={status}
+                      tasks={items.filter((task) => task.status === status)}
+                      isDraggingAny={isDragging}
+                      justMovedTaskId={justMovedTaskId}
+                      onSelect={(task) => setDetailTask(task)}
+                      onMoveStatus={handleMoveTask}
+                      onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+                      onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </DragDropContext>
+          </div>
         </>
       )}
 

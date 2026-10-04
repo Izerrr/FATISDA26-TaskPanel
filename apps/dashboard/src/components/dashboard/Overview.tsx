@@ -37,7 +37,7 @@ export function Overview({ tasks, schedules }: OverviewProps) {
     .slice(0, 4);
 
   const upcoming = [...tasks]
-    .filter((task) => task.dueDate && new Date(task.dueDate) >= now)
+    .filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) >= now)
     .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
     .slice(0, 5);
 
@@ -139,7 +139,7 @@ export function Overview({ tasks, schedules }: OverviewProps) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-liquid-text dark:text-slate-100">Deadline Terdekat</h2>
-              <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Berdasarkan tugas yang memiliki deadline.</p>
+              <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Berdasarkan tugas aktif yang memiliki deadline.</p>
             </div>
 
             <span className="rounded-full bg-blue-50 dark:bg-blue-950/60 px-3 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300 shrink-0">{upcoming.length} tugas</span>

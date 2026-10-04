@@ -10,13 +10,14 @@ interface Props {
   tasks: Task[];
   isDraggingAny?: boolean;
   justMovedTaskId?: string | null;
+  isMobileSingleView?: boolean;
   onSelect?: (task: Task) => void;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
 }
 
-export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
+export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, isMobileSingleView = false, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
   const meta = KANBAN_META[status];
   const [isExpanded, setIsExpanded] = useState(status !== "DONE");
 
@@ -29,6 +30,54 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
 
   const hasExcess = tasks.length > 5;
   const visibleTasks = hasExcess && !isExpanded ? tasks.slice(0, 5) : tasks;
+
+  if (isMobileSingleView) {
+    return (
+      <section className="w-full min-w-0 flex flex-col space-y-3 pt-1">
+        {visibleTasks.map((task, index) => (
+          <div key={task.id} className="transition-all duration-200">
+            <KanbanTaskCard
+              task={task}
+              index={index}
+              isDragging={false}
+              isJustMoved={task.id === justMovedTaskId}
+              onSelect={onSelect}
+              onMoveStatus={onMoveStatus}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          </div>
+        ))}
+
+        {hasExcess && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition active:scale-98 cursor-pointer mt-1 shadow-2xs"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3.5 w-3.5" />
+                <span>Sembunyikan ({tasks.length - 5} tugas)</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3.5 w-3.5" />
+                <span>Lihat {tasks.length - 5} tugas lainnya</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {tasks.length === 0 && (
+          <div className="flex h-36 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-6 text-center shadow-xs">
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Tidak ada tugas {meta.label}</p>
+            <p className="text-[11px] text-slate-400 mt-1">Tugas pada kolom ini kosong.</p>
+          </div>
+        )}
+      </section>
+    );
+  }
 
   return (
     <section className={`flex w-full min-w-0 flex-1 flex-col rounded-3xl border bg-white/80 dark:bg-slate-900/90 shadow-xs transition-all duration-200 ${meta.border}`}>

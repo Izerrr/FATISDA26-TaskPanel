@@ -124,7 +124,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <DashboardFrame>
-      <div className="space-y-8 pb-12">
+      <div className="space-y-6 sm:space-y-8 pb-12">
         {/* Header Section */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -179,7 +179,7 @@ export default function AdminAnalyticsPage() {
             {/* Top 4 KPI Metrics */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Card 1: Total Users who accessed TaskPanel */}
-              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
                     Mahasiswa Aktif TaskPanel
@@ -201,7 +201,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Card 2: Google UNS Users */}
-              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
                     Akun Google UNS
@@ -224,7 +224,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Card 3: Discord Users */}
-              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
                     Login via Discord
@@ -247,7 +247,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Card 4: Linked Both */}
-              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="relative overflow-hidden rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-5 shadow-2xs transition hover:shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400">
                     Akun Tertaut Ganda
@@ -273,7 +273,7 @@ export default function AdminAnalyticsPage() {
             {/* Row 2: Adopsi Autentikasi & Progres Tugas */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Box 1: Status Adopsi Platform & Provider */}
-              <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
@@ -356,7 +356,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Box 2: Statistik Manajemen Tugas */}
-              <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
@@ -476,7 +476,7 @@ export default function AdminAnalyticsPage() {
             {/* Row 3: Sebaran Prodi & Sebaran Kelas */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Sebaran Prodi */}
-              <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
                   Sebaran Program Studi (Prodi)
                 </h2>
@@ -522,7 +522,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Sebaran Kelas */}
-              <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
                   Sebaran Kelas Mahasiswa
                 </h2>
@@ -578,7 +578,7 @@ export default function AdminAnalyticsPage() {
             {/* Row 4: Komunitas & Laporan Feedback */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Ekosistem Ringkas */}
-              <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
                   Ekosistem Akademik
                 </h2>
@@ -635,7 +635,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Laporan Feedback & Bug Terbaru */}
-              <div className="lg:col-span-2 rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="lg:col-span-2 rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
@@ -661,7 +661,7 @@ export default function AdminAnalyticsPage() {
                           key={fb.id}
                           className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:bg-slate-800/70"
                         >
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${badge.color}`}>
                                 {badge.label}
@@ -678,7 +678,7 @@ export default function AdminAnalyticsPage() {
                             {fb.message}
                           </p>
                           {fb.pageUrl && (
-                            <p className="mt-1 text-[10px] text-slate-400 font-mono">
+                            <p className="mt-1 text-[10px] text-slate-400 font-mono break-all">
                               Halaman: {fb.pageUrl}
                             </p>
                           )}
@@ -691,8 +691,8 @@ export default function AdminAnalyticsPage() {
             </div>
 
             {/* Row 5: 12 Mahasiswa Terdaftar Terbaru */}
-            <div className="rounded-2xl border border-liquid-border/80 bg-white p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between pb-1">
                 <div>
                   <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
                     Pengguna Terdaftar Terbaru
@@ -703,16 +703,102 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              {/* Mobile View: Dedicated Card List (< sm) */}
+              <div className="mt-4 space-y-3 sm:hidden">
+                {analytics.users.recentUsers.map((u) => {
+                  const isDualLinked = Boolean(u.googleId && u.discordId);
+                  const isGoogleOnlyUser = Boolean(u.googleId && !u.discordId);
+                  return (
+                    <div
+                      key={u.id}
+                      className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 space-y-2.5 dark:border-slate-800 dark:bg-slate-800/40"
+                    >
+                      {/* Top: Avatar, Name, and Last Active */}
+                      <div className="flex items-start justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          {u.avatar ? (
+                            <img
+                              src={u.avatar}
+                              alt={u.username}
+                              className="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                            />
+                          ) : (
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-xs font-bold text-white shadow-2xs">
+                              {u.username.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-xs text-liquid-text dark:text-slate-100 truncate">{u.username}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-mono truncate">{u.nim || u.email || "No NIM"}</p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                          {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Baru saja"}
+                        </span>
+                      </div>
+
+                      {/* Middle: Method badge and Roles */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {isDualLinked ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 whitespace-nowrap">
+                            <Link2 className="h-3 w-3 shrink-0" />
+                            Dual-Auth (UNS + Discord)
+                          </span>
+                        ) : isGoogleOnlyUser ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 whitespace-nowrap">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            Google UNS
+                          </span>
+                        ) : (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 whitespace-nowrap">
+                            <Hash className="h-3 w-3 shrink-0" />
+                            Discord
+                          </span>
+                        )}
+
+                        {(u.roles && u.roles.length > 0 ? u.roles : ["STUDENT"]).map((r) => (
+                          <span
+                            key={r}
+                            className={`rounded-md px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${
+                              r === "ADMIN" || r === "OWNER"
+                                ? "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20"
+                                : r === "KETUA_ANGKATAN"
+                                  ? "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border border-purple-500/20"
+                                  : r === "PJ_KELAS" || r === "PJ_MATKUL"
+                                    ? "bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border border-sky-500/20"
+                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60"
+                            }`}
+                          >
+                            {r === "STUDENT" ? "Mahasiswa" : r.replace("_", " ")}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Bottom: Academic Context */}
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-2">
+                        <span className="truncate">{formatProdiName(u.prodi)}</span>
+                        {u.kelas && (
+                          <span className="shrink-0 ml-2 rounded-md border border-slate-200/60 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                            Kelas {u.kelas}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop View: Full Data Table (>= sm) */}
+              <div className="mt-5 hidden sm:block overflow-x-auto">
+                <table className="w-full min-w-[700px] text-left text-xs">
                   <thead>
                     <tr className="border-b border-liquid-border text-[11px] font-semibold text-liquid-text-secondary dark:border-slate-800 dark:text-slate-400">
-                      <th className="pb-3 pl-1 font-semibold">Mahasiswa</th>
-                      <th className="pb-3 font-semibold">Metode Masuk</th>
-                      <th className="pb-3 font-semibold">Program Studi &amp; Kelas</th>
-                      <th className="pb-3 font-semibold">Peran</th>
-                      <th className="pb-3 font-semibold">Terakhir Aktif</th>
-                      <th className="pb-3 pr-1 text-right font-semibold">Bergabung</th>
+                      <th className="pb-3 pl-1 font-semibold whitespace-nowrap">Mahasiswa</th>
+                      <th className="pb-3 font-semibold whitespace-nowrap">Metode Masuk</th>
+                      <th className="pb-3 font-semibold whitespace-nowrap">Program Studi &amp; Kelas</th>
+                      <th className="pb-3 font-semibold whitespace-nowrap">Peran</th>
+                      <th className="pb-3 font-semibold whitespace-nowrap">Terakhir Aktif</th>
+                      <th className="pb-3 pr-1 text-right font-semibold whitespace-nowrap">Bergabung</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -736,8 +822,8 @@ export default function AdminAnalyticsPage() {
                                 </div>
                               )}
                               <div>
-                                <p className="font-semibold text-liquid-text dark:text-slate-200">{u.username}</p>
-                                <p className="text-[10px] text-slate-400 font-mono">{u.nim || u.email || "No NIM"}</p>
+                                <p className="font-semibold text-liquid-text dark:text-slate-200 whitespace-nowrap">{u.username}</p>
+                                <p className="text-[10px] text-slate-400 font-mono whitespace-nowrap">{u.nim || u.email || "No NIM"}</p>
                               </div>
                             </div>
                           </td>
@@ -745,25 +831,25 @@ export default function AdminAnalyticsPage() {
                           {/* Provider Badge */}
                           <td className="py-3">
                             {isDualLinked ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                                <Link2 className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 whitespace-nowrap">
+                                <Link2 className="h-3 w-3 shrink-0" />
                                 Dual-Auth (UNS + Discord)
                               </span>
                             ) : isGoogleOnlyUser ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                                <Mail className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 whitespace-nowrap">
+                                <Mail className="h-3 w-3 shrink-0" />
                                 Google UNS
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
-                                <Hash className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 whitespace-nowrap">
+                                <Hash className="h-3 w-3 shrink-0" />
                                 Discord Server
                               </span>
                             )}
                           </td>
 
                           {/* Prodi & Kelas */}
-                          <td className="py-3">
+                          <td className="py-3 whitespace-nowrap">
                             <span className="font-medium text-liquid-text dark:text-slate-300">
                               {formatProdiName(u.prodi)}
                             </span>
@@ -780,7 +866,7 @@ export default function AdminAnalyticsPage() {
                               {(u.roles && u.roles.length > 0 ? u.roles : ["STUDENT"]).map((r) => (
                                 <span
                                   key={r}
-                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${
                                     r === "ADMIN" || r === "OWNER"
                                       ? "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400"
                                       : r === "KETUA_ANGKATAN"
@@ -797,12 +883,12 @@ export default function AdminAnalyticsPage() {
                           </td>
 
                           {/* Terakhir Aktif */}
-                          <td className="py-3 text-slate-500 dark:text-slate-400">
+                          <td className="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                             {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Baru saja"}
                           </td>
 
                           {/* Waktu Bergabung */}
-                          <td className="py-3 pr-1 text-right text-slate-400 dark:text-slate-500">
+                          <td className="py-3 pr-1 text-right text-slate-400 dark:text-slate-500 whitespace-nowrap">
                             {formatDate(u.createdAt)}
                           </td>
                         </tr>

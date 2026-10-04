@@ -97,7 +97,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex items-start gap-2 min-w-0 flex-1">
-          <div className="mt-0.5 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors">
+          <div className="mt-0.5 shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 transition-colors hidden sm:block">
             <GripVertical className="h-4 w-4" />
           </div>
 
@@ -187,11 +187,6 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
       {task.description && <p className="mt-2.5 pl-6 line-clamp-3 text-xs leading-5 text-liquid-text-secondary dark:text-slate-400">{task.description}</p>}
 
       <div className="mt-3.5 flex flex-wrap items-center gap-1.5 sm:gap-2 pl-0 sm:pl-6">
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-          <StatusIcon className="h-3 w-3 shrink-0" />
-          {statusLabel[task.status]}
-        </span>
-
         <span
           className={`shrink-0 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
             task.scope === "CLASS"
@@ -227,16 +222,16 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
 
       {/* Mobile-Friendly Quick Move Bar (1-tap transition on phone) */}
       {onMoveStatus && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-100/90 dark:border-slate-800 pt-2.5 pl-0 sm:pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Pindah:</span>
-          <div className="flex flex-wrap items-center gap-1">
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100/90 dark:border-slate-800 pt-2.5 pl-0 sm:pl-6 md:hidden" onClick={(e) => e.stopPropagation()}>
+          <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Pindah Status:</span>
+          <div className="flex flex-wrap items-center gap-1.5">
             {task.status === "TODO" && (
               <button
                 type="button"
                 onClick={() => onMoveStatus(task, "IN_PROGRESS")}
-                className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-500/15 dark:bg-amber-950/60 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition active:scale-95"
+                className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 px-2.5 py-1.5 text-[11px] font-bold text-sky-700 dark:text-sky-300 transition active:scale-95"
               >
-                <span>Kerjakan</span>
+                <span>Mulai Kerjakan</span>
                 <ArrowRight className="h-3 w-3" />
               </button>
             )}
@@ -246,7 +241,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                 <button
                   type="button"
                   onClick={() => onMoveStatus(task, "NEED_REVIEW")}
-                  className="flex items-center gap-1 rounded-lg bg-purple-500/15 dark:bg-purple-950/60 px-2 py-1 text-[11px] font-bold text-purple-700 dark:text-purple-300 transition active:scale-95"
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 px-2.5 py-1.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 transition active:scale-95"
                 >
                   <span>Review</span>
                   <ArrowRight className="h-3 w-3" />
@@ -254,7 +249,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                 <button
                   type="button"
                   onClick={() => onMoveStatus(task, "DONE")}
-                  className="flex items-center gap-1 rounded-lg bg-emerald-500/15 dark:bg-emerald-950/60 px-2 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95"
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95"
                 >
                   <span>Selesai ✓</span>
                 </button>
@@ -265,7 +260,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
               <button
                 type="button"
                 onClick={() => onMoveStatus(task, "DONE")}
-                className="flex items-center gap-1 rounded-lg bg-emerald-500/15 dark:bg-emerald-950/60 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95"
+                className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95"
               >
                 <span>Selesai ✓</span>
               </button>
@@ -275,7 +270,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
               <button
                 type="button"
                 onClick={() => onMoveStatus(task, "TODO")}
-                className="flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 transition active:scale-95"
+                className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 transition active:scale-95"
               >
                 <span>↺ Buka Lagi</span>
               </button>

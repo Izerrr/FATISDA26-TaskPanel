@@ -6,6 +6,7 @@ export const KANBAN_META: Record<
   TaskStatus,
   {
     label: string;
+    shortLabel: string;
     badge: string;
     border: string;
     dropBg: string;
@@ -16,6 +17,7 @@ export const KANBAN_META: Record<
 > = {
   TODO: {
     label: "Belum Dimulai",
+    shortLabel: "Todo",
     badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60",
     border: "border-slate-200/80 dark:border-slate-800",
     dropBg: "bg-slate-100/50 dark:bg-slate-800/30",
@@ -25,6 +27,7 @@ export const KANBAN_META: Record<
   },
   IN_PROGRESS: {
     label: "Dikerjakan",
+    shortLabel: "Proses",
     badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/50",
     border: "border-blue-100/80 dark:border-blue-900/40",
     dropBg: "bg-blue-50/50 dark:bg-blue-950/20",
@@ -34,6 +37,7 @@ export const KANBAN_META: Record<
   },
   NEED_REVIEW: {
     label: "Perlu Review",
+    shortLabel: "Review",
     badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/50",
     border: "border-amber-100/80 dark:border-amber-900/40",
     dropBg: "bg-amber-50/50 dark:bg-amber-950/20",
@@ -43,6 +47,7 @@ export const KANBAN_META: Record<
   },
   DONE: {
     label: "Selesai",
+    shortLabel: "Selesai",
     badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/50",
     border: "border-emerald-100/80 dark:border-emerald-900/40",
     dropBg: "bg-emerald-50/50 dark:bg-emerald-950/20",
