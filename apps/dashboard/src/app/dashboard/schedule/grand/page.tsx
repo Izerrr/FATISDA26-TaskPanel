@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock, Download, Filter, Layers, MapPin, RefreshCw, Search, Sparkles, Table as TableIcon, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Download, Filter, GraduationCap, Layers, MapPin, RefreshCw, Search, Sparkles, Table as TableIcon, UserRound } from "lucide-react";
 import type { Prodi } from "@prisma/client";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
@@ -187,6 +187,14 @@ export default function GrandSchedulePage() {
               <TableIcon className="h-4 w-4" />
               <span>Grand Spreadsheet (Semua Prodi)</span>
             </div>
+
+            <Link
+              href="/dashboard/schedule/exam"
+              className="flex items-center gap-1.5 rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40"
+            >
+              <GraduationCap className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>Jadwal UTS / UAS</span>
+            </Link>
           </div>
 
           <button

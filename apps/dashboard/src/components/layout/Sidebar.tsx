@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Sparkles, UserRound, X } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, GraduationCap, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Sparkles, UserRound, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
@@ -33,8 +33,13 @@ const navItems = [
   },
   {
     href: "/dashboard/schedule",
-    label: "Jadwal",
+    label: "Jadwal Kuliah",
     icon: CalendarDays,
+  },
+  {
+    href: "/dashboard/schedule/exam",
+    label: "Jadwal UTS / UAS",
+    icon: GraduationCap,
   },
   {
     href: "/dashboard/courses",
@@ -288,7 +293,12 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
           {navItems.map((item) => {
             const Icon = item.icon;
 
-            const isActive = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : item.href === "/dashboard/schedule"
+                ? pathname === "/dashboard/schedule" || pathname.startsWith("/dashboard/schedule/grand")
+                : pathname.startsWith(item.href);
 
             return (
               <Link

@@ -63,6 +63,28 @@ export interface Schedule {
   } | null;
 }
 
+export type ExamType = "UTS" | "UAS";
+
+export interface ExamSchedule {
+  id: string;
+  type: ExamType;
+  prodi: Prodi;
+  semester: number;
+  kelas: Kelas;
+  courseName: string;
+  date: string;
+  dateStr: string;
+  dayName: string;
+  dayNum: number;
+  startTime: string;
+  endTime: string;
+  room: string;
+  rawText?: string | null;
+  sourceSlots: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Task {
   id: string;
   guildId: string;

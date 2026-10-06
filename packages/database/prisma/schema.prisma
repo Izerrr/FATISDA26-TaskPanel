@@ -43,6 +43,11 @@ enum TaskStatus {
   DONE
 }
 
+enum ExamType {
+  UTS
+  UAS
+}
+
 model Guild {
   id        String   @id
   name      String
@@ -118,6 +123,31 @@ model Schedule {
 
   @@index([prodi, kelas, semester])
   @@index([courseId])
+}
+
+model ExamSchedule {
+  id          String   @id @default(cuid())
+  type        ExamType @default(UTS)
+  prodi       Prodi    @default(INFORMATIKA)
+  semester    Int
+  kelas       Kelas
+  courseName  String
+  date        DateTime
+  dateStr     String
+  dayName     String
+  dayNum      Int
+  startTime   String
+  endTime     String
+  room        String
+  rawText     String?
+  sourceSlots Int[]    @default([])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([prodi, semester, kelas])
+  @@index([date])
+  @@index([type])
 }
 
 model Course {

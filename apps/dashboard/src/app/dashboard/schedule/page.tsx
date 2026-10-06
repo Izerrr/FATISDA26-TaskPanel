@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Calendar, CalendarDays, MapPin, Sparkles, Table, UserRound } from "lucide-react";
+import { Calendar, CalendarDays, GraduationCap, MapPin, Sparkles, Table, UserRound } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
 import { useRole } from "@/hooks/useRole";
@@ -99,6 +99,16 @@ export default function SchedulePage() {
               <Table className="h-3.5 w-3.5 shrink-0 text-sky-500" />
               <span>
                 Grand<span className="hidden sm:inline"> Spreadsheet (Semua Prodi)</span>
+              </span>
+            </Link>
+
+            <Link
+              href="/dashboard/schedule/exam"
+              className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40"
+            >
+              <GraduationCap className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>
+                Jadwal UTS<span className="hidden sm:inline"> / UAS</span>
               </span>
             </Link>
           </div>

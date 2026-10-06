@@ -4,6 +4,7 @@ import { AlertCircle, BarChart3, CheckCircle2, Clock3, Flame, ListTodo, Trending
 import type { Schedule, Task } from "@/types";
 import { formatWib } from "@/lib/datetime";
 import { OverviewSchedule } from "./OverviewSchedule";
+import { OverviewExam } from "./OverviewExam";
 
 interface OverviewProps {
   tasks: Task[];
@@ -132,6 +133,9 @@ export function Overview({ tasks, schedules }: OverviewProps) {
           <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500" style={{ width: `${completionRate}%` }} />
         </div>
       </section>
+
+      {/* Jadwal UTS / UAS Terdekat & Agenda Ujian */}
+      <OverviewExam />
 
       {/* Main Grid: Deadlines & Today's Schedule */}
       <div className="grid gap-6 lg:grid-cols-3">
