@@ -62,7 +62,21 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
     });
   }, [exams, now]);
 
-  const nextExam = upcomingExams.find((e) => !e.isPast);
+  // Sort list chronologically by weekday starting from Senin (1 = Senin .. 7 = Minggu)
+  const sortedExams = useMemo(() => {
+    return [...upcomingExams].sort((a, b) => {
+      const dayDiff = a.dayNum - b.dayNum;
+      if (dayDiff !== 0) return dayDiff;
+      return a.startTime.localeCompare(b.startTime);
+    });
+  }, [upcomingExams]);
+
+  // Find nearest upcoming exam in chronological real-time order for the countdown hero
+  const nextExam = useMemo(() => {
+    return [...upcomingExams]
+      .filter((e) => !e.isPast)
+      .sort((a, b) => a.startDateTime.getTime() - b.startDateTime.getTime())[0];
+  }, [upcomingExams]);
 
   if (isLoading) {
     return (
@@ -172,7 +186,7 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {upcomingExams.slice(0, 6).map((exam) => (
+          {sortedExams.slice(0, 6).map((exam) => (
             <div
               key={exam.id}
               className={`rounded-xl border p-3 transition-colors ${

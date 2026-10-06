@@ -2,6 +2,7 @@ import type { Kelas, Prodi } from "@/types";
 import {
   CLEAN_EXAM_COURSE_NAMES,
   ID_MONTHS,
+  MKU_CLASS_MAPPING,
   SESSION_TIMES_FRIDAY,
   SESSION_TIMES_NORMAL,
 } from "./constants";
@@ -213,15 +214,20 @@ export function parseExamCsv(
         const semester = parseInt(match[2], 10);
         const classPart = match[3] ? match[3].trim() : "";
 
-        // Extract class letters: A, B, C, D, E from classPart
-        const classMatches = classPart.match(/[A-E][12]?/g) || [];
-        const rombels: Kelas[] = Array.from(
-          new Set(
-            classMatches
-              .map((c) => c[0].toUpperCase())
-              .filter((c): c is Kelas => ["A", "B", "C", "D", "E"].includes(c)),
-          ),
-        );
+        // Extract class letters: A, B, C, D, E or MKU tokens A1, A2, B1, B2
+        // Remove connectives like "dan" so they don't accidentally match letters
+        const sanitizedClassPart = classPart.replace(/\bdan\b/gi, " ").trim();
+        const classMatches = sanitizedClassPart.match(/[A-E][12]?/gi) || [];
+        const rombelsSet = new Set<Kelas>();
+        for (const rawToken of classMatches) {
+          const token = rawToken.toUpperCase();
+          if (MKU_CLASS_MAPPING[token]) {
+            rombelsSet.add(MKU_CLASS_MAPPING[token]);
+          } else if (["A", "B", "C", "D", "E"].includes(token)) {
+            rombelsSet.add(token as Kelas);
+          }
+        }
+        const rombels: Kelas[] = Array.from(rombelsSet);
 
         if (rombels.length === 0) continue;
 
@@ -301,10 +307,10 @@ export function parseExamCsv(
     }
   }
 
-  // Sort chronologically by date then startTime then kelas
+  // Sort by day of week starting from Senin (1 = Senin .. 7 = Minggu), then startTime, then kelas
   finalRecords.sort((a, b) => {
-    const dateDiff = a.date.getTime() - b.date.getTime();
-    if (dateDiff !== 0) return dateDiff;
+    const dayDiff = a.dayNum - b.dayNum;
+    if (dayDiff !== 0) return dayDiff;
     const timeDiff = a.startTime.localeCompare(b.startTime);
     if (timeDiff !== 0) return timeDiff;
     return a.kelas.localeCompare(b.kelas);

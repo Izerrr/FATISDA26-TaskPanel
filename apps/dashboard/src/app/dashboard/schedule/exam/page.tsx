@@ -68,25 +68,35 @@ export default function ExamSchedulePage() {
     );
   }, [exams, searchQuery]);
 
-  // Group filtered exams by date
+  // Group filtered exams by day and sort chronologically from Senin (1 = Senin .. 7 = Minggu)
   const groupedByDate = useMemo(() => {
-    const map = new Map<string, { date: Date; dateStr: string; dayName: string; list: ExamSchedule[] }>();
+    const map = new Map<string, { date: Date; dateStr: string; dayName: string; dayNum: number; list: ExamSchedule[] }>();
 
     filteredExams.forEach((exam) => {
-      const key = `${exam.dateStr}`;
+      const key = `${exam.dayName}-${exam.dateStr}`;
       if (!map.has(key)) {
         map.set(key, {
           date: new Date(exam.date),
           dateStr: exam.dateStr,
           dayName: exam.dayName,
+          dayNum: exam.dayNum,
           list: [],
         });
       }
       map.get(key)!.list.push(exam);
     });
 
-    // Sort days chronologically
-    return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+    // Sort days chronologically starting from Monday (Senin)
+    return Array.from(map.values())
+      .sort((a, b) => a.dayNum - b.dayNum)
+      .map((g) => ({
+        ...g,
+        list: [...g.list].sort((a, b) => {
+          const timeDiff = a.startTime.localeCompare(b.startTime);
+          if (timeDiff !== 0) return timeDiff;
+          return a.kelas.localeCompare(b.kelas);
+        }),
+      }));
   }, [filteredExams]);
 
   // Generate iCal ICS file download for student's personal exam schedule

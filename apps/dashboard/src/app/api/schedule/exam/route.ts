@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const exams = await prisma.examSchedule.findMany({
       where: whereClause,
-      orderBy: [{ date: "asc" }, { startTime: "asc" }, { kelas: "asc" }],
+      orderBy: [{ dayNum: "asc" }, { startTime: "asc" }, { kelas: "asc" }],
     });
 
     return NextResponse.json({

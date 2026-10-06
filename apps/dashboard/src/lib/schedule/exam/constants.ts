@@ -1,4 +1,11 @@
-import type { Prodi } from "@/types";
+import type { Kelas, Prodi } from "@/types";
+
+export const MKU_CLASS_MAPPING: Record<string, Kelas> = {
+  A1: "A",
+  A2: "B",
+  B1: "C",
+  B2: "D",
+};
 
 export interface ExamScheduleSource {
   prodi: Prodi;
