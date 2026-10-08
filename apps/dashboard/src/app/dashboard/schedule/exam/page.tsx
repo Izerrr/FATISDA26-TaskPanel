@@ -118,9 +118,9 @@ export default function ExamSchedulePage() {
       map.get(key)!.list.push(exam);
     });
 
-    // Sort days chronologically starting from Monday (Senin)
+    // Sort days chronologically by calendar date
     return Array.from(map.values())
-      .sort((a, b) => a.dayNum - b.dayNum)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
       .map((g) => ({
         ...g,
         list: [...g.list].sort((a, b) => {

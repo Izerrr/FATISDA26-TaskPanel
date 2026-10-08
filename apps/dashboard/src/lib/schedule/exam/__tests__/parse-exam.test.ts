@@ -95,23 +95,25 @@ Senin,1,Pendidikan Pancasila (3) (A1),Pendidikan Pancasila (3) (A2),Pendidikan P
     expect(bindoD).toBeDefined();
   });
 
-  it("should sort records starting from Senin (Monday) even if Tuesday date is earlier", () => {
+  it("should sort records chronologically by calendar date", () => {
     const multiDayCsv = `
 ,,,,,,,,,,,
 ,,B4-11,B4-12,,,,,,,,,
-Selasa,1,Basis Data (3) (A),,,,,,,,,,,
-13 Okt 2026,,,,,,,,,,,,,
 Senin,1,Kalkulus I (1) (A),,,,,,,,,,,
 19 Okt 2026,,,,,,,,,,,,,
+Selasa,1,Basis Data (3) (A),,,,,,,,,,,
+13 Okt 2026,,,,,,,,,,,,,
 `;
     const records = parseExamCsv(multiDayCsv, "INFORMATIKA", "UTS");
     expect(records.length).toBe(2);
 
-    // First item must be from Senin (Monday), even though 13 Okt (Selasa) is numerically before 19 Okt
-    expect(records[0].dayName).toBe("Senin");
-    expect(records[0].courseName).toBe("Kalkulus I");
-    expect(records[1].dayName).toBe("Selasa");
-    expect(records[1].courseName).toBe("Basis Data");
+    // 13 Okt 2026 comes chronologically before 19 Okt 2026
+    expect(records[0].dayName).toBe("Selasa");
+    expect(records[0].dateStr).toBe("13 Okt 2026");
+    expect(records[0].courseName).toBe("Basis Data");
+    expect(records[1].dayName).toBe("Senin");
+    expect(records[1].dateStr).toBe("19 Okt 2026");
+    expect(records[1].courseName).toBe("Kalkulus I");
   });
 
   it("should preserve Monday date as 19 Okt as defined in the schedule", () => {

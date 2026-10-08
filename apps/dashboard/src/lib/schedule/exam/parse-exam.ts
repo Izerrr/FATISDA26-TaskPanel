@@ -307,10 +307,10 @@ export function parseExamCsv(
     }
   }
 
-  // Sort by day of week starting from Senin (1 = Senin .. 7 = Minggu), then startTime, then kelas
+  // Sort chronologically by date, then startTime, then kelas
   finalRecords.sort((a, b) => {
-    const dayDiff = a.dayNum - b.dayNum;
-    if (dayDiff !== 0) return dayDiff;
+    const dateDiff = a.date.getTime() - b.date.getTime();
+    if (dateDiff !== 0) return dateDiff;
     const timeDiff = a.startTime.localeCompare(b.startTime);
     if (timeDiff !== 0) return timeDiff;
     return a.kelas.localeCompare(b.kelas);

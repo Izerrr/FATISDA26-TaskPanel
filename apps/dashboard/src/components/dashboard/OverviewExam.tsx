@@ -95,11 +95,11 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
     });
   }, [exams, now]);
 
-  // Sort list chronologically by weekday starting from Senin (1 = Senin .. 7 = Minggu)
+  // Sort list chronologically by calendar date and start time
   const sortedExams = useMemo(() => {
     return [...upcomingExams].sort((a, b) => {
-      const dayDiff = a.dayNum - b.dayNum;
-      if (dayDiff !== 0) return dayDiff;
+      const dateDiff = a.startDateTime.getTime() - b.startDateTime.getTime();
+      if (dateDiff !== 0) return dateDiff;
       return a.startTime.localeCompare(b.startTime);
     });
   }, [upcomingExams]);
