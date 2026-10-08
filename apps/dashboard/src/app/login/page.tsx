@@ -4,18 +4,7 @@ import { signIn } from "next-auth/react";
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Shield,
-  Kanban,
-  Users,
-  Bell,
-  ArrowRight,
-  AlertTriangle,
-  HelpCircle,
-  X,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { Shield, Kanban, Users, Bell, ArrowRight, AlertTriangle, HelpCircle, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
 
 function LoginContent() {
@@ -49,12 +38,8 @@ function LoginContent() {
       <div className="glass rounded-3xl p-8">
         <div className="flex flex-col items-center text-center">
           <TaskPanelLogo className="h-16 w-16 drop-shadow-lg" />
-          <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100">
-            FATISDA 26
-          </h1>
-          <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">
-            Panel tugas &amp; jadwal FATISDA UNS 2026
-          </p>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100">TaskPanel</h1>
+          <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">Panel tugas &amp; jadwal FATISDA UNS 2026</p>
         </div>
 
         {/* Error: Inactivity Expired */}
@@ -63,9 +48,7 @@ function LoginContent() {
             <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Sesi Berakhir</p>
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                Kamu keluar otomatis karena tidak ada aktivitas selama 24 jam. Silakan masuk kembali.
-              </p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">Kamu keluar otomatis karena tidak ada aktivitas selama 24 jam. Silakan masuk kembali.</p>
             </div>
           </div>
         )}
@@ -89,9 +72,7 @@ function LoginContent() {
             <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-red-800 dark:text-red-300">Gagal Masuk</p>
-              <p className="text-[11px] text-red-700 dark:text-red-400 leading-relaxed">
-                Terjadi kendala saat proses autentikasi. Pastikan akun kamu sudah terdaftar atau tergabung di server.
-              </p>
+              <p className="text-[11px] text-red-700 dark:text-red-400 leading-relaxed">Terjadi kendala saat proses autentikasi. Pastikan akun kamu sudah terdaftar atau tergabung di server.</p>
             </div>
           </div>
         )}
@@ -111,23 +92,15 @@ function LoginContent() {
             disabled={loadingProvider !== null}
             className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#5865F2] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#5865F2]/20 transition-all hover:bg-[#4752C4] hover:shadow-xl hover:shadow-[#5865F2]/30 active:scale-[0.98] disabled:opacity-60"
           >
-            {loadingProvider === "discord" ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            ) : (
-              <DiscordIcon />
-            )}
-            <span>
-              {loadingProvider === "discord" ? "Menghubungkan..." : "Lanjutkan dengan Discord"}
-            </span>
+            {loadingProvider === "discord" ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <DiscordIcon />}
+            <span>{loadingProvider === "discord" ? "Menghubungkan..." : "Lanjutkan dengan Discord"}</span>
             {loadingProvider === null && <ArrowRight className="h-4 w-4 opacity-70" />}
           </button>
 
           {/* Divider */}
           <div className="relative flex items-center justify-center py-1">
             <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-            <span className="absolute bg-white/80 dark:bg-slate-900 px-3 text-[11px] font-medium text-liquid-text-tertiary dark:text-slate-500 backdrop-blur-sm">
-              atau
-            </span>
+            <span className="absolute bg-white/80 dark:bg-slate-900 px-3 text-[11px] font-medium text-liquid-text-tertiary dark:text-slate-500 backdrop-blur-sm">atau</span>
           </div>
 
           {/* Google Student Button */}
@@ -137,18 +110,10 @@ function LoginContent() {
             disabled={loadingProvider !== null}
             className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-5 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-100 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md active:scale-[0.98] disabled:opacity-60"
           >
-            {loadingProvider === "google" ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-400 border-t-slate-800 dark:border-t-white" />
-            ) : (
-              <GoogleIcon />
-            )}
+            {loadingProvider === "google" ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-400 border-t-slate-800 dark:border-t-white" /> : <GoogleIcon />}
             <div className="flex flex-col text-left">
-              <span className="leading-tight">
-                {loadingProvider === "google" ? "Memproses..." : "Masuk dengan Akun UNS"}
-              </span>
-              <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
-                @student.uns.ac.id
-              </span>
+              <span className="leading-tight">{loadingProvider === "google" ? "Memproses..." : "Masuk dengan Akun UNS"}</span>
+              <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">@student.uns.ac.id</span>
             </div>
             {loadingProvider === null && <ArrowRight className="ml-auto h-4 w-4 opacity-50" />}
           </button>
@@ -166,26 +131,18 @@ function LoginContent() {
           </button>
         </div>
 
-        <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary dark:text-slate-400">
-          Akun Discord untuk akses pengurus, akun Google UNS untuk akses mahasiswa.
-        </p>
+        <p className="mt-4 text-center text-[11px] leading-relaxed text-liquid-text-secondary dark:text-slate-400">Akun Discord untuk akses pengurus, akun Google UNS untuk akses mahasiswa.</p>
       </div>
 
       <div className="mt-6 text-center text-[11px] text-liquid-text-tertiary dark:text-slate-500 space-y-1">
-        <p>Dibangun untuk FATISDA UNS 2026</p>
+        <p>For FATISDA UNS 2026</p>
         <p>
           Dengan masuk, Anda menyetujui{" "}
-          <Link
-            href="/terms"
-            className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition"
-          >
+          <Link href="/terms" className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition">
             Syarat &amp; Ketentuan
-          </Link>
-          {" "}serta{" "}
-          <Link
-            href="/privacy"
-            className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition"
-          >
+          </Link>{" "}
+          serta{" "}
+          <Link href="/privacy" className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition">
             Kebijakan Privasi
           </Link>
           .
@@ -211,9 +168,7 @@ function LoginContent() {
                 <h2 id="comparison-title" className="text-lg font-bold text-liquid-text dark:text-slate-100">
                   Perbandingan Metode Masuk
                 </h2>
-                <p className="mt-0.5 text-xs text-liquid-text-secondary dark:text-slate-400">
-                  Sesuaikan dengan kebutuhan dan status kamu di angkatan 2026.
-                </p>
+                <p className="mt-0.5 text-xs text-liquid-text-secondary dark:text-slate-400">Sesuaikan dengan kebutuhan dan status kamu di angkatan 2026.</p>
               </div>
               <button
                 type="button"
@@ -235,9 +190,7 @@ function LoginContent() {
                   </div>
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Discord</h3>
-                    <span className="rounded bg-[#5865F2]/10 dark:bg-[#5865F2]/20 px-1.5 py-0.5 text-[9px] font-semibold text-[#5865F2] dark:text-indigo-300">
-                      Akses Lengkap
-                    </span>
+                    <span className="rounded bg-[#5865F2]/10 dark:bg-[#5865F2]/20 px-1.5 py-0.5 text-[9px] font-semibold text-[#5865F2] dark:text-indigo-300">Akses Lengkap</span>
                   </div>
                 </div>
 
@@ -260,9 +213,7 @@ function LoginContent() {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-indigo-100 dark:border-indigo-900/50 text-[10px] text-slate-500 dark:text-slate-400">
-                  Syarat: Terdaftar di server Discord FATISDA 2026.
-                </div>
+                <div className="mt-4 pt-3 border-t border-indigo-100 dark:border-indigo-900/50 text-[10px] text-slate-500 dark:text-slate-400">Syarat: Terdaftar di server Discord FATISDA 2026.</div>
               </div>
 
               {/* Option 2: Google Student */}
@@ -273,9 +224,7 @@ function LoginContent() {
                   </div>
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Akun Google UNS</h3>
-                    <span className="rounded bg-sky-100 dark:bg-sky-900/40 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 dark:text-sky-300">
-                      Akses Mahasiswa
-                    </span>
+                    <span className="rounded bg-sky-100 dark:bg-sky-900/40 px-1.5 py-0.5 text-[9px] font-semibold text-sky-700 dark:text-sky-300">Akses Mahasiswa</span>
                   </div>
                 </div>
 
@@ -354,22 +303,10 @@ function DiscordIcon() {
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0">
-      <path
-        fill="#4285F4"
-        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.97 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"
-      />
+      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17Z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24Z" />
+      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.97 0 12s.45 3.82 1.25 5.42l4.03-3.15Z" />
+      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z" />
     </svg>
   );
 }
