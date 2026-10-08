@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "FATISDA26 TaskPanel",
+    name: "TaskPanel FATISDA 2026",
     short_name: "TaskPanel",
-    description: "Panel Tugas & Jadwal Kuliah Mahasiswa FATISDA UNS 2026",
+    description: "Panel Tugas, Jadwal Kuliah & UTS/UAS Mahasiswa FATISDA UNS 2026",
     id: "/dashboard",
     start_url: "/dashboard",
     scope: "/",

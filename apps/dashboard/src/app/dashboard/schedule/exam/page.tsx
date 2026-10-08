@@ -21,6 +21,7 @@ import { useRole } from "@/hooks/useRole";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ExamScheduleSyncPanel } from "@/components/schedule/ExamScheduleSyncPanel";
+import { formatExamDuration } from "@/lib/schedule/exam/constants";
 import type { ExamSchedule, ExamType, Kelas, Prodi } from "@/types";
 
 const SEMESTERS = [1, 3, 5, 7];
@@ -513,8 +514,8 @@ export default function ExamSchedulePage() {
                               </div>
                             </div>
 
-                            <span className="shrink-0 text-xs font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                              {exam.startTime}
+                            <span className="shrink-0 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                              {formatExamDuration(exam.startTime, exam.endTime)}
                             </span>
                           </div>
 

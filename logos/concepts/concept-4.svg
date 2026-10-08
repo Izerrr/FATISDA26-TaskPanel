@@ -1,52 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
     <!-- Background Gradient -->
-    <linearGradient id="tp-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="c4-bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0284C7" />
       <stop offset="45%" stop-color="#0369A1" />
       <stop offset="100%" stop-color="#0B192C" />
     </linearGradient>
 
     <!-- Back Panel Gradient -->
-    <linearGradient id="tp-back-card" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="c4-back-card" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.35" />
       <stop offset="100%" stop-color="#0077B6" stop-opacity="0.15" />
     </linearGradient>
 
     <!-- Main Front Card Gradient (Frosted Glass) -->
-    <linearGradient id="tp-main-card" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="c4-main-card" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFFFFF" />
       <stop offset="100%" stop-color="#F0F9FF" />
     </linearGradient>
 
     <!-- Checkmark Gradient -->
-    <linearGradient id="tp-check-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="c4-check-grad" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#0284C7" />
       <stop offset="60%" stop-color="#0EA5E9" />
       <stop offset="100%" stop-color="#38BDF8" />
     </linearGradient>
 
-    <filter id="tp-card-shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="c4-card-shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#03071E" flood-opacity="0.35" />
     </filter>
 
-    <filter id="tp-check-shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="c4-check-shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0284C7" flood-opacity="0.45" />
     </filter>
   </defs>
 
   <!-- Background squircle canvas -->
-  <rect width="512" height="512" rx="128" fill="url(#tp-bg)" />
+  <rect width="512" height="512" rx="128" fill="url(#c4-bg)" />
   <!-- Inner subtle border -->
   <rect x="4" y="4" width="504" height="504" rx="124" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-opacity="0.3" />
 
   <g id="icon">
     <!-- Layer 1: Background Secondary Panel (Staggered offset) -->
-    <rect x="176" y="88" width="220" height="280" rx="40" fill="url(#tp-back-card)" transform="rotate(8 286 228)" />
+    <rect x="176" y="88" width="220" height="280" rx="40" fill="url(#c4-back-card)" transform="rotate(8 286 228)" />
 
     <!-- Layer 2: Main Floating TaskPanel Canvas -->
-    <g filter="url(#tp-card-shadow)">
-      <rect x="116" y="104" width="280" height="324" rx="44" fill="url(#tp-main-card)" />
+    <g filter="url(#c4-card-shadow)">
+      <rect x="116" y="104" width="280" height="324" rx="44" fill="url(#c4-main-card)" />
       <!-- Subtle top inner highlight -->
       <rect x="117" y="105" width="278" height="322" rx="43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-opacity="0.8" />
       
@@ -61,11 +61,12 @@
     </g>
 
     <!-- Layer 3: Bold Geometric Vibrant Checkmark Leaping Forward -->
-    <g filter="url(#tp-check-shadow)">
-      <path d="M 188 276 L 244 332 C 252 340 264 340 272 332 L 380 208 C 390 196 388 180 376 170 C 364 160 348 162 336 174 L 256 268 L 222 234 C 210 222 194 222 182 234 C 170 246 170 264 188 276 Z" fill="url(#tp-check-grad)" />
+    <g filter="url(#c4-check-shadow)">
+      <path d="M 188 276 L 244 332 C 252 340 264 340 272 332 L 380 208 C 390 196 388 180 376 170 C 364 160 348 162 336 174 L 256 268 L 222 234 C 210 222 194 222 182 234 C 170 246 170 264 188 276 Z" fill="url(#c4-check-grad)" />
     </g>
 
     <!-- Academic sparkle / Data dot -->
     <circle cx="376" cy="136" r="10" fill="#38BDF8" />
   </g>
 </svg>
+

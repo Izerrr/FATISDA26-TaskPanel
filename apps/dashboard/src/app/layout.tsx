@@ -23,17 +23,80 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fatisda26-taskpanel.vercel.app";
+
 export const metadata: Metadata = {
-  title: "FATISDA 26 | TaskPanel",
-  description: "Task management dashboard untuk FATISDA UNS 2026.",
+  metadataBase: new URL(appUrl),
+  title: {
+    default: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    template: "%s | TaskPanel FATISDA 2026",
+  },
+  description:
+    "Platform all-in-one mahasiswa Fakultas Teknologi Informasi dan Sains Data (FATISDA) UNS 2026: manajemen tugas kuliah, jadwal harian, jadwal ujian UTS & UAS, serta vault materi terintegrasi.",
+  applicationName: "TaskPanel",
+  authors: [{ name: "FATISDA 2026 Tech Team" }],
+  generator: "Next.js",
+  keywords: [
+    "FATISDA",
+    "FATISDA UNS",
+    "TaskPanel",
+    "Jadwal Kuliah UNS",
+    "Jadwal UTS FATISDA",
+    "Jadwal UAS FATISDA",
+    "Informatika UNS",
+    "Sains Data UNS",
+    "Manajemen Tugas Mahasiswa",
+  ],
+  creator: "FATISDA UNS 2026",
+  publisher: "FATISDA UNS",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/apple-touch-icon.png",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icon.svg",
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: appUrl,
+    siteName: "TaskPanel FATISDA",
+    title: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    description:
+      "Platform all-in-one mahasiswa Fakultas Teknologi Informasi dan Sains Data (FATISDA) UNS 2026: manajemen tugas kuliah, jadwal harian, jadwal ujian UTS & UAS, serta vault materi terintegrasi.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "TaskPanel FATISDA 2026 Preview",
+        type: "image/png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    description:
+      "Platform all-in-one mahasiswa Fakultas Teknologi Informasi dan Sains Data (FATISDA) UNS 2026: manajemen tugas, jadwal kuliah, UTS & UAS, dan vault materi.",
+    images: ["/og-image.png"],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "TaskPanel",
   },
 };

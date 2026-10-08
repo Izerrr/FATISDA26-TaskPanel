@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient for Full Banner / Card -->
+    <linearGradient id="cmb-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="50%" stop-color="#0369A1" />
+      <stop offset="100%" stop-color="#0B192C" />
+    </linearGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="cmb-back-card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#0077B6" stop-opacity="0.15" />
+    </linearGradient>
+
+    <linearGradient id="cmb-main-card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F0F9FF" />
+    </linearGradient>
+
+    <linearGradient id="cmb-check-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="60%" stop-color="#0EA5E9" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+
+    <linearGradient id="cmb-text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E0F2FE" />
+    </linearGradient>
+
+    <filter id="cmb-card-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#03071E" flood-opacity="0.35" />
+    </filter>
+
+    <filter id="cmb-check-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0284C7" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Transparent or Dark Canvas -->
+  <rect width="1024" height="512" rx="64" fill="url(#cmb-bg)" />
+  <rect x="4" y="4" width="1016" height="504" rx="60" fill="none" stroke="#38BDF8" stroke-width="2" stroke-opacity="0.25" />
+
+  <!-- ICON GROUP -->
+  <g id="icon" transform="translate(60, 64) scale(0.75)">
+    <!-- Back card -->
+    <rect x="176" y="88" width="220" height="280" rx="40" fill="url(#cmb-back-card)" transform="rotate(8 286 228)" />
+
+    <!-- Main card -->
+    <g filter="url(#cmb-card-shadow)">
+      <rect x="116" y="104" width="280" height="324" rx="44" fill="url(#cmb-main-card)" />
+      <rect x="117" y="105" width="278" height="322" rx="43" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-opacity="0.8" />
+      
+      <!-- Top clip pill -->
+      <rect x="196" y="86" width="120" height="36" rx="18" fill="#0284C7" />
+      <rect x="236" y="98" width="40" height="12" rx="6" fill="#BAE6FD" />
+
+      <!-- Minimal lines -->
+      <rect x="160" y="168" width="192" height="14" rx="7" fill="#E2E8F0" />
+      <rect x="160" y="202" width="128" height="14" rx="7" fill="#E2E8F0" />
+      <rect x="160" y="374" width="192" height="12" rx="6" fill="#F1F5F9" />
+    </g>
+
+    <!-- Checkmark -->
+    <g filter="url(#cmb-check-shadow)">
+      <path d="M 188 276 L 244 332 C 252 340 264 340 272 332 L 380 208 C 390 196 388 180 376 170 C 364 160 348 162 336 174 L 256 268 L 222 234 C 210 222 194 222 182 234 C 170 246 170 264 188 276 Z" fill="url(#cmb-check-grad)" />
+    </g>
+
+    <!-- Sparkle dot -->
+    <circle cx="376" cy="136" r="10" fill="#38BDF8" />
+  </g>
+
+  <!-- WORDMARK GROUP -->
+  <g id="wordmark" transform="translate(450, 160)">
+    <!-- Faculty Tag -->
+    <g id="tagline">
+      <rect x="0" y="0" width="280" height="36" rx="18" fill="#38BDF8" fill-opacity="0.15" stroke="#38BDF8" stroke-width="1.5" stroke-opacity="0.4" />
+      <text x="16" y="23" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#38BDF8" letter-spacing="1.5">FATISDA UNS • 2026</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="112" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="78" font-weight="800" fill="url(#cmb-text-grad)" letter-spacing="-1.5">TaskPanel</text>
+
+    <!-- Subtitle -->
+    <text x="0" y="156" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="500" fill="#94A3B8" letter-spacing="0.2">Task &amp; Schedule Workspace for Students</text>
+  </g>
+</svg>
+

@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
 
 function LoginContent() {
   const [loadingProvider, setLoadingProvider] = useState<"discord" | "google" | null>(null);
@@ -47,9 +48,7 @@ function LoginContent() {
     <div className="relative z-10 w-full max-w-sm px-6">
       <div className="glass rounded-3xl p-8">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-liquid-accent text-white shadow-lg shadow-liquid-accent/20">
-            <Shield className="h-8 w-8" />
-          </div>
+          <TaskPanelLogo className="h-16 w-16 drop-shadow-lg" />
           <h1 className="mt-5 text-2xl font-bold tracking-tight text-liquid-text dark:text-slate-100">
             FATISDA 26
           </h1>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="c1-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="c1-blue-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="c1-check" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0077B6" />
+      <stop offset="50%" stop-color="#00B4D8" />
+      <stop offset="100%" stop-color="#90E0EF" />
+    </linearGradient>
+    <filter id="c1-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0077B6" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#c1-bg)" />
+  <rect x="4" y="4" width="504" height="504" rx="124" fill="none" stroke="#38BDF8" stroke-width="3" stroke-opacity="0.25" />
+
+  <g id="icon" filter="url(#c1-glow)">
+    <!-- Horizontal top bar (Panel / T crossbar) -->
+    <path d="M 120 164 C 120 146 134 132 152 132 L 360 132 C 378 132 392 146 392 164 C 392 182 378 196 360 196 L 152 196 C 134 196 120 182 120 164 Z" fill="url(#c1-blue-bar)" />
+
+    <!-- Stem of T / Left Task Pillar -->
+    <rect x="188" y="196" width="64" height="150" rx="24" fill="#0369A1" />
+
+    <!-- Dynamic Checkmark Overlay cutting through T -->
+    <path d="M 176 288 L 244 356 C 254 366 270 366 280 356 L 400 216 C 412 202 410 182 396 172 C 382 162 362 164 352 178 L 262 284 L 218 240 C 206 228 188 228 176 240 C 164 252 164 276 176 288 Z" fill="url(#c1-check)" />
+
+    <!-- Accent dot / Data node -->
+    <circle cx="376" cy="164" r="14" fill="#FFFFFF" />
+  </g>
+</svg>
+

@@ -11,6 +11,7 @@ import type { Course, User } from "@/types";
 import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
 import { useSessionManager } from "@/components/providers/SessionManager";
 import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
+import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
 
 interface SidebarProps {
   courses: Course[];
@@ -204,9 +205,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       {/* Brand */}
       <div className="flex items-center justify-between border-b border-liquid-border px-6 py-5 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-liquid-accent text-white shadow-md">
-            <BookOpen className="h-4 w-4" />
-          </div>
+          <TaskPanelLogo className="h-9 w-9 shrink-0 drop-shadow-sm" />
 
           <div>
             <p className="font-bold text-liquid-text dark:text-slate-100">TaskPanel</p>

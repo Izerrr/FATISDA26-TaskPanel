@@ -86,3 +86,14 @@ export const ID_MONTHS: Record<string, string> = {
   dec: "12",
 };
 
+export function formatExamDuration(startTime: string, endTime: string): string {
+  const [startH, startM] = startTime.split(/[:.]/).map(Number);
+  const [endH, endM] = endTime.split(/[:.]/).map(Number);
+  if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return "";
+
+  const totalMinutes = endH * 60 + endM - (startH * 60 + startM);
+  if (totalMinutes <= 0) return "";
+
+  return `${totalMinutes} menit`;
+}
+

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar, Clock, MapPin, Sparkles, GraduationCap, AlertCircle } from "lucide-react";
 import type { ExamSchedule, Prodi } from "@/types";
+import { formatExamDuration } from "@/lib/schedule/exam/constants";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { useRole } from "@/hooks/useRole";
 
@@ -258,8 +259,8 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
                     {exam.dayName}, {exam.dateStr}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                  {exam.startTime}
+                <span className="shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-700 dark:text-slate-300">
+                  {formatExamDuration(exam.startTime, exam.endTime)}
                 </span>
               </div>
 

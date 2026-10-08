@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskPanel Logo Preview — Concepts</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 2.5rem;
+    transition: background-color 0.25s, color 0.25s;
+  }
+  body.light { background: #f8fafc; color: #0f172a; }
+  body.dark { background: #0b1329; color: #f1f5f9; }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .title-group h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .title-group p {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+  body.dark .title-group p { color: #94a3b8; }
+  
+  .toggle {
+    padding: 0.6rem 1.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 9999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .toggle:hover {
+    background: rgba(148, 163, 184, 0.15);
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 2.5rem 0 1.25rem 0;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.75rem;
+  }
+  .card {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 20px;
+    overflow: hidden;
+    background: transparent;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  }
+  .card-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    min-height: 260px;
+  }
+  body.light .card-img { background: #ffffff; }
+  body.dark .card-img { background: #131d38; }
+  .card-img img {
+    max-width: 100%;
+    max-height: 200px;
+    filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+  }
+  .card-label {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .card-desc {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  body.light .card-label { background: #f8fafc; }
+  body.dark .card-label { background: #0e172e; }
+  body.light .card-desc { background: #f8fafc; }
+  body.dark .card-desc { background: #0e172e; color: #94a3b8; }
+  
+  .favicon-container {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    background: rgba(148, 163, 184, 0.08);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .favicon-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .favicon-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .favicon-strip {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-end;
+  }
+  .favicon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .favicon-cell img {
+    border-radius: 20%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .favicon-size {
+    font-size: 0.75rem;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body class="light">
+  <div class="header">
+    <div class="title-group">
+      <h1>TaskPanel Logo Redesign — Concepts</h1>
+      <p>FATISDA UNS 2026 Academic Task &amp; Schedule Workspace</p>
+    </div>
+    <button class="toggle" onclick="document.body.classList.toggle('dark'); document.body.classList.toggle('light'); this.textContent = document.body.classList.contains('dark') ? '☀️ Light' : '🌙 Dark';">🌙 Dark</button>
+  </div>
+
+  <div class="grid">
+    <!-- Concept 1 -->
+    <div class="card">
+      <div class="card-img">
+        <img src="concepts/concept-1.svg" alt="Concept 1: Dynamic Task Prism">
+      </div>
+      <div class="card-label">Concept 1: Dynamic Task Prism</div>
+      <div class="card-desc">Monogram huruf "T" geometris yang menyatu dengan gerakan checkmark ke atas dan glowing squircle navy.</div>
+    </div>
+
+    <!-- Concept 2 -->
+    <div class="card">
+      <div class="card-img">
+        <img src="concepts/concept-2.svg" alt="Concept 2: Academic Shield Nexus">
+      </div>
+      <div class="card-label">Concept 2: Academic Shield Nexus</div>
+      <div class="card-desc">Lambang perisai akademis FATISDA berlapis facet biru elektrik dengan checkmark putih di pusatnya.</div>
+    </div>
+
+    <!-- Concept 3 -->
+    <div class="card">
+      <div class="card-img">
+        <img src="concepts/concept-3.svg" alt="Concept 3: Origami Precision Hexagon">
+      </div>
+      <div class="card-label">Concept 3: Origami Precision Hexagon</div>
+      <div class="card-desc">Struktur heksagonal data science dengan pita checkmark isometrik yang melipat dinamis.</div>
+    </div>
+
+    <!-- Concept 4 -->
+    <div class="card">
+      <div class="card-img">
+        <img src="concepts/concept-4.svg" alt="Concept 4: Liquid TaskPanel Evolution">
+      </div>
+      <div class="card-label">Concept 4: Liquid TaskPanel Evolution (Recommended)</div>
+      <div class="card-desc">Evolusi modern dari clipboard lama: kartu floating transparan liquid glass, clip aksen cyan, dan checkmark tebal bercahaya.</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Favicon Size Check (Legibility at 64px, 32px, 16px)</h2>
+  <div class="favicon-container">
+    <!-- C1 Favicons -->
+    <div class="favicon-group">
+      <div class="favicon-label">Concept 1</div>
+      <div class="favicon-strip">
+        <div class="favicon-cell">
+          <img src="concepts/concept-1.svg" width="64" height="64">
+          <div class="favicon-size">64px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-1.svg" width="32" height="32">
+          <div class="favicon-size">32px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-1.svg" width="16" height="16">
+          <div class="favicon-size">16px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C2 Favicons -->
+    <div class="favicon-group">
+      <div class="favicon-label">Concept 2</div>
+      <div class="favicon-strip">
+        <div class="favicon-cell">
+          <img src="concepts/concept-2.svg" width="64" height="64">
+          <div class="favicon-size">64px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-2.svg" width="32" height="32">
+          <div class="favicon-size">32px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-2.svg" width="16" height="16">
+          <div class="favicon-size">16px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C3 Favicons -->
+    <div class="favicon-group">
+      <div class="favicon-label">Concept 3</div>
+      <div class="favicon-strip">
+        <div class="favicon-cell">
+          <img src="concepts/concept-3.svg" width="64" height="64">
+          <div class="favicon-size">64px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-3.svg" width="32" height="32">
+          <div class="favicon-size">32px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-3.svg" width="16" height="16">
+          <div class="favicon-size">16px</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C4 Favicons -->
+    <div class="favicon-group">
+      <div class="favicon-label">Concept 4 (Recommended)</div>
+      <div class="favicon-strip">
+        <div class="favicon-cell">
+          <img src="concepts/concept-4.svg" width="64" height="64">
+          <div class="favicon-size">64px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-4.svg" width="32" height="32">
+          <div class="favicon-size">32px</div>
+        </div>
+        <div class="favicon-cell">
+          <img src="concepts/concept-4.svg" width="16" height="16">
+          <div class="favicon-size">16px</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

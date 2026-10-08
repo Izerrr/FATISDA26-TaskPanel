@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseExamCsv } from "../parse-exam";
+import { formatExamDuration } from "../constants";
 
 describe("parseExamCsv", () => {
   const sampleCsv = `
@@ -113,18 +114,28 @@ Senin,1,Kalkulus I (1) (A),,,,,,,,,,,
     expect(records[1].courseName).toBe("Basis Data");
   });
 
-  it("should normalize Monday date typo from 19 Okt to 12 Okt", () => {
-    const mondayTypoCsv = `
+  it("should preserve Monday date as 19 Okt as defined in the schedule", () => {
+    const mondayCsv = `
 ,,,,,,,,,,,
 ,,B4-11,,,,,,,,,,
 Senin,1,Statistika & Probabilitas (1) (A),,,,,,,,,,
 19 Okt 2026,,,,,,,,,,,,,
 `;
-    const records = parseExamCsv(mondayTypoCsv, "INFORMATIKA", "UTS");
+    const records = parseExamCsv(mondayCsv, "INFORMATIKA", "UTS");
     expect(records.length).toBe(1);
     expect(records[0].dayName).toBe("Senin");
-    expect(records[0].dateStr).toBe("12 Okt 2026");
-    expect(records[0].date.getUTCDate()).toBe(12);
+    expect(records[0].dateStr).toBe("19 Okt 2026");
+    expect(records[0].date.getUTCDate()).toBe(19);
+  });
+});
+
+describe("formatExamDuration", () => {
+  it("should calculate and format duration correctly", () => {
+    expect(formatExamDuration("07:30", "10:10")).toBe("160 menit");
+    expect(formatExamDuration("13:00", "16:20")).toBe("200 menit");
+    expect(formatExamDuration("07:30", "09:15")).toBe("105 menit");
+    expect(formatExamDuration("13:00", "14:45")).toBe("105 menit");
+    expect(formatExamDuration("09:20", "11:05")).toBe("105 menit");
   });
 });
 

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="c3-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#03071E" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="c3-hex" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="c3-ribbon1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0077B6" />
+      <stop offset="100%" stop-color="#00B4D8" />
+    </linearGradient>
+    <linearGradient id="c3-ribbon2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#E0F2FE" />
+    </linearGradient>
+    <filter id="c3-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#38BDF8" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#c3-bg)" />
+  <rect x="4" y="4" width="504" height="504" rx="124" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-opacity="0.2" />
+
+  <g id="icon" filter="url(#c3-glow)">
+    <!-- Hexagonal Frame representing Data Structure -->
+    <path d="M 256 90 L 396 170 C 406 176 412 186 412 198 L 412 314 C 412 326 406 336 396 342 L 256 422 C 246 428 234 428 224 422 L 116 360 C 106 354 100 344 100 332 L 100 198 C 100 186 106 176 116 170 Z" fill="none" stroke="url(#c3-ribbon1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
+
+    <!-- Origami / Folded Isometric Checkmark Ribbon -->
+    <!-- Left upward leg -->
+    <path d="M 160 264 L 232 336 C 240 344 252 344 260 336 L 392 192 C 402 182 402 166 392 156 L 368 132 C 358 122 342 122 332 132 L 246 226 L 202 182 C 192 172 176 172 166 182 L 142 206 C 132 216 132 232 142 242 Z" fill="url(#c3-ribbon1)" />
+
+    <!-- Facet Fold (Lighting highlight) -->
+    <path d="M 232 336 L 246 226 L 332 132 L 368 132 L 260 336 Z" fill="url(#c3-ribbon2)" opacity="0.85" />
+
+    <!-- Inner Core Dot -->
+    <circle cx="256" cy="380" r="8" fill="#38BDF8" />
+  </g>
+</svg>
+
