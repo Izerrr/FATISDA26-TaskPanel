@@ -135,7 +135,7 @@ function LoginContent() {
       </div>
 
       <div className="mt-6 text-center text-[11px] text-liquid-text-tertiary dark:text-slate-500 space-y-1">
-        <p>For FATISDA UNS 2026</p>
+        <p>Dibangun untuk Vikolvere & Verivela</p>
         <p>
           Dengan masuk, Anda menyetujui{" "}
           <Link href="/terms" className="font-medium text-liquid-accent dark:text-sky-400 underline underline-offset-2 hover:opacity-80 transition">
