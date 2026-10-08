@@ -6,6 +6,7 @@ export interface UseExamScheduleOptions {
   semester?: number | string | null;
   kelas?: Kelas | string | null;
   type?: ExamType;
+  agama?: string | null;
 }
 
 export interface ExamScheduleResponse {
@@ -26,12 +27,13 @@ const fetcher = async (url: string): Promise<ExamScheduleResponse> => {
 };
 
 export function useExamSchedule(options: UseExamScheduleOptions = {}) {
-  const { prodi, semester, kelas, type = "UTS" } = options;
+  const { prodi, semester, kelas, type = "UTS", agama = "islam" } = options;
 
   const params = new URLSearchParams();
   if (prodi) params.set("prodi", prodi);
   if (semester !== undefined && semester !== null) params.set("semester", String(semester));
   if (kelas) params.set("kelas", String(kelas));
+  if (agama) params.set("agama", agama);
   params.set("type", type);
 
   const key = `/api/schedule/exam?${params.toString()}`;

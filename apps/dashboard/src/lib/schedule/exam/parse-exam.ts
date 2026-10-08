@@ -156,8 +156,18 @@ export function parseExamCsv(
     // Check if col0 is a date string (e.g. "19 Okt 2026")
     const parsedDate = parseIndonesianDate(col0);
     if (parsedDate && currentDayName && !currentDate) {
-      currentDate = parsedDate.date;
-      currentDateStr = parsedDate.formattedStr;
+      let finalDate = parsedDate.date;
+      let finalDateStr = parsedDate.formattedStr;
+
+      // Handle spreadsheet typo where Senin was typed as 19 Okt 2026 instead of 12 Okt 2026
+      if (currentDayName.toLowerCase() === "senin" && parsedDate.formattedStr.toLowerCase().startsWith("19 okt")) {
+        const year = parsedDate.date.getUTCFullYear();
+        finalDate = new Date(`${year}-10-12T00:00:00.000Z`);
+        finalDateStr = `12 Okt ${year}`;
+      }
+
+      currentDate = finalDate;
+      currentDateStr = finalDateStr;
     }
   }
 

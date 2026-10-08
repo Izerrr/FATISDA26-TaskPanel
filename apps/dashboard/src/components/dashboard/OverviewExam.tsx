@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Calendar, Clock, MapPin, Sparkles, GraduationCap, AlertCircle } from "lucide-react";
 import type { ExamSchedule, Prodi } from "@/types";
@@ -13,17 +13,49 @@ interface OverviewExamProps {
   prodi?: Prodi | null;
 }
 
+const AGAMA_OPTIONS = [
+  { value: "islam", label: "Islam" },
+  { value: "kristen", label: "Kristen" },
+  { value: "katholik", label: "Katholik" },
+  { value: "budha", label: "Budha" },
+];
+
 export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
   const { user } = useRole();
   const currentSemester = semester ?? user?.semester ?? 1;
   const currentKelas = kelas ?? user?.kelas ?? "A";
   const currentProdi: Prodi = prodi ?? user?.prodi ?? "INFORMATIKA";
 
+  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("fatisda_agama_preference");
+      if (saved) setSelectedAgama(saved);
+
+      const handleStorageUpdate = () => {
+        const updated = localStorage.getItem("fatisda_agama_preference");
+        if (updated) setSelectedAgama(updated);
+      };
+      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
+      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
+    }
+  }, []);
+
+  const handleAgamaChange = (val: string) => {
+    setSelectedAgama(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fatisda_agama_preference", val);
+      window.dispatchEvent(new Event("fatisda_agama_change"));
+    }
+  };
+
   const { exams, isLoading, isError } = useExamSchedule({
     prodi: currentProdi,
     semester: currentSemester,
     kelas: currentKelas,
     type: "UTS",
+    agama: selectedAgama,
   });
 
   const now = new Date();
@@ -113,18 +145,38 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
               </span>
             </div>
             <p className="text-xs text-liquid-text-secondary dark:text-slate-400 mt-0.5">
-              Semester {currentSemester} · Kelas {currentKelas} ({exams.length} mata kuliah terdaftar)
+              Semester {currentSemester} · Kelas {currentKelas} · Agama {AGAMA_OPTIONS.find((a) => a.value === selectedAgama)?.label ?? selectedAgama} ({exams.length} mata kuliah)
             </p>
           </div>
         </div>
 
-        <Link
-          href="/dashboard/schedule/exam"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition"
-        >
-          <span>Buka Jadwal Lengkap</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
+          {/* Compact Agama Selector Pills */}
+          <div className="flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+            {AGAMA_OPTIONS.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => handleAgamaChange(item.value)}
+                className={`rounded-lg px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition ${
+                  selectedAgama === item.value
+                    ? "bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <Link
+            href="/dashboard/schedule/exam"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition"
+          >
+            <span>Buka Jadwal Lengkap</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Hero: Next Exam Countdown Banner */}

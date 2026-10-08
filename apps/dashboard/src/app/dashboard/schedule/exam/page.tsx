@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -25,6 +25,13 @@ import type { ExamSchedule, ExamType, Kelas, Prodi } from "@/types";
 
 const SEMESTERS = [1, 3, 5, 7];
 const KELAS_OPTIONS: Kelas[] = ["A", "B", "C", "D"];
+const AGAMA_OPTIONS = [
+  { value: "islam", label: "Islam" },
+  { value: "kristen", label: "Kristen" },
+  { value: "katholik", label: "Katholik" },
+  { value: "budha", label: "Budha" },
+  { value: "semua", label: "Semua" },
+];
 
 export default function ExamSchedulePage() {
   const { user } = useRole();
@@ -35,8 +42,31 @@ export default function ExamSchedulePage() {
     user?.semester ? String(user.semester) : "1",
   );
   const [selectedKelas, setSelectedKelas] = useState<string>(user?.kelas ?? "A");
+  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSyncPanel, setShowSyncPanel] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("fatisda_agama_preference");
+      if (saved) setSelectedAgama(saved);
+
+      const handleStorageUpdate = () => {
+        const updated = localStorage.getItem("fatisda_agama_preference");
+        if (updated) setSelectedAgama(updated);
+      };
+      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
+      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
+    }
+  }, []);
+
+  const handleAgamaChange = (val: string) => {
+    setSelectedAgama(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fatisda_agama_preference", val);
+      window.dispatchEvent(new Event("fatisda_agama_change"));
+    }
+  };
 
   const prodi: Prodi = user?.prodi ?? "INFORMATIKA";
   const isAdmin = user?.roles?.some((r) => ["ADMIN", "OWNER"].includes(r));
@@ -50,6 +80,7 @@ export default function ExamSchedulePage() {
     semester: querySemester,
     kelas: queryKelas,
     type: activeType,
+    agama: selectedAgama,
   });
 
   const now = new Date();
@@ -278,78 +309,101 @@ export default function ExamSchedulePage() {
             </div>
           </div>
 
-          {/* Granular Filters for Grand View */}
-          {viewScope === "all" && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Semester:</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSemester("all")}
-                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                      selectedSemester === "all"
-                        ? "bg-amber-600 text-white"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                    }`}
-                  >
-                    Semua
-                  </button>
-                  {SEMESTERS.map((sem) => (
+          {/* Filter Controls: Granular Filters + Agama Selector */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-4">
+            {viewScope === "all" && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Semester:</span>
+                  <div className="flex items-center gap-1">
                     <button
-                      key={sem}
                       type="button"
-                      onClick={() => setSelectedSemester(String(sem))}
+                      onClick={() => setSelectedSemester("all")}
                       className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                        selectedSemester === String(sem)
+                        selectedSemester === "all"
                           ? "bg-amber-600 text-white"
                           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                       }`}
                     >
-                      Sem {sem}
+                      Semua
                     </button>
-                  ))}
+                    {SEMESTERS.map((sem) => (
+                      <button
+                        key={sem}
+                        type="button"
+                        onClick={() => setSelectedSemester(String(sem))}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                          selectedSemester === String(sem)
+                            ? "bg-amber-600 text-white"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        Sem {sem}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Kelas:</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedKelas("all")}
-                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                      selectedKelas === "all"
-                        ? "bg-amber-600 text-white"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                    }`}
-                  >
-                    Semua
-                  </button>
-                  {KELAS_OPTIONS.map((k) => (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Kelas:</span>
+                  <div className="flex items-center gap-1">
                     <button
-                      key={k}
                       type="button"
-                      onClick={() => setSelectedKelas(k)}
+                      onClick={() => setSelectedKelas("all")}
                       className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                        selectedKelas === k
+                        selectedKelas === "all"
                           ? "bg-amber-600 text-white"
                           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                       }`}
                     >
-                      Kls {k}
+                      Semua
                     </button>
-                  ))}
+                    {KELAS_OPTIONS.map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setSelectedKelas(k)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                          selectedKelas === k
+                            ? "bg-amber-600 text-white"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        Kls {k}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              </>
+            )}
+
+            {/* Agama Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Agama:</span>
+              <div className="flex items-center gap-1 rounded-xl bg-slate-100/90 p-0.5 dark:bg-slate-800/90">
+                {AGAMA_OPTIONS.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => handleAgamaChange(item.value)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                      selectedAgama === item.value
+                        ? "bg-amber-600 text-white shadow-2xs font-bold"
+                        : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
+          </div>
 
           {viewScope === "personal" && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-2">
               <span>Menampilkan jadwal khusus untuk:</span>
               <strong className="text-slate-800 dark:text-slate-200">
-                Semester {user?.semester ?? 1} · Kelas {user?.kelas ?? "A"}
+                Semester {user?.semester ?? 1} · Kelas {user?.kelas ?? "A"} · Agama {AGAMA_OPTIONS.find((a) => a.value === selectedAgama)?.label ?? selectedAgama}
               </strong>
               <span>({filteredExams.length} sesi ujian ditemukan)</span>
             </div>

@@ -56,6 +56,28 @@ export default function SchedulePage() {
   const [selectedAgama, setSelectedAgama] = useState<string>("islam");
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("fatisda_agama_preference");
+      if (saved) setSelectedAgama(saved);
+
+      const handleStorageUpdate = () => {
+        const updated = localStorage.getItem("fatisda_agama_preference");
+        if (updated) setSelectedAgama(updated);
+      };
+      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
+      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
+    }
+  }, []);
+
+  const handleAgamaChange = (val: string) => {
+    setSelectedAgama(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fatisda_agama_preference", val);
+      window.dispatchEvent(new Event("fatisda_agama_change"));
+    }
+  };
+
+  useEffect(() => {
     if (user?.semester) {
       setSelectedSemester(user.semester);
     }
@@ -165,7 +187,7 @@ export default function SchedulePage() {
                   <button
                     key={item.value}
                     type="button"
-                    onClick={() => setSelectedAgama(item.value)}
+                    onClick={() => handleAgamaChange(item.value)}
                     className={`h-8 shrink-0 whitespace-nowrap rounded-xl px-2.5 text-xs font-semibold transition ${selectedAgama === item.value ? "bg-liquid-accent text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"}`}
                   >
                     {item.label}

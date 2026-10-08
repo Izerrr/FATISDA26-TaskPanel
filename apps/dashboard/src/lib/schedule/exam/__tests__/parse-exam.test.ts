@@ -112,5 +112,19 @@ Senin,1,Kalkulus I (1) (A),,,,,,,,,,,
     expect(records[1].dayName).toBe("Selasa");
     expect(records[1].courseName).toBe("Basis Data");
   });
+
+  it("should normalize Monday date typo from 19 Okt to 12 Okt", () => {
+    const mondayTypoCsv = `
+,,,,,,,,,,,
+,,B4-11,,,,,,,,,,
+Senin,1,Statistika & Probabilitas (1) (A),,,,,,,,,,
+19 Okt 2026,,,,,,,,,,,,,
+`;
+    const records = parseExamCsv(mondayTypoCsv, "INFORMATIKA", "UTS");
+    expect(records.length).toBe(1);
+    expect(records[0].dayName).toBe("Senin");
+    expect(records[0].dateStr).toBe("12 Okt 2026");
+    expect(records[0].date.getUTCDate()).toBe(12);
+  });
 });
 

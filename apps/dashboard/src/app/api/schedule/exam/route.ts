@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const prodiParam = (searchParams.get("prodi") as Prodi) || user?.prodi || "INFORMATIKA";
     const semesterParam = searchParams.get("semester");
     const kelasParam = searchParams.get("kelas") as Kelas | null;
+    const agamaParam = searchParams.get("agama");
 
     const whereClause: any = {
       type: typeParam,
@@ -35,7 +36,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (kelasParam && kelasParam !== ("all" as any)) {
-      whereClause.kelas = kelasParam;
+      // Include user's class OR any Agama courses so batch-wide religion classes (Kristen, Katholik, Budha) can be matched
+      whereClause.OR = [
+        { kelas: kelasParam },
+        { courseName: { contains: "Agama", mode: "insensitive" } },
+      ];
     }
 
     const exams = await prisma.examSchedule.findMany({
@@ -43,12 +48,43 @@ export async function GET(request: NextRequest) {
       orderBy: [{ dayNum: "asc" }, { startTime: "asc" }, { kelas: "asc" }],
     });
 
+    const matchesAgamaFilter = (
+      exam: { courseName: string; kelas: string },
+      filter: string | null | undefined,
+      targetKelas: string | null,
+    ): boolean => {
+      const norm = exam.courseName.toLowerCase();
+      if (!norm.includes("agama")) return true;
+
+      // In grand view without explicit filter, show all
+      if (!filter && (!targetKelas || targetKelas === "all")) {
+        return true;
+      }
+
+      const selected = (filter || "islam").trim().toLowerCase();
+      if (selected === "semua" || selected === "all") return true;
+
+      if (selected === "kristen") return norm.includes("kristen");
+      if (selected === "katholik" || selected === "katolik") return norm.includes("katholik") || norm.includes("katolik");
+      if (selected === "budha" || selected === "buddha") return norm.includes("budha") || norm.includes("buddha");
+      if (selected === "hindu") return norm.includes("hindu");
+
+      // Default: Islam -> must match "islam" AND if a target class is given, must match that target class
+      if (norm.includes("islam")) {
+        return !targetKelas || targetKelas === "all" || exam.kelas === targetKelas;
+      }
+
+      return false;
+    };
+
+    const filteredExams = exams.filter((e) => matchesAgamaFilter(e, agamaParam, kelasParam));
+
     return NextResponse.json({
       success: true,
       type: typeParam,
       prodi: prodiParam,
-      count: exams.length,
-      exams,
+      count: filteredExams.length,
+      exams: filteredExams,
     });
   } catch (error) {
     console.error("[GET /api/schedule/exam]", error);
