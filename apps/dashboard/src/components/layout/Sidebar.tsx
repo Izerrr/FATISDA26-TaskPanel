@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, GraduationCap, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Sparkles, UserRound, X } from "lucide-react";
+import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, GraduationCap, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Settings2, Sparkles, UserRound, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import type { Course, User } from "@/types";
@@ -12,6 +12,7 @@ import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
 import { useSessionManager } from "@/components/providers/SessionManager";
 import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
 import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
+import { useExamMode } from "@/hooks/useExamMode";
 
 interface SidebarProps {
   courses: Course[];
@@ -126,6 +127,8 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   const roleLabels = getRoleLabels(user);
   const canManageVault = (user?.roles || []).some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r as string));
   const canAccessAnalytics = (user?.roles || []).some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(r as string));
+  const canAccessSettings = (user?.roles || []).some((r) => ["ADMIN", "OWNER"].includes(r as string));
+  const { examMode } = useExamMode();
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -299,22 +302,32 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
                 ? pathname === "/dashboard/schedule" || pathname.startsWith("/dashboard/schedule/grand")
                 : pathname.startsWith(item.href);
 
+            const isExamLink = item.href === "/dashboard/schedule/exam";
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? "bg-liquid-accent/10 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-400" : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"}`}
+                className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? "bg-liquid-accent/10 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-400" : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"}`}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                {item.label}
+                <span className="flex items-center gap-3 min-w-0">
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </span>
+                {isExamLink && examMode.enabled && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    {examMode.activeType}
+                  </span>
+                )}
               </Link>
             );
           })}
         </div>
 
-        {(canManageVault || canAccessAnalytics) && (
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+        {(canManageVault || canAccessAnalytics || canAccessSettings) && (
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
             <div className="flex items-center justify-between px-2 mb-1">
               <p className="label">Pengelola</p>
               <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">ADMIN</span>
@@ -345,6 +358,20 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
               >
                 <BarChart3 className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
                 <span>Analytics &amp; Statistik</span>
+              </Link>
+            )}
+            {canAccessSettings && (
+              <Link
+                href="/dashboard/admin/settings"
+                onClick={onClose}
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                  pathname.startsWith("/dashboard/admin/settings")
+                    ? "bg-liquid-accent/10 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-400"
+                    : "text-liquid-text-secondary hover:bg-black/[0.03] hover:text-liquid-text dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                }`}
+              >
+                <Settings2 className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Pengaturan Sistem</span>
               </Link>
             )}
           </div>

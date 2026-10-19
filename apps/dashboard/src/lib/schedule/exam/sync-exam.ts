@@ -1,5 +1,6 @@
 import https from "https";
 import { prisma } from "@/lib/prisma";
+import { getDynamicExamSource } from "@/lib/settings";
 import type { Prodi } from "@/types";
 import { parseExamCsv } from "./parse-exam";
 import { DEFAULT_EXAM_SOURCES } from "./constants";
@@ -18,7 +19,7 @@ export interface SyncExamResult {
   syncedAt: Date;
 }
 
-function fetchUrl(url: string, maxRedirects = 5): Promise<string> {
+export function fetchGoogleSheetCsv(url: string, maxRedirects = 5): Promise<string> {
   return new Promise((resolve, reject) => {
     if (maxRedirects <= 0) {
       return reject(new Error("Terlalu banyak redirect saat mengambil Google Sheets."));
@@ -27,7 +28,7 @@ function fetchUrl(url: string, maxRedirects = 5): Promise<string> {
     https
       .get(url, (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          return resolve(fetchUrl(res.headers.location, maxRedirects - 1));
+          return resolve(fetchGoogleSheetCsv(res.headers.location, maxRedirects - 1));
         }
 
         if (res.statusCode && res.statusCode !== 200) {
@@ -47,15 +48,24 @@ export async function syncExamSchedule(options: SyncExamOptions = {}): Promise<S
   const prodi: Prodi = options.prodi ?? "INFORMATIKA";
   const examType: "UTS" | "UAS" = options.examType ?? "UTS";
 
-  // Find source configuration
+  // Find source configuration (dynamic DB setting -> static default)
+  const dynamicSource = await getDynamicExamSource(prodi, examType);
   const defaultSource = DEFAULT_EXAM_SOURCES.find((s) => s.prodi === prodi && s.type === examType);
-  const spreadsheetId = options.spreadsheetId || defaultSource?.spreadsheetId || "1zLsq5rA_s5no2oMH_hhyek1XA_f-0Mpc";
-  const gid = options.gid || defaultSource?.gid || "524464654";
+  const spreadsheetId =
+    options.spreadsheetId ||
+    dynamicSource?.spreadsheetId ||
+    defaultSource?.spreadsheetId ||
+    "1zLsq5rA_s5no2oMH_hhyek1XA_f-0Mpc";
+  const gid =
+    options.gid ||
+    dynamicSource?.gid ||
+    defaultSource?.gid ||
+    "524464654";
 
   const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
 
   console.log(`[ExamSync] Fetching ${examType} schedule from: ${exportUrl}`);
-  const csvContent = await fetchUrl(exportUrl);
+  const csvContent = await fetchGoogleSheetCsv(exportUrl);
 
   const records = parseExamCsv(csvContent, prodi, examType);
   console.log(`[ExamSync] Parsed ${records.length} exam records for ${prodi} (${examType})`);

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import type { ExamSchedule, ExamType, Kelas, Prodi } from "@/types";
 
@@ -37,19 +38,45 @@ export function useExamSchedule(options: UseExamScheduleOptions = {}) {
   params.set("type", type);
 
   const key = `/api/schedule/exam?${params.toString()}`;
+  const storageKey = `fatisda_exam_cache_${params.toString()}`;
+
+  const [cachedData, setCachedData] = useState<ExamScheduleResponse | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        setCachedData(JSON.parse(raw) as ExamScheduleResponse);
+      }
+    } catch {
+      // Ignore storage error
+    }
+  }, [storageKey]);
 
   const { data, error, isLoading, mutate } = useSWR<ExamScheduleResponse>(key, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
+    onSuccess: (fresh) => {
+      if (typeof window !== "undefined" && fresh?.exams) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(fresh));
+        } catch {
+          // Ignore quota error
+        }
+      }
+    },
   });
 
+  const resolved = data ?? cachedData;
+
   return {
-    exams: data?.exams ?? [],
-    count: data?.count ?? 0,
-    type: data?.type ?? type,
-    isLoading,
-    isError: error,
+    exams: resolved?.exams ?? [],
+    count: resolved?.count ?? 0,
+    type: resolved?.type ?? type,
+    isLoading: isLoading && !cachedData,
+    isError: error && !cachedData,
+    isOfflineCache: Boolean(error && cachedData),
     mutate,
   };
 }
-

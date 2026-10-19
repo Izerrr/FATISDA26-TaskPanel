@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import type { Schedule } from "@/types";
 import { useRole } from "@/hooks/useRole";
@@ -40,13 +41,41 @@ export function useSchedule(options: UseScheduleOptions = {}) {
       ? `/api/schedule?prodi=${encodeURIComponent(prodi)}&kelas=${encodeURIComponent(kelas)}&semester=${semester}&agama=${encodeURIComponent(agama)}`
       : null;
 
-  const { data, error, isLoading, mutate } = useSWR<ScheduleResponse>(key, fetcher);
+  const storageKey = key ? `fatisda_sched_cache_${key}` : null;
+  const [cachedData, setCachedData] = useState<ScheduleResponse | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !storageKey) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        setCachedData(JSON.parse(raw) as ScheduleResponse);
+      }
+    } catch {
+      // Ignore storage error
+    }
+  }, [storageKey]);
+
+  const { data, error, isLoading, mutate } = useSWR<ScheduleResponse>(key, fetcher, {
+    onSuccess: (fresh) => {
+      if (typeof window !== "undefined" && storageKey && fresh) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(fresh));
+        } catch {
+          // Ignore quota error
+        }
+      }
+    },
+  });
+
+  const resolved = data ?? cachedData;
 
   return {
-    schedules: data?.entries ?? data?.schedules ?? [],
-    message: data?.message ?? null,
-    isLoading,
-    isError: Boolean(error),
+    schedules: resolved?.entries ?? resolved?.schedules ?? [],
+    message: resolved?.message ?? null,
+    isLoading: isLoading && !cachedData,
+    isError: Boolean(error && !cachedData),
+    isOfflineCache: Boolean(error && cachedData),
     mutate,
   };
 }

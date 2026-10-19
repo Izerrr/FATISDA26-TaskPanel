@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getDynamicScheduleSource } from "@/lib/settings";
 
 import { fetchScheduleCsvByProdi, normalizeScheduleEntries, parseScheduleCsv, getScheduleSource } from "@/lib/schedule";
 
@@ -22,7 +23,8 @@ export interface ScheduleSyncResult {
 }
 
 export async function syncSchedule(prodi: Prodi): Promise<ScheduleSyncResult> {
-  const source = getScheduleSource(prodi);
+  const dynamicSource = await getDynamicScheduleSource(prodi);
+  const source = dynamicSource ?? getScheduleSource(prodi);
 
   if (!source) {
     throw new Error(`Belum ada sumber jadwal untuk prodi ${prodi}.`);

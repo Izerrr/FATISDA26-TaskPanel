@@ -1,6 +1,7 @@
 import type { Prodi } from "./types";
 
 import { getScheduleSource, type ScheduleSource } from "./sources";
+import { getDynamicScheduleSource } from "@/lib/settings";
 
 function buildCsvUrl(source: ScheduleSource): string {
   const params = new URLSearchParams({
@@ -35,7 +36,8 @@ export async function fetchScheduleCsv(source: ScheduleSource): Promise<string> 
 }
 
 export async function fetchScheduleCsvByProdi(prodi: Prodi): Promise<string> {
-  const source = getScheduleSource(prodi);
+  const dynamicSource = await getDynamicScheduleSource(prodi);
+  const source = dynamicSource ?? getScheduleSource(prodi);
 
   if (!source) {
     throw new Error(`Belum ada sumber jadwal untuk prodi ${prodi}.`);
@@ -43,3 +45,4 @@ export async function fetchScheduleCsvByProdi(prodi: Prodi): Promise<string> {
 
   return fetchScheduleCsv(source);
 }
+

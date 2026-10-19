@@ -174,23 +174,23 @@ export default function GrandSchedulePage() {
       <div className="space-y-6">
         {/* Top Navigation Tabs: Personal vs Grand vs AI */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-liquid-border dark:border-slate-800 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="no-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5">
             <Link
               href="/dashboard/schedule"
-              className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Jadwal Saya (Personal)</span>
+              <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+              <span>Jadwal Saya</span>
             </Link>
 
-            <div className="flex items-center gap-1.5 rounded-2xl bg-liquid-accent/10 px-3.5 py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
-              <TableIcon className="h-4 w-4" />
-              <span>Grand Spreadsheet (Semua Prodi)</span>
+            <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl bg-liquid-accent/10 px-3.5 py-2.5 sm:py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
+              <TableIcon className="h-4 w-4 shrink-0" />
+              <span>Grand Spreadsheet</span>
             </div>
 
             <Link
               href="/dashboard/schedule/exam"
-              className="flex items-center gap-1.5 rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40"
             >
               <GraduationCap className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>Jadwal UTS / UAS</span>
@@ -200,13 +200,13 @@ export default function GrandSchedulePage() {
           <button
             type="button"
             onClick={() => setShowAiMatcher(!showAiMatcher)}
-            className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-bold transition shadow-sm ${
+            className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 sm:py-2 text-xs font-bold transition shadow-sm ${
               showAiMatcher
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sky-500/20"
                 : "border border-sky-300/80 bg-sky-50/80 text-sky-700 hover:bg-sky-100/80 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50"
             }`}
           >
-            <Sparkles className="h-4 w-4 animate-pulse" />
+            <Sparkles className="h-4 w-4 shrink-0 animate-pulse" />
             <span>{showAiMatcher ? "Tutup AI Matcher" : "Buka AI Matcher & Jam Kosong"}</span>
           </button>
         </div>

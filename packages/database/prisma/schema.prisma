@@ -344,3 +344,11 @@ model Feedback {
   @@index([category])
   @@index([status])
 }
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  updatedById String?
+  updatedAt   DateTime @default(now()) @updatedAt
+}
