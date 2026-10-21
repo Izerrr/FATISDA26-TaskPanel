@@ -73,21 +73,21 @@ export function Overview({ tasks, schedules }: OverviewProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-full min-w-0 space-y-5 sm:space-y-6">
       {/* 4 Quick Stat Cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
 
           return (
-            <div key={stat.label} className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-5 shadow-glass">
+            <div key={stat.label} className="min-w-0 rounded-2xl border border-liquid-border bg-white p-3.5 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-5">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-liquid-text-secondary dark:text-slate-400 truncate">{stat.label}</p>
-                  <p className="mt-1 text-2xl sm:text-3xl font-bold text-liquid-text dark:text-slate-100">{stat.value}</p>
+                  <p className="truncate text-xs font-medium text-liquid-text-secondary dark:text-slate-400">{stat.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-liquid-text dark:text-slate-100 sm:text-3xl">{stat.value}</p>
                 </div>
 
-                <div className={`flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl ${stat.tone}`}>
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${stat.tone}`}>
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
               </div>
@@ -97,29 +97,29 @@ export function Overview({ tasks, schedules }: OverviewProps) {
       </div>
 
       {/* Productivity Progress & Countdown Bar */}
-      <section className="rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-glass">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+      <section className="w-full max-w-full min-w-0 rounded-3xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-sm font-bold text-liquid-text dark:text-slate-100">Tingkat Penyelesaian Tugas</h3>
-                <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 shrink-0">{completionRate}% Selesai</span>
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">{completionRate}% Selesai</span>
               </div>
-              <p className="text-xs text-liquid-text-secondary dark:text-slate-400 mt-0.5 truncate">
+              <p className="mt-0.5 truncate text-xs text-liquid-text-secondary dark:text-slate-400">
                 {done} dari {tasks.length} tugas telah diselesaikan
               </p>
             </div>
           </div>
 
           {closestTask && closestHours !== null && (
-            <div className="flex items-center gap-2 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 px-3.5 py-2 text-xs text-amber-800 dark:text-amber-300 w-full sm:w-auto max-w-full sm:max-w-md min-w-0 overflow-hidden">
-              <Flame className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 animate-pulse" />
+            <div className="flex w-full max-w-full min-w-0 items-center gap-2 overflow-hidden rounded-2xl border border-amber-200/60 bg-amber-50/80 px-3.5 py-2 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 sm:w-auto sm:max-w-md">
+              <Flame className="h-4 w-4 shrink-0 animate-pulse text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 truncate">
                 <span>Deadline Terdekat: </span>
-                <strong className="font-bold text-slate-800 dark:text-slate-100 max-w-[140px] sm:max-w-[200px] truncate inline-block align-bottom" title={closestTask.title}>
+                <strong className="inline-block max-w-[130px] truncate align-bottom font-bold text-slate-800 dark:text-slate-100 sm:max-w-[200px]" title={closestTask.title}>
                   {closestTask.title}
                 </strong>{" "}
                 <span className="shrink-0 whitespace-nowrap">({closestHours >= 24 ? `${Math.floor(closestHours / 24)} hari lagi` : closestHours > 0 ? `${closestHours} jam lagi` : "Segera berakhir!"})</span>
@@ -138,29 +138,29 @@ export function Overview({ tasks, schedules }: OverviewProps) {
       <OverviewExam />
 
       {/* Main Grid: Deadlines & Today's Schedule */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2 rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-glass min-w-0 overflow-hidden">
-          <div className="flex items-center justify-between">
-            <div>
+      <div className="grid w-full max-w-full min-w-0 gap-5 sm:gap-6 lg:grid-cols-3">
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6 lg:col-span-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
               <h2 className="font-bold text-liquid-text dark:text-slate-100">Deadline Terdekat</h2>
               <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Berdasarkan tugas aktif yang memiliki deadline.</p>
             </div>
 
-            <span className="rounded-full bg-blue-50 dark:bg-blue-950/60 px-3 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300 shrink-0">{upcoming.length} tugas</span>
+            <span className="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-600 dark:bg-blue-950/60 dark:text-blue-300">{upcoming.length} tugas</span>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="mt-4 space-y-3 sm:mt-5">
             {upcoming.length === 0 ? (
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-5 text-sm text-liquid-text-secondary dark:text-slate-400">🎉 Belum ada deadline yang mendekat. Waktunya santai!</div>
+              <div className="rounded-xl bg-slate-50 p-5 text-sm text-liquid-text-secondary dark:bg-slate-800/50 dark:text-slate-400">🎉 Belum ada deadline yang mendekat. Waktunya santai!</div>
             ) : (
               upcoming.map((task) => (
-                <div key={task.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 dark:border-slate-800 p-4 transition hover:bg-slate-50/50 dark:hover:bg-slate-800/50 min-w-0">
+                <div key={task.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 p-3.5 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/50 sm:p-4">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">{task.title}</p>
                     <p className="mt-1 truncate text-xs text-liquid-text-secondary dark:text-slate-400">{task.course ? `${task.course.code} · ${task.course.name}` : "Tanpa mata kuliah"}</p>
                   </div>
 
-                  <div className="ml-3 shrink-0 text-right">
+                  <div className="ml-2 shrink-0 text-right">
                     <p className="text-xs font-semibold text-liquid-text dark:text-slate-100">
                       {formatWib(task.dueDate!, {
                         day: "2-digit",
@@ -185,32 +185,32 @@ export function Overview({ tasks, schedules }: OverviewProps) {
       </div>
 
       {/* Course Workload & Task Composition */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid w-full max-w-full min-w-0 gap-5 sm:gap-6 md:grid-cols-2">
         {/* Distribusi Beban per Matkul */}
-        <section className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-glass">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-liquid-accent" />
-              <h2 className="font-bold text-liquid-text dark:text-slate-100 text-sm">Beban Tugas per Mata Kuliah</h2>
+        <section className="min-w-0 rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+            <div className="flex min-w-0 items-center gap-2">
+              <BarChart3 className="h-4 w-4 shrink-0 text-liquid-accent" />
+              <h2 className="truncate text-sm font-bold text-liquid-text dark:text-slate-100">Beban Tugas per Mata Kuliah</h2>
             </div>
-            <span className="text-xs text-slate-400 dark:text-slate-500">Tugas Aktif</span>
+            <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">Tugas Aktif</span>
           </div>
 
           <div className="mt-4 space-y-3">
             {topCourseWorkloads.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-slate-500 py-2">Semua tugas mata kuliah sudah selesai.</p>
+              <p className="py-2 text-xs text-slate-400 dark:text-slate-500">Semua tugas mata kuliah sudah selesai.</p>
             ) : (
               topCourseWorkloads.map((cw) => {
                 const percentage = Math.min(100, Math.round((cw.count / Math.max(1, inProgress + overdue)) * 100));
                 return (
                   <div key={cw.code} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-liquid-text dark:text-slate-200 truncate max-w-[200px]">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="min-w-0 flex-1 truncate font-medium text-liquid-text dark:text-slate-200">
                         [{cw.code}] {cw.name}
                       </span>
-                      <span className="font-semibold text-liquid-accent dark:text-sky-400 shrink-0">{cw.count} tugas</span>
+                      <span className="shrink-0 font-semibold text-liquid-accent dark:text-sky-400">{cw.count} tugas</span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                       <div className="h-full rounded-full bg-liquid-accent" style={{ width: `${percentage}%` }} />
                     </div>
                   </div>
@@ -221,8 +221,8 @@ export function Overview({ tasks, schedules }: OverviewProps) {
         </section>
 
         {/* Komposisi Tugas (Personal vs Kelas) */}
-        <section className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-glass">
-          <h2 className="font-bold text-liquid-text dark:text-slate-100 text-sm pb-3 border-b border-slate-100 dark:border-slate-800">Komposisi & Cakupan Tugas</h2>
+        <section className="min-w-0 rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <h2 className="border-b border-slate-100 pb-3 text-sm font-bold text-liquid-text dark:border-slate-800 dark:text-slate-100">Komposisi &amp; Cakupan Tugas</h2>
 
           <div className="mt-4 space-y-4">
             <div>

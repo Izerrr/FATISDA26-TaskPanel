@@ -14,7 +14,11 @@ async function fetcher(url: string) {
 }
 
 export function useRole() {
-  const { data, error, isLoading, mutate } = useSWR<{ user: User }>("/api/me", fetcher);
+  const { data, error, isLoading, mutate } = useSWR<{ user: User }>("/api/me", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    keepPreviousData: true,
+  });
 
   const user = data?.user ?? null;
   const hasLinkedDiscord = Boolean(user?.discordId);
@@ -41,8 +45,8 @@ export function useRole() {
     canManageVault,
     canAccessAnalytics,
     user,
-    isLoading,
-    isError: Boolean(error),
+    isLoading: isLoading && !data,
+    isError: Boolean(error && !data),
     mutate,
   };
 }

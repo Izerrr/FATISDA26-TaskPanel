@@ -171,26 +171,26 @@ export default function GrandSchedulePage() {
 
   return (
     <DashboardFrame>
-      <div className="space-y-6">
+      <div className="w-full max-w-full min-w-0 space-y-5 sm:space-y-6">
         {/* Top Navigation Tabs: Personal vs Grand vs AI */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-liquid-border dark:border-slate-800 pb-4">
-          <div className="no-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5">
+        <div className="flex w-full max-w-full min-w-0 flex-col gap-3 border-b border-liquid-border pb-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="no-scrollbar flex w-full max-w-full min-w-0 items-center gap-2 overflow-x-auto pb-0.5 sm:w-auto">
             <Link
               href="/dashboard/schedule"
-              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 sm:py-2"
             >
               <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
               <span>Jadwal Saya</span>
             </Link>
 
-            <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl bg-liquid-accent/10 px-3.5 py-2.5 sm:py-2 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
+            <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl bg-liquid-accent/10 px-3.5 py-2.5 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300 sm:py-2">
               <TableIcon className="h-4 w-4 shrink-0" />
               <span>Grand Spreadsheet</span>
             </div>
 
             <Link
               href="/dashboard/schedule/exam"
-              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl border border-amber-200/80 bg-amber-50/60 px-3.5 py-2.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40 sm:py-2"
             >
               <GraduationCap className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>Jadwal UTS / UAS</span>
@@ -200,7 +200,7 @@ export default function GrandSchedulePage() {
           <button
             type="button"
             onClick={() => setShowAiMatcher(!showAiMatcher)}
-            className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 sm:py-2 text-xs font-bold transition shadow-sm ${
+            className={`flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-xs font-bold shadow-sm transition sm:w-auto sm:py-2 ${
               showAiMatcher
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sky-500/20"
                 : "border border-sky-300/80 bg-sky-50/80 text-sky-700 hover:bg-sky-100/80 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50"
@@ -215,11 +215,11 @@ export default function GrandSchedulePage() {
         {showAiMatcher && <ScheduleAiMatcher defaultProdi={selectedProdi} defaultSemester={selectedSemester > 0 ? selectedSemester : 1} onClose={() => setShowAiMatcher(false)} />}
 
         {/* Prodi Selector Bar */}
-        <section className="rounded-3xl border border-liquid-border dark:border-slate-800 bg-white p-4 shadow-glass dark:bg-slate-900">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <section className="w-full max-w-full min-w-0 rounded-3xl border border-liquid-border bg-white p-3.5 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-4">
+          <div className="flex w-full max-w-full min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Prodi Buttons */}
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Pilih Program Studi:</p>
+            <div className="min-w-0">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Pilih Program Studi:</p>
               <div className="flex flex-wrap gap-2">
                 {PRODI_OPTIONS.map((prodi) => {
                   const active = selectedProdi === prodi.id;
@@ -228,14 +228,14 @@ export default function GrandSchedulePage() {
                       key={prodi.id}
                       type="button"
                       onClick={() => setSelectedProdi(prodi.id)}
-                      className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition ${
+                      className={`flex max-w-full items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-bold transition sm:px-4 sm:py-2.5 ${
                         active
                           ? "bg-liquid-accent text-white shadow-md shadow-sky-500/20"
                           : "border border-slate-200 bg-slate-50/70 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                     >
-                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-black/5 text-slate-500 dark:bg-white/10 dark:text-slate-400"}`}>{prodi.badge}</span>
-                      <span>{prodi.label}</span>
+                      <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${active ? "bg-white/20 text-white" : "bg-black/5 text-slate-500 dark:bg-white/10 dark:text-slate-400"}`}>{prodi.badge}</span>
+                      <span className="truncate">{prodi.label}</span>
                     </button>
                   );
                 })}
@@ -248,7 +248,7 @@ export default function GrandSchedulePage() {
                 type="button"
                 onClick={() => fetchGrandSchedule(selectedProdi)}
                 disabled={loading}
-                className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 transition disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>Refresh</span>
@@ -258,7 +258,7 @@ export default function GrandSchedulePage() {
                 type="button"
                 onClick={handleExportCsv}
                 disabled={filteredSchedules.length === 0}
-                className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 transition disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200"
               >
                 <Download className="h-3.5 w-3.5 text-liquid-accent" />
                 <span>Ekspor CSV</span>
@@ -268,9 +268,9 @@ export default function GrandSchedulePage() {
         </section>
 
         {/* Filter Controls: Hari, Semester, Kelas, Search */}
-        <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <section className="flex w-full max-w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Day Selector */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1">
+          <div className="no-scrollbar flex w-full max-w-full min-w-0 items-center gap-1.5 overflow-x-auto pb-1 lg:w-auto">
             {DAYS.map((d) => {
               const active = selectedDay === d.value;
               return (
@@ -289,34 +289,34 @@ export default function GrandSchedulePage() {
           </div>
 
           {/* Secondary Filters */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full max-w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto">
             {/* Search Input */}
-            <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900 shadow-xs">
-              <Search className="h-3.5 w-3.5 text-slate-400" />
+            <div className="flex w-full min-w-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:w-auto">
+              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari matkul/ruang/dosen..."
-                className="w-44 bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 sm:w-52"
+                className="w-full min-w-0 bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 sm:w-48"
               />
               {search && (
-                <button type="button" onClick={() => setSearch("")} className="text-slate-400 hover:text-slate-600 text-xs">
+                <button type="button" onClick={() => setSearch("")} className="shrink-0 text-xs text-slate-400 hover:text-slate-600">
                   ✕
                 </button>
               )}
             </div>
 
             {/* Semester Pill */}
-            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 text-xs dark:border-slate-800 dark:bg-slate-900 shadow-xs">
-              <span className="px-2 text-[11px] font-semibold text-slate-400">Smt</span>
-              <div className="flex gap-1 overflow-x-auto">
+            <div className="flex w-full max-w-full min-w-0 items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:w-auto">
+              <span className="shrink-0 px-2 text-[11px] font-semibold text-slate-400">Smt</span>
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {SEMESTER_OPTIONS.map((sem) => (
                   <button
                     key={sem}
                     type="button"
                     onClick={() => setSelectedSemester(sem)}
-                    className={`h-7 min-w-[28px] shrink-0 rounded-xl px-2 text-xs font-bold transition flex items-center justify-center ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                    className={`flex h-7 min-w-[28px] shrink-0 items-center justify-center rounded-xl px-2 text-xs font-bold transition ${selectedSemester === sem ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
                   >
                     {sem === 0 ? "Semua" : sem}
                   </button>
@@ -325,15 +325,15 @@ export default function GrandSchedulePage() {
             </div>
 
             {/* Kelas Pill */}
-            <div className="flex items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 text-xs dark:border-slate-800 dark:bg-slate-900 shadow-xs">
-              <span className="px-2 text-[11px] font-semibold text-slate-400">Kls</span>
-              <div className="flex gap-1">
+            <div className="flex w-full max-w-full min-w-0 items-center gap-1 rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:w-auto">
+              <span className="shrink-0 px-2 text-[11px] font-semibold text-slate-400">Kls</span>
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {KELAS_OPTIONS.map((k) => (
                   <button
                     key={k}
                     type="button"
                     onClick={() => setSelectedKelas(k)}
-                    className={`h-7 min-w-[28px] shrink-0 rounded-xl px-2 text-xs font-bold transition flex items-center justify-center ${selectedKelas === k ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
+                    className={`flex h-7 min-w-[28px] shrink-0 items-center justify-center rounded-xl px-2 text-xs font-bold transition ${selectedKelas === k ? "bg-liquid-accent text-white shadow-xs" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"}`}
                   >
                     {k === "ALL" ? "Semua" : k}
                   </button>
@@ -344,7 +344,7 @@ export default function GrandSchedulePage() {
         </section>
 
         {/* Spreadsheet Matrix Grid */}
-        <section className="relative overflow-hidden rounded-3xl border border-liquid-border dark:border-slate-800 bg-white shadow-glass dark:bg-slate-900">
+        <section className="relative w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-liquid-border bg-white shadow-glass dark:border-slate-800 dark:bg-slate-900">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-16">
               <RefreshCw className="h-8 w-8 animate-spin text-liquid-accent" />

@@ -22,12 +22,16 @@ const fetcher = async (url: string): Promise<CoursesResponse> => {
 
 export function useCourses(semester?: number) {
   const url = typeof semester === "number" ? `/api/courses?semester=${semester}` : "/api/courses";
-  const { data, error, isLoading, mutate } = useSWR<CoursesResponse>(url, fetcher);
+  const { data, error, isLoading, mutate } = useSWR<CoursesResponse>(url, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    keepPreviousData: true,
+  });
 
   return {
     courses: data?.courses ?? [],
-    isLoading,
-    isError: Boolean(error),
+    isLoading: isLoading && !data,
+    isError: Boolean(error && !data),
     mutate,
   };
 }

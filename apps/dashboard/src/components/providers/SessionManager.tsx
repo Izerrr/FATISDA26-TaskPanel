@@ -1,21 +1,16 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useSWRConfig } from "swr";
 import { Preloader } from "@/components/ui/Preloader";
 
-// 20 Menit Sinkronisasi Sesi Berkala
 const PERIODIC_SYNC_INTERVAL_MS = 20 * 60 * 1000;
-
-// 24 Jam Batas Waktu Tanpa Aktivitas (Daily Inactivity Reset)
-const INACTIVITY_TIMEOUT_MS = 24 * 60 * 60 * 1000;
-
 const ACTIVITY_STORAGE_KEY = "fatisda_last_activity_ts";
-const THROTTLE_WRITE_MS = 30 * 1000; // Simpan ke localStorage maksimal setiap 30 detik
+const THROTTLE_WRITE_MS = 30 * 1000;
 
 interface SessionManagerContextValue {
-  triggerSync: (customMessage?: string) => Promise<void>;
+  triggerSync: (customMessage?: string, showOverlay?: boolean) => Promise<void>;
   isPreloaderActive: boolean;
 }
 
@@ -25,15 +20,13 @@ const SessionManagerContext = createContext<SessionManagerContextValue>({
 });
 
 export function SessionManager({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { mutate } = useSWRConfig();
 
   const [preloaderVisible, setPreloaderVisible] = useState(false);
   const [preloaderMessage, setPreloaderMessage] = useState("Menyelaraskan Sesi...");
   const lastWriteRef = useRef<number>(0);
-  const hasInitialSyncedRef = useRef(false);
 
-  // Perbarui timestamp aktivitas user
   function recordActivity() {
     const now = Date.now();
     if (now - lastWriteRef.current > THROTTLE_WRITE_MS) {
@@ -44,100 +37,68 @@ export function SessionManager({ children }: { children: ReactNode }) {
     }
   }
 
-  // Fungsi sinkronisasi dengan preloader subtle
-  async function triggerSync(customMessage = "Menyelaraskan Sesi...") {
+  async function triggerSync(customMessage = "Menyelaraskan Sesi...", showOverlay = true) {
     if (status !== "authenticated") return;
 
-    setPreloaderMessage(customMessage);
-    setPreloaderVisible(true);
-
-    try {
-      // Revalidasi endpoint profil user dan seluruh cache SWR
-      await Promise.allSettled([fetch("/api/me", { cache: "no-store" }), mutate((key) => typeof key === "string" && key.startsWith("/api/"))]);
-    } catch (e) {
-      console.warn("[SessionManager] Sync error:", e);
-    } finally {
-      // Biarkan preloader terlihat sebentar (~800ms) agar animasinya terasa subtle dan smooth
-      setTimeout(() => {
-        setPreloaderVisible(false);
-      }, 800);
+    if (showOverlay) {
+      setPreloaderMessage(customMessage);
+      setPreloaderVisible(true);
     }
-  }
-
-  // Cek apakah user telah melewati 24 jam tanpa aktivitas
-  function checkInactivity() {
-    if (status !== "authenticated") return;
 
     try {
-      const stored = window.localStorage.getItem(ACTIVITY_STORAGE_KEY);
-      if (!stored) {
-        // Inisialisasi jika belum ada
-        window.localStorage.setItem(ACTIVITY_STORAGE_KEY, String(Date.now()));
-        return;
+      await Promise.allSettled([
+        fetch("/api/me", { cache: "no-store" }).catch(() => null),
+        mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.startsWith("/api/") &&
+            !key.startsWith("/api/auth"),
+        ),
+      ]);
+    } catch (e) {
+      console.warn("[SessionManager] Sync warning:", e);
+    } finally {
+      if (showOverlay) {
+        setTimeout(() => {
+          setPreloaderVisible(false);
+        }, 650);
       }
-
-      const lastActive = parseInt(stored, 10);
-      const elapsed = Date.now() - lastActive;
-
-      if (elapsed > INACTIVITY_TIMEOUT_MS) {
-        console.warn("[SessionManager] 24 jam tanpa aktivitas terdeteksi. Logout otomatis...");
-        window.localStorage.removeItem(ACTIVITY_STORAGE_KEY);
-        void signOut({ callbackUrl: "/login?expired=inactivity" });
-      }
-    } catch (_) {}
+    }
   }
 
   useEffect(() => {
     if (status !== "authenticated") return;
 
-    // Tampilkan preloader subtle pada initial mount pertama kali
-    if (!hasInitialSyncedRef.current) {
-      hasInitialSyncedRef.current = true;
-      setPreloaderMessage("Sinkronisasi Sesi FATISDA...");
-      setPreloaderVisible(true);
-      const initTimer = setTimeout(() => {
-        setPreloaderVisible(false);
-      }, 750);
-    }
-
-    // Catat aktivitas saat pertama kali mount
     recordActivity();
-    checkInactivity();
 
-    // Event listeners untuk deteksi interaksi user
     const events = ["mousedown", "keydown", "scroll", "touchstart", "pointerdown"];
     const handleUserInteraction = () => {
+      recordActivity();
+    };
+
+    // Safely absorb OS-level gesture interruptions (e.g., 3-finger screenshot on Android)
+    const handleGestureCancel = () => {
       recordActivity();
     };
 
     events.forEach((evt) => {
       window.addEventListener(evt, handleUserInteraction, { passive: true });
     });
+    window.addEventListener("touchcancel", handleGestureCancel, { passive: true });
+    window.addEventListener("pointercancel", handleGestureCancel, { passive: true });
 
-    // Pengecekan saat tab aktif kembali (visibilitychange)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        checkInactivity();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Interval cek inactivity setiap 1 menit
-    const inactivityInterval = setInterval(() => {
-      checkInactivity();
-    }, 60 * 1000);
-
-    // Interval sync 20 menit berkala dengan subtle preloader
     const periodicSyncInterval = setInterval(() => {
-      void triggerSync("Sinkronisasi Sesi Berkala...");
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void triggerSync("Sinkronisasi Sesi Berkala...", false);
+      }
     }, PERIODIC_SYNC_INTERVAL_MS);
 
     return () => {
       events.forEach((evt) => {
         window.removeEventListener(evt, handleUserInteraction);
       });
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(inactivityInterval);
+      window.removeEventListener("touchcancel", handleGestureCancel);
+      window.removeEventListener("pointercancel", handleGestureCancel);
       clearInterval(periodicSyncInterval);
     };
   }, [status]);

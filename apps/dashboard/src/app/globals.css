@@ -5,6 +5,8 @@
 @layer base {
   html {
     min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     background-color: #f2f2f7;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -17,6 +19,8 @@
 
   body {
     min-height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
     font-family:
       var(--font-sans),
       Inter,

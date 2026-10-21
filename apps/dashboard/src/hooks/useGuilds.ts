@@ -8,28 +8,33 @@ interface GuildResponse {
 }
 
 async function fetcher(url: string): Promise<GuildResponse> {
-  const response = await fetch(url, {
-    method: "GET",
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
-    throw new Error("Gagal memuat server Discord.");
+    if (!response.ok) {
+      return { guilds: [] };
+    }
+
+    return await response.json();
+  } catch {
+    return { guilds: [] };
   }
-
-  return response.json();
 }
 
 export function useGuilds() {
   const { data, error, isLoading, mutate } = useSWR<GuildResponse>("/api/guilds", fetcher, {
     revalidateOnFocus: false,
     shouldRetryOnError: false,
+    keepPreviousData: true,
   });
 
   return {
     guilds: data?.guilds ?? [],
-    isLoading,
-    isError: Boolean(error),
+    isLoading: isLoading && !data,
+    isError: Boolean(error && !data),
     error,
     mutate,
   };

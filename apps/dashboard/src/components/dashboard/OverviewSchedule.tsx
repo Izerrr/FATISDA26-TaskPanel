@@ -32,12 +32,12 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
 
   return (
     <>
-      <section className="rounded-2xl border border-liquid-border bg-white p-6 shadow-glass dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-start justify-between gap-4">
+      <section className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-              <h2 className="font-bold text-liquid-text dark:text-slate-100">
+              <h2 className="truncate font-bold text-liquid-text dark:text-slate-100">
                 {result.isToday ? "Jadwal Hari Ini" : "Jadwal Berikutnya"}
               </h2>
             </div>
@@ -53,7 +53,7 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
           </Link>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-4 sm:mt-5">
           {/* Banner Status Kuliah Real-Time */}
           {liveStatus.state === "ONGOING" && (
             <div className="mb-4 flex flex-col gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 text-xs text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200 sm:flex-row sm:items-center sm:justify-between">

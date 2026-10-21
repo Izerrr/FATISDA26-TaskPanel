@@ -16,17 +16,29 @@ export function RoomLocationBadge({
   compact = false,
 }: RoomLocationBadgeProps) {
   const [open, setOpen] = useState(false);
+  const [alignRight, setAlignRight] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const handleClickOutside = (e: MouseEvent) => {
+
+    if (containerRef.current && typeof window !== "undefined") {
+      const rect = containerRef.current.getBoundingClientRect();
+      // If the badge is past 45% of the screen width, anchor the popover to the right edge so it doesn't overflow right
+      setAlignRight(rect.left > window.innerWidth * 0.45);
+    }
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, [open]);
 
   const displayRoom = room?.trim() || "TBA";
@@ -59,7 +71,9 @@ export function RoomLocationBadge({
 
       {open && building && (
         <div
-          className="absolute bottom-full left-0 z-40 mb-2 w-64 rounded-2xl border border-slate-200 bg-white p-3.5 text-left shadow-xl dark:border-slate-700 dark:bg-slate-900 sm:w-72"
+          className={`absolute bottom-full z-40 mb-2 w-60 max-w-[calc(100vw-2.5rem)] rounded-2xl border border-slate-200 bg-white p-3.5 text-left shadow-xl dark:border-slate-700 dark:bg-slate-900 sm:w-72 ${
+            alignRight ? "right-0" : "left-0"
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="mb-1.5 flex items-start gap-2">
@@ -91,4 +105,3 @@ export function RoomLocationBadge({
     </div>
   );
 }
-

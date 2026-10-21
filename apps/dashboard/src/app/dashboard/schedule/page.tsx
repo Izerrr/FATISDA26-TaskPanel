@@ -138,10 +138,10 @@ export default function SchedulePage() {
 
   return (
     <DashboardFrame>
-      <div className="space-y-6">
+      <div className="w-full max-w-full min-w-0 space-y-5 sm:space-y-6">
         {/* Navigation Bar between Personal, Grand, Exam, and AI */}
-        <div className="flex flex-col gap-3 border-b border-liquid-border pb-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-          <div className="no-scrollbar flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5">
+        <div className="flex w-full max-w-full min-w-0 flex-col gap-3 border-b border-liquid-border pb-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+          <div className="no-scrollbar flex w-full max-w-full min-w-0 items-center gap-2 overflow-x-auto pb-0.5 sm:w-auto">
             <div className="flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl bg-liquid-accent/10 px-3.5 py-2.5 text-xs font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300 sm:py-2">
               <CalendarDays className="h-4 w-4 shrink-0" />
               <span>
@@ -171,7 +171,7 @@ export default function SchedulePage() {
           <button
             type="button"
             onClick={() => setShowAiMatcher(!showAiMatcher)}
-            className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-xs font-bold shadow-sm transition sm:py-2 ${
+            className={`flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-xs font-bold shadow-sm transition sm:w-auto sm:py-2 ${
               showAiMatcher
                 ? "bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-sky-500/20"
                 : "border border-sky-300/80 bg-sky-50/80 text-sky-700 hover:bg-sky-100/80 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50"
@@ -192,10 +192,10 @@ export default function SchedulePage() {
         )}
 
         {/* Header with Title & Actions */}
-        <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <section className="flex w-full max-w-full min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-liquid-accent" />
+              <CalendarDays className="h-5 w-5 shrink-0 text-liquid-accent" />
               <h1 className="text-xl font-bold text-liquid-text dark:text-slate-100">
                 Jadwal Kuliah
               </h1>
@@ -217,23 +217,23 @@ export default function SchedulePage() {
             )}
           </div>
 
-          <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex w-full max-w-full min-w-0 flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             {/* Export Button */}
             <button
               type="button"
               onClick={() => setExportModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-liquid-border bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-800 sm:py-2"
+              className="flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-liquid-border bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-800 sm:w-auto sm:py-2"
             >
               <Calendar className="h-4 w-4 text-liquid-accent" />
               <span>Ekspor Kalender</span>
             </button>
 
             {/* Agama Selector */}
-            <div className="flex min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex w-full max-w-full min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:w-auto">
               <span className="shrink-0 px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">
                 Agama
               </span>
-              <div className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto">
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {AGAMA_OPTIONS.map((item) => (
                   <button
                     key={item.value}
@@ -252,12 +252,12 @@ export default function SchedulePage() {
             </div>
 
             {/* Semester Selector */}
-            <div className="flex min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex w-full max-w-full min-w-0 items-center gap-1.5 rounded-2xl border border-liquid-border bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:w-auto">
               <span className="shrink-0 px-2 text-xs font-semibold text-liquid-text-tertiary dark:text-slate-400">
                 <span className="sm:hidden">Smt</span>
                 <span className="hidden sm:inline">Semester</span>
               </span>
-              <div className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto">
+              <div className="no-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {SEMESTERS.map((sem) => (
                   <button
                     key={sem}
@@ -289,8 +289,8 @@ export default function SchedulePage() {
         {isAdmin && user?.prodi && user?.kelas && <ScheduleSyncPanel />}
 
         {/* Day Selector + Day Summary Broadcast Button */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+        <div className="flex w-full max-w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="no-scrollbar flex w-full max-w-full min-w-0 gap-2 overflow-x-auto pb-1 sm:w-auto">
             {DAYS.map((day) => {
               const isToday = day.value === today;
               const isSelected = selectedDay === day.value;
@@ -338,16 +338,16 @@ export default function SchedulePage() {
                   })),
                 })
               }
-              className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-2xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-bold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 sm:self-auto"
+              className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-bold text-emerald-700 shadow-2xs transition hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 sm:w-auto"
             >
-              <MessageSquareShare className="h-3.5 w-3.5" />
+              <MessageSquareShare className="h-3.5 w-3.5 shrink-0" />
               <span>Broadcast Hari {selectedDayLabel}</span>
             </button>
           )}
         </div>
 
         {/* Schedule List / Card */}
-        <section className="rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+        <section className="w-full max-w-full min-w-0 rounded-2xl border border-liquid-border bg-white p-3.5 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-5">
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (

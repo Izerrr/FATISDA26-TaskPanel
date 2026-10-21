@@ -28,6 +28,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
   const [activeMobileTab, setActiveMobileTab] = useState<TaskStatus>("TODO");
+  const [isDesktop, setIsDesktop] = useState(false);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
@@ -39,6 +40,14 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         setViewMode(saved);
       }
     } catch {}
+
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      const mq = window.matchMedia("(min-width: 768px)");
+      setIsDesktop(mq.matches);
+      const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+      mq.addEventListener("change", handler);
+      return () => mq.removeEventListener("change", handler);
+    }
   }, []);
 
   const handleToggleView = (mode: "kanban" | "list") => {
@@ -284,27 +293,29 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
             />
           </div>
 
-          {/* Desktop Multi-Column Kanban Board (>= md) */}
-          <div className="hidden md:block">
-            <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-              <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                {KANBAN_COLUMNS.map((status) => (
-                  <div key={status} className="min-w-0">
-                    <KanbanColumn
-                      status={status}
-                      tasks={items.filter((task) => task.status === status)}
-                      isDraggingAny={isDragging}
-                      justMovedTaskId={justMovedTaskId}
-                      onSelect={(task) => setDetailTask(task)}
-                      onMoveStatus={handleMoveTask}
-                      onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
-                      onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </DragDropContext>
-          </div>
+          {/* Desktop Multi-Column Kanban Board (>= md) - Only mount DragDropContext on desktop to avoid mobile multi-touch sensor conflicts */}
+          {isDesktop && (
+            <div className="hidden md:block">
+              <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {KANBAN_COLUMNS.map((status) => (
+                    <div key={status} className="min-w-0">
+                      <KanbanColumn
+                        status={status}
+                        tasks={items.filter((task) => task.status === status)}
+                        isDraggingAny={isDragging}
+                        justMovedTaskId={justMovedTaskId}
+                        onSelect={(task) => setDetailTask(task)}
+                        onMoveStatus={handleMoveTask}
+                        onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+                        onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </DragDropContext>
+            </div>
+          )}
         </>
       )}
 

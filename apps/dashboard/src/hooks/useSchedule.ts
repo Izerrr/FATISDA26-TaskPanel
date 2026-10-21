@@ -57,6 +57,9 @@ export function useSchedule(options: UseScheduleOptions = {}) {
   }, [storageKey]);
 
   const { data, error, isLoading, mutate } = useSWR<ScheduleResponse>(key, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    keepPreviousData: true,
     onSuccess: (fresh) => {
       if (typeof window !== "undefined" && storageKey && fresh) {
         try {

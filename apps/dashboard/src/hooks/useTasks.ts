@@ -24,14 +24,16 @@ export function useTasks(guildId?: string | null) {
   const url = guildId ? `/api/tasks?guildId=${encodeURIComponent(guildId)}` : "/api/tasks";
 
   const { data, error, isLoading, mutate } = useSWR<TaskResponse>(url, fetcher, {
-    revalidateOnFocus: true,
-    refreshInterval: 10000,
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+    keepPreviousData: true,
+    refreshInterval: 30000,
   });
 
   return {
     tasks: data?.tasks ?? [],
-    isLoading,
-    isError: Boolean(error),
+    isLoading: isLoading && !data,
+    isError: Boolean(error && !data),
     error,
     mutate,
   };

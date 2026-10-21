@@ -407,16 +407,16 @@ export default function AdminSettingsPage() {
 
   return (
     <DashboardFrame>
-      <div className="mx-auto max-w-5xl space-y-6 pb-16">
+      <div className="mx-auto w-full max-w-5xl min-w-0 space-y-5 pb-16 sm:space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20">
-              <Settings2 className="h-6 w-6" />
+        <div className="flex w-full max-w-full min-w-0 flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20 sm:h-12 sm:w-12">
+              <Settings2 className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                <h1 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-xl">
                   Pengaturan Sistem &amp; Sumber Jadwal
                 </h1>
                 <span className="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:bg-sky-500/20 dark:text-sky-400">
@@ -434,7 +434,7 @@ export default function AdminSettingsPage() {
             type="button"
             onClick={() => void handleSaveAll(false)}
             disabled={saving || loading}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.99] disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-400"
+            className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.99] disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-400 sm:w-auto"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -679,13 +679,13 @@ export default function AdminSettingsPage() {
         </section>
 
         {/* SECTION 2: DYNAMIC GOOGLE SHEETS SOURCES */}
-        <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex items-center gap-3">
+        <section className="w-full max-w-full min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex w-full max-w-full min-w-0 flex-col gap-3 border-b border-slate-100 px-4 py-4 dark:border-slate-800/80 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
                 <FileSpreadsheet className="h-5 w-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
                   Sumber Data Google Sheets (Jadwal &amp; Ujian)
                 </h2>
@@ -714,7 +714,7 @@ export default function AdminSettingsPage() {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}`}
-                className="inline-flex items-center gap-1.5 self-start rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300 sm:self-auto"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs font-bold text-amber-800 transition hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300 sm:w-auto"
               >
                 {rollingBack ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -727,8 +727,8 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Sub-navigation Tabs */}
-          <div className="border-b border-slate-100 bg-slate-50/60 px-5 py-2.5 dark:border-slate-800/80 dark:bg-slate-800/40 sm:px-6">
-            <div className="no-scrollbar flex gap-2 overflow-x-auto">
+          <div className="w-full max-w-full min-w-0 border-b border-slate-100 bg-slate-50/60 px-4 py-2.5 dark:border-slate-800/80 dark:bg-slate-800/40 sm:px-6">
+            <div className="no-scrollbar flex w-full max-w-full min-w-0 gap-2 overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab("exam")}
@@ -738,8 +738,8 @@ export default function AdminSettingsPage() {
                     : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 }`}
               >
-                <GraduationCap className="h-4 w-4" />
-                Spreadsheet Jadwal Ujian (UTS / UAS)
+                <GraduationCap className="h-4 w-4 shrink-0" />
+                <span>Spreadsheet Jadwal Ujian (UTS / UAS)</span>
               </button>
               <button
                 type="button"
@@ -750,14 +750,14 @@ export default function AdminSettingsPage() {
                     : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 }`}
               >
-                <Database className="h-4 w-4" />
-                Spreadsheet Jadwal Kuliah Reguler
+                <Database className="h-4 w-4 shrink-0" />
+                <span>Spreadsheet Jadwal Kuliah Reguler</span>
               </button>
             </div>
           </div>
 
           {/* Tab Content */}
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
+          <div className="w-full max-w-full min-w-0 divide-y divide-slate-100 dark:divide-slate-800/80">
             {activeTab === "exam"
               ? examSources.map((source) => {
                   const key = `exam_${source.prodi}_${source.type}`;
@@ -768,7 +768,7 @@ export default function AdminSettingsPage() {
                   const sheetUrl = buildGoogleSheetsEditUrl(source.spreadsheetId, source.gid);
 
                   return (
-                    <div key={key} className="space-y-4 p-5 sm:p-6">
+                    <div key={key} className="w-full max-w-full min-w-0 space-y-4 p-4 sm:p-6">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
@@ -942,7 +942,7 @@ export default function AdminSettingsPage() {
                   const sheetUrl = buildGoogleSheetsEditUrl(source.spreadsheetId, source.gid);
 
                   return (
-                    <div key={key} className="space-y-4 p-5 sm:p-6">
+                    <div key={key} className="w-full max-w-full min-w-0 space-y-4 p-4 sm:p-6">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-lg bg-sky-500/15 px-2.5 py-1 text-xs font-extrabold text-sky-700 dark:bg-sky-500/20 dark:text-sky-300">

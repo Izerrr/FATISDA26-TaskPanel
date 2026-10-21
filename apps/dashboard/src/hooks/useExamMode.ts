@@ -12,8 +12,10 @@ export function useExamMode() {
     "/api/settings/public",
     fetcher,
     {
-      revalidateOnFocus: true,
-      dedupingInterval: 10000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+      keepPreviousData: true,
+      dedupingInterval: 15000,
     },
   );
 
