@@ -109,7 +109,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
       transitionTimeoutRef.current = setTimeout(() => {
         root.classList.remove("theme-transitioning");
-      }, 500);
+      }, 450);
     }
   }
 

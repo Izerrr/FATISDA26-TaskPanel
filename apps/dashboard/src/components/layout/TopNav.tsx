@@ -14,7 +14,7 @@ export function TopNav({ onToggleMobileMenu, onNewTask }: TopNavProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-liquid-border bg-white/90 px-3.5 sm:px-4 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/90 md:px-6">
+    <header className="relative z-40 flex h-16 shrink-0 items-center justify-between border-b border-liquid-border bg-white/90 px-3.5 sm:px-4 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/90 md:px-6">
       <div className="flex items-center gap-2.5 sm:gap-3">
         {onToggleMobileMenu && (
           <button

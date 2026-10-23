@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Bell, Pin, Plus, X, Trash2, CheckCheck, Loader2 } from "lucide-react";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useRole } from "@/hooks/useRole";
@@ -11,6 +12,7 @@ export function AnnouncementPopover() {
   const { user, roles } = useRole();
   const { announcements, isLoading, mutate } = useAnnouncements(user?.prodi, user?.kelas);
 
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -21,6 +23,10 @@ export function AnnouncementPopover() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isPrivileged = roles?.some((r: string) =>
     ["PJ_KELAS", "PJ_MATKUL", "ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(String(r))
@@ -132,7 +138,7 @@ export function AnnouncementPopover() {
 
       {/* Popover Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Pengumuman Pengurus</span>
@@ -220,7 +226,7 @@ export function AnnouncementPopover() {
       )}
 
       {/* Modal Buat Pengumuman */}
-      {modalOpen && (
+      {modalOpen && mounted && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-liquid-border dark:border-slate-800 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-liquid-border dark:border-slate-800">
@@ -289,7 +295,8 @@ export function AnnouncementPopover() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Bug, Calendar, CheckCircle2, ClipboardList, HelpCircle, Lightbulb, Loader2, MessageSquare, Sparkles, X } from "lucide-react";
 
 interface FeedbackModalProps {
@@ -15,13 +16,18 @@ const CATEGORIES = [
 ];
 
 export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [category, setCategory] = useState("BUG");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!open) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted || typeof document === "undefined") return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +68,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
     }
   }
 
-  return (
+  return createPortal(
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150" onClick={onClose}>
       <div className="relative w-full max-w-lg rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
@@ -159,6 +165,7 @@ export function FeedbackModal({ open, onClose }: FeedbackModalProps) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

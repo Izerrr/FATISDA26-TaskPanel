@@ -256,7 +256,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       <div className="px-4 pt-5">
         <div className="relative mt-2 overflow-hidden rounded-2xl border border-sky-200/90 bg-sky-50/70 p-3.5 shadow-xs dark:border-sky-900/50 dark:bg-slate-800/80">
           {/* Ambient gradient layer for light mode that smoothly fades with opacity */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-100/60 via-transparent to-blue-100/40 opacity-100 transition-opacity duration-500 dark:opacity-0" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-100/60 via-transparent to-blue-100/40 opacity-100 transition-opacity duration-400 dark:opacity-0" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-3">
@@ -495,7 +495,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   return (
     <>
       {/* Desktop static sidebar */}
-      <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border bg-white dark:border-slate-800 dark:bg-slate-900 md:block">{sidebarContent}</aside>
+      <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border dark:border-slate-800 md:block">{sidebarContent}</aside>
 
       {/* Mobile drawer with subtle slide-in animation & backdrop fade */}
       <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileOpen ? "visible pointer-events-auto" : "invisible pointer-events-none"}`} role="dialog" aria-modal="true">
