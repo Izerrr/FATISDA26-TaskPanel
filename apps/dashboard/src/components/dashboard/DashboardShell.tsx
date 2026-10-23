@@ -94,9 +94,9 @@ export function DashboardShell() {
           <button
             type="button"
             onClick={() => setClassModalOpen(true)}
-            className="inline-flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-1 rounded-full border border-sky-200/80 bg-sky-50/60 px-2.5 py-0.5 text-[10px] font-semibold text-sky-800 hover:bg-sky-100 hover:border-sky-300 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50 transition-colors"
           >
-            <SlidersHorizontal className="h-2.5 w-2.5" />
+            <SlidersHorizontal className="h-2.5 w-2.5 text-sky-600 dark:text-sky-400" />
             <span>{user?.kelas ? "Ubah Kelas" : "Pilih Kelas"}</span>
           </button>
 
@@ -104,10 +104,10 @@ export function DashboardShell() {
           <button
             type="button"
             onClick={() => setLinkingModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-sky-50/60 px-2.5 py-0.5 text-[10px] font-semibold text-sky-800 hover:bg-sky-100 hover:border-sky-300 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/50 transition-colors"
             title="Kelola sambungan akun Discord dan Google UNS"
           >
-            <Link2 className="h-2.5 w-2.5 text-liquid-accent dark:text-sky-400" />
+            <Link2 className="h-2.5 w-2.5 text-sky-600 dark:text-sky-400" />
             <span>
               {user?.email && (user?.discordId || !user?.id.startsWith("google_"))
                 ? "Akun Terhubung"

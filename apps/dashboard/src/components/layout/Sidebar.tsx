@@ -228,7 +228,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   }
 
   const sidebarContent = (
-    <div className="flex h-full w-full md:w-72 flex-col overflow-y-auto bg-white transition-colors dark:bg-slate-900">
+    <div className="flex h-full w-full md:w-72 flex-col overflow-y-auto bg-white dark:bg-slate-900">
       {/* Brand */}
       <div className="flex items-center justify-between border-b border-liquid-border px-6 py-5 dark:border-slate-800">
         <div className="flex items-center gap-3">
@@ -254,60 +254,65 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
       {/* Context & Profile */}
       <div className="px-4 pt-5">
-        <div className="mt-2 rounded-2xl border border-liquid-border/50 bg-liquid-accent/5 p-3.5 dark:border-slate-800 dark:bg-slate-800/60">
-          <div className="flex items-center gap-3">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.username} className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-liquid-accent/20 dark:ring-sky-500/20" />
-            ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white shadow-sm">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
-            )}
+        <div className="relative mt-2 overflow-hidden rounded-2xl border border-sky-200/90 bg-sky-50/70 p-3.5 shadow-xs dark:border-sky-900/50 dark:bg-slate-800/80">
+          {/* Ambient gradient layer for light mode that smoothly fades with opacity */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-100/60 via-transparent to-blue-100/40 opacity-100 transition-opacity duration-500 dark:opacity-0" />
 
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium text-liquid-text-secondary dark:text-slate-400">Welcome back,</p>
-              <p className="truncate text-sm font-bold text-liquid-text dark:text-slate-100">{user?.username ?? "Mahasiswa"}</p>
-            </div>
-          </div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.username} className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-sky-400/40 dark:ring-sky-500/30" />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white shadow-sm">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
+              )}
 
-          <p className="mt-2.5 text-xs font-medium text-liquid-text-secondary dark:text-slate-400">{profileLabel || "Profil belum tersinkron"}</p>
-
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {roleLabels.map((role) => (
-              <span key={role} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-liquid-accent shadow-xs dark:bg-slate-700 dark:text-sky-300">
-                {role}
-              </span>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleSync}
-            disabled={syncing}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200/80 bg-white/80 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50 hover:text-sky-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/80 dark:text-sky-300 dark:hover:bg-slate-700"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-            <span>{syncing ? "Menyelaraskan..." : "Sync Discord"}</span>
-          </button>
-
-          {syncMessage && <p className="mt-1.5 px-1 text-[10px] leading-4 text-liquid-text-secondary dark:text-slate-400">{syncMessage}</p>}
-
-          {!user?.kelas && (
-            <div className="mt-3 rounded-xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/30 p-2.5">
-              <p className="text-[11px] font-semibold text-sky-800 dark:text-sky-300">Pilih Kelas Kamu:</p>
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {(["A", "B", "C", "D", "E"] as const).map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    disabled={updatingKelas}
-                    onClick={() => handleSelectKelas(k)}
-                    className="rounded-lg border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-sky-700 dark:text-sky-200 shadow-xs hover:bg-sky-500 hover:text-white dark:hover:bg-sky-500 dark:hover:text-white transition active:scale-95 disabled:opacity-50"
-                  >
-                    Kls {k}
-                  </button>
-                ))}
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">Welcome back,</p>
+                <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{user?.username ?? "Mahasiswa"}</p>
               </div>
             </div>
-          )}
+
+            <p className="mt-2.5 text-xs font-medium text-slate-600 dark:text-slate-300">{profileLabel || "Profil belum tersinkron"}</p>
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {roleLabels.map((role) => (
+                <span key={role} className="rounded-full border border-sky-200/80 bg-white/90 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 shadow-xs dark:border-sky-800/60 dark:bg-slate-900 dark:text-sky-300">
+                  {role}
+                </span>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300/90 bg-white py-2 text-xs font-bold text-sky-700 shadow-xs hover:bg-sky-50 hover:border-sky-400 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 dark:border-sky-800/80 dark:bg-slate-800/90 dark:text-sky-300 dark:hover:bg-slate-700"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              <span>{syncing ? "Menyelaraskan..." : "Sync Discord"}</span>
+            </button>
+
+            {syncMessage && <p className="mt-1.5 px-1 text-[10px] leading-4 text-liquid-text-secondary dark:text-slate-400">{syncMessage}</p>}
+
+            {!user?.kelas && (
+              <div className="mt-3 rounded-xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/30 p-2.5">
+                <p className="text-[11px] font-semibold text-sky-800 dark:text-sky-300">Pilih Kelas Kamu:</p>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {(["A", "B", "C", "D", "E"] as const).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      disabled={updatingKelas}
+                      onClick={() => handleSelectKelas(k)}
+                      className="rounded-lg border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold text-sky-700 dark:text-sky-200 shadow-xs hover:bg-sky-500 hover:text-white dark:hover:bg-sky-500 dark:hover:text-white transition active:scale-95 disabled:opacity-50"
+                    >
+                      Kls {k}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -490,7 +495,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
   return (
     <>
       {/* Desktop static sidebar */}
-      <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border bg-white transition-colors dark:border-slate-800 dark:bg-slate-900 md:block">{sidebarContent}</aside>
+      <aside className="hidden h-full w-72 shrink-0 border-r border-liquid-border bg-white dark:border-slate-800 dark:bg-slate-900 md:block">{sidebarContent}</aside>
 
       {/* Mobile drawer with subtle slide-in animation & backdrop fade */}
       <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${mobileOpen ? "visible pointer-events-auto" : "invisible pointer-events-none"}`} role="dialog" aria-modal="true">

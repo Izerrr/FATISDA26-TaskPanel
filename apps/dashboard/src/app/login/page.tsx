@@ -258,7 +258,7 @@ function LoginContent() {
               <button
                 type="button"
                 onClick={() => setShowComparison(false)}
-                className="rounded-xl bg-slate-900 dark:bg-slate-100 px-4 py-2 text-xs font-semibold text-white dark:text-slate-900 shadow transition-all hover:opacity-90 active:scale-95"
+                className="rounded-xl bg-sky-600 dark:bg-sky-500 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700 dark:hover:bg-sky-400 shadow transition-all active:scale-95"
               >
                 Sudah Paham
               </button>

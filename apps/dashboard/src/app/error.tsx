@@ -42,7 +42,7 @@ export default function ErrorBoundary({
           <button
             type="button"
             onClick={() => reset()}
-            className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 py-2.5 text-xs font-semibold text-white dark:text-slate-900 shadow-xs hover:bg-slate-800 dark:hover:bg-slate-100 transition active:scale-95 cursor-pointer"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-sky-600 dark:bg-sky-500 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-sky-700 dark:hover:bg-sky-400 transition active:scale-95 cursor-pointer"
           >
             <RefreshCw className="h-4 w-4" />
             <span>Coba Muat Ulang</span>

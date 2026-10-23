@@ -153,7 +153,7 @@ export default function VaultCmsPage() {
               Halaman ini khusus untuk <strong>PJ Mata Kuliah</strong>, <strong>PJ Kelas</strong>, dan <strong>Administrator</strong> untuk mengelola link Google Drive dan materi Course Vault.
             </p>
             <div className="mt-5">
-              <Link href="/dashboard/courses" className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2 text-xs font-semibold hover:brightness-110 transition">
+              <Link href="/dashboard/courses" className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 dark:bg-sky-500 text-white px-4 py-2 text-xs font-semibold hover:bg-sky-700 dark:hover:bg-sky-400 transition">
                 Kembali ke Mata Kuliah
               </Link>
             </div>

@@ -84,7 +84,7 @@ export function OverviewClassGroups() {
 
         <Link
           href="/dashboard/class"
-          className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-sky-600 dark:hover:bg-sky-700"
+          className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-xl bg-liquid-accent px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-sky-600 active:scale-95 dark:bg-sky-600 dark:hover:bg-sky-500"
         >
           Buka Ruang Kelas
         </Link>

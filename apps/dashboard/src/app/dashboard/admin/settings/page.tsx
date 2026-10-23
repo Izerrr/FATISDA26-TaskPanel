@@ -434,7 +434,7 @@ export default function AdminSettingsPage() {
             type="button"
             onClick={() => void handleSaveAll(false)}
             disabled={saving || loading}
-            className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.99] disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-400 sm:w-auto"
+            className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-sky-700 active:scale-[0.99] disabled:opacity-50 dark:bg-sky-500 dark:hover:bg-sky-400 sm:w-auto"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />

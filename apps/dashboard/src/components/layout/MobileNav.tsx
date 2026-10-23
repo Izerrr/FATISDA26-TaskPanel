@@ -59,7 +59,7 @@ export function MobileNav() {
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none md:hidden">
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;

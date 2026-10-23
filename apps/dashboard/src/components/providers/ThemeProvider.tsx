@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -19,6 +19,7 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // 1. Check stored preference
@@ -46,7 +47,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       metaThemeColor.setAttribute("content", initialTheme === "dark" ? "#020617" : "#f2f2f7");
     }
 
+    // Handle cross-tab theme changes
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "fatisda_theme" && (e.newValue === "light" || e.newValue === "dark")) {
+        applyTheme(e.newValue as Theme);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
     setMounted(true);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
   }, []);
 
   function updateThemeDom(newTheme: Theme) {
@@ -75,17 +91,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const root = document.documentElement;
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Gunakan modern View Transitions API jika didukung oleh browser
-    if ("startViewTransition" in document && !prefersReducedMotion) {
-      (document as any).startViewTransition(() => {
-        updateThemeDom(newTheme);
-      });
-    } else {
-      updateThemeDom(newTheme);
+    // Apply synchronized linear theme transition class (matching izerworks.my.id)
+    if (!prefersReducedMotion) {
+      root.classList.add("theme-transitioning");
+    }
+
+    updateThemeDom(newTheme);
+
+    if (!prefersReducedMotion) {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+      transitionTimeoutRef.current = setTimeout(() => {
+        root.classList.remove("theme-transitioning");
+      }, 500);
     }
   }
 

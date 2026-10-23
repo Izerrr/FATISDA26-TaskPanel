@@ -160,7 +160,7 @@ export function InstallPrompt() {
                 setShowIOSModal(false);
                 handleDismiss();
               }}
-              className="mt-5 w-full rounded-xl bg-slate-900 dark:bg-sky-600 py-2.5 text-xs font-semibold text-white shadow transition hover:opacity-90"
+              className="mt-5 w-full rounded-xl bg-sky-600 hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 py-2.5 text-xs font-semibold text-white shadow-xs transition active:scale-95"
             >
               Mengerti & Jangan Tampilkan Lagi
             </button>

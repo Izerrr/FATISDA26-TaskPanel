@@ -95,7 +95,7 @@ export function RoomLocationBadge({
             href={building.mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-sky-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 shadow-xs"
           >
             <ExternalLink className="h-3 w-3" />
             Buka Titik Gedung di Google Maps
