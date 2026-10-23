@@ -135,6 +135,21 @@ section,
               color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+aside,
+aside *,
+aside *::before,
+aside *::after,
+.sidebar-drawer,
+.sidebar-drawer *,
+.sidebar-drawer *::before,
+.sidebar-drawer *::after {
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              stroke 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              fill 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,
@@ -158,6 +173,13 @@ html.theme-transitioning *::after {
   nav,
   section,
   .glass,
+  aside *,
+  aside *::before,
+  aside *::after,
+  .sidebar-drawer,
+  .sidebar-drawer *,
+  .sidebar-drawer *::before,
+  .sidebar-drawer *::after,
   html.theme-transitioning,
   html.theme-transitioning *,
   html.theme-transitioning *::before,
