@@ -49,52 +49,43 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  function applyTheme(newTheme: Theme) {
-    if (typeof document !== "undefined") {
-      // Temporarily disable CSS transitions on the DOM during theme toggle
-      // This ensures 100% of elements (cards, sidebar, background, borders, text)
-      // switch theme at the EXACT same millisecond without trailing/delayed transitions
-      const css = document.createElement("style");
-      css.appendChild(
-        document.createTextNode(
-          `*:not([data-theme-anim]):not([data-theme-anim] *) {
-            -webkit-transition: none !important;
-            -moz-transition: none !important;
-            -o-transition: none !important;
-            -ms-transition: none !important;
-            transition: none !important;
-          }`,
-        ),
-      );
-      document.head.appendChild(css);
-
-      setThemeState(newTheme);
+  function updateThemeDom(newTheme: Theme) {
+    setThemeState(newTheme);
+    try {
       localStorage.setItem("fatisda_theme", newTheme);
-      if (newTheme === "dark") {
-        document.documentElement.classList.add("dark");
-        document.documentElement.style.colorScheme = "dark";
-      } else {
-        document.documentElement.classList.remove("dark");
-        document.documentElement.style.colorScheme = "light";
-      }
+    } catch {}
 
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute("content", newTheme === "dark" ? "#020617" : "#f2f2f7");
-      }
-
-      // Force synchronous reflow so all elements adopt new colors instantly
-      window.getComputedStyle(document.body);
-
-      // Re-enable interactions on next frame
-      setTimeout(() => {
-        if (document.head.contains(css)) {
-          document.head.removeChild(css);
-        }
-      }, 20);
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", newTheme === "dark" ? "#020617" : "#f2f2f7");
+    }
+  }
+
+  function applyTheme(newTheme: Theme) {
+    if (typeof document === "undefined") {
       setThemeState(newTheme);
-      localStorage.setItem("fatisda_theme", newTheme);
+      return;
+    }
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Gunakan modern View Transitions API jika didukung oleh browser
+    if ("startViewTransition" in document && !prefersReducedMotion) {
+      (document as any).startViewTransition(() => {
+        updateThemeDom(newTheme);
+      });
+    } else {
+      updateThemeDom(newTheme);
     }
   }
 

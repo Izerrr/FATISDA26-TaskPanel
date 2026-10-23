@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, GraduationCap, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Settings2, Sparkles, UserRound, Users, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -13,6 +13,7 @@ import { useSessionManager } from "@/components/providers/SessionManager";
 import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
 import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
 import { useExamMode } from "@/hooks/useExamMode";
+import { matchesAgamaFilter } from "@/lib/schedule/constants";
 
 interface SidebarProps {
   courses: Course[];
@@ -113,6 +114,29 @@ function getRoleLabels(user: User | null) {
 }
 
 export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }: SidebarProps) {
+  const [prefAgama, setPrefAgama] = useState<string>("islam");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("fatisda_agama_preference");
+        if (saved) setPrefAgama(saved);
+
+        const handleAgamaChange = () => {
+          const updated = localStorage.getItem("fatisda_agama_preference");
+          if (updated) setPrefAgama(updated);
+        };
+
+        window.addEventListener("fatisda_agama_change", handleAgamaChange);
+        return () => window.removeEventListener("fatisda_agama_change", handleAgamaChange);
+      } catch {}
+    }
+  }, []);
+
+  const visibleCourses = useMemo(() => {
+    if (prefAgama === "all" || prefAgama === "semua") return courses;
+    return courses.filter((c) => matchesAgamaFilter(c.name, prefAgama));
+  }, [courses, prefAgama]);
   const pathname = usePathname();
   const { triggerSync } = useSessionManager();
 
@@ -384,14 +408,14 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
       <div className="px-4 py-5">
         <div className="flex items-center justify-between px-2">
           <p className="label">Mata Kuliah</p>
-          <span className="text-[10px] font-semibold text-liquid-text-tertiary dark:text-slate-400">{courses.length}</span>
+          <span className="text-[10px] font-semibold text-liquid-text-tertiary dark:text-slate-400">{visibleCourses.length}</span>
         </div>
 
         <div className="mt-2 space-y-1">
-          {courses.length === 0 ? (
+          {visibleCourses.length === 0 ? (
             <p className="px-3 text-xs italic text-liquid-text-secondary dark:text-slate-400">Belum ada data mata kuliah.</p>
           ) : (
-            courses.map((course) => (
+            visibleCourses.map((course) => (
               <Link
                 key={course.id}
                 href={`/dashboard/courses/${course.id}`}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ClipboardList, Filter, FlaskConical, Plus, Search } from "lucide-react";
+import { ClipboardList, Filter, FlaskConical, Plus, Search, UserRound } from "lucide-react";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { TaskNotificationTestModal } from "@/components/dashboard/TaskNotificationTestModal";
@@ -31,6 +31,7 @@ export default function TasksPage() {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("ALL");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [courseFilter, setCourseFilter] = useState("ALL");
+  const [onlyMyTasks, setOnlyMyTasks] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
 
@@ -40,6 +41,12 @@ export default function TasksPage() {
     const query = search.trim().toLowerCase();
 
     return tasks.filter((task: Task) => {
+      if (onlyMyTasks) {
+        const isMine =
+          task.scope === "PERSONAL" ||
+          (user?.id && (task.createdById === user.id || task.assignedTo === user.id));
+        if (!isMine) return false;
+      }
       const matchesSearch = !query || [task.title, task.description ?? "", task.course?.name ?? "", task.course?.code ?? ""].join(" ").toLowerCase().includes(query);
 
       const matchesScope = scopeFilter === "ALL" || task.scope === scopeFilter;
@@ -50,7 +57,7 @@ export default function TasksPage() {
 
       return matchesSearch && matchesScope && matchesStatus && matchesCourse;
     });
-  }, [tasks, search, scopeFilter, statusFilter, courseFilter]);
+  }, [tasks, search, scopeFilter, statusFilter, courseFilter, onlyMyTasks, user?.id]);
 
   const activeCount = tasks.filter((task) => task.status !== "DONE").length;
 
@@ -221,6 +228,19 @@ export default function TasksPage() {
                 </option>
               ))}
               </select>
+
+              <button
+                type="button"
+                onClick={() => setOnlyMyTasks(!onlyMyTasks)}
+                className={`w-full lg:w-auto inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
+                  onlyMyTasks
+                    ? "bg-blue-600 text-white shadow-xs dark:bg-sky-600"
+                    : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                <UserRound className="h-3.5 w-3.5" />
+                <span>Hanya Tugas Saya</span>
+              </button>
             </div>
           </div>
 

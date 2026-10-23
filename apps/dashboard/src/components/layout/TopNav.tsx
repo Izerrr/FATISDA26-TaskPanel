@@ -3,6 +3,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import { ProfileMenu } from "./ProfileMenu";
 import { GlobalSearch } from "./GlobalSearch";
 import { AnnouncementPopover } from "./AnnouncementPopover";
+import { NextClassPill } from "./NextClassPill";
 
 interface TopNavProps {
   onToggleMobileMenu?: () => void;
@@ -34,6 +35,8 @@ export function TopNav({ onToggleMobileMenu, onNewTask }: TopNavProps) {
         <div className="md:hidden">
           <span className="text-sm font-bold text-liquid-text dark:text-slate-100">TaskPanel</span>
         </div>
+
+        <NextClassPill />
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">

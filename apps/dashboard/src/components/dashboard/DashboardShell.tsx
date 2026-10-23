@@ -192,11 +192,25 @@ export function DashboardShell() {
 
           <p className="mt-1 text-sm text-liquid-text-secondary dark:text-slate-400">Data tugas tetap tersedia, tetapi jadwal belum dapat dimuat.</p>
 
-          <Overview tasks={tasks} schedules={[]} />
+          <Overview
+            tasks={tasks}
+            schedules={[]}
+            courses={courses}
+            roles={roles.map((r) => String(r))}
+            userId={user?.id}
+            onTaskMutate={() => void mutate()}
+          />
         </div>
       ) : (
         <>
-          <Overview tasks={tasks} schedules={schedules} />
+          <Overview
+            tasks={tasks}
+            schedules={schedules}
+            courses={courses}
+            roles={roles.map((r) => String(r))}
+            userId={user?.id}
+            onTaskMutate={() => void mutate()}
+          />
 
           <section id="tasks" className="rounded-2xl border border-liquid-border dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl p-4 shadow-glass md:p-6">
             <div className="mb-5 flex items-end justify-between gap-4">

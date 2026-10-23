@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { Prodi, Kelas } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { syncCurrentUser } from "@/lib/discord";
+import { matchesAgamaFilter } from "@/lib/schedule/constants";
 
 export const dynamic = "force-dynamic";
 

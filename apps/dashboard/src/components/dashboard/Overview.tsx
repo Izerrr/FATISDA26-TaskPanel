@@ -1,18 +1,48 @@
 "use client";
 
-import { AlertCircle, BarChart3, CheckCircle2, Clock3, Flame, ListTodo, TrendingUp } from "lucide-react";
-import type { Schedule, Task } from "@/types";
+import { useState } from "react";
+import { AlertCircle, BarChart3, Check, CheckCircle2, Clock3, Flame, ListTodo, Loader2, TrendingUp } from "lucide-react";
+import type { Course, Schedule, Task, TaskStatus } from "@/types";
 import { formatWib } from "@/lib/datetime";
 import { OverviewSchedule } from "./OverviewSchedule";
 import { OverviewExam } from "./OverviewExam";
 import { OverviewClassGroups } from "./OverviewClassGroups";
+import { TaskDetailModal } from "@/components/kanban/TaskDetailModal";
 
 interface OverviewProps {
   tasks: Task[];
   schedules: Schedule[];
+  courses?: Course[];
+  roles?: string[];
+  userId?: string;
+  onTaskMutate?: () => void;
 }
 
-export function Overview({ tasks, schedules }: OverviewProps) {
+export function Overview({ tasks, schedules, courses = [], roles = [], userId, onTaskMutate }: OverviewProps) {
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+
+  async function handleQuickComplete(task: Task, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (completingTaskId) return;
+
+    try {
+      setCompletingTaskId(task.id);
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "DONE" }),
+      });
+      if (res.ok) {
+        onTaskMutate?.();
+      }
+    } catch (err) {
+      console.error("Gagal menyelesaikan tugas:", err);
+    } finally {
+      setCompletingTaskId(null);
+    }
+  }
+
   const now = new Date();
 
   const done = tasks.filter((task) => task.status === "DONE").length;
@@ -158,10 +188,33 @@ export function Overview({ tasks, schedules }: OverviewProps) {
               <div className="rounded-xl bg-slate-50 p-5 text-sm text-liquid-text-secondary dark:bg-slate-800/50 dark:text-slate-400">🎉 Belum ada deadline yang mendekat. Waktunya santai!</div>
             ) : (
               upcoming.map((task) => (
-                <div key={task.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 p-3.5 transition hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/50 sm:p-4">
+                <div
+                  key={task.id}
+                  onClick={() => setSelectedTask(task)}
+                  className="group flex min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-100 p-3.5 transition hover:border-liquid-accent/40 hover:bg-slate-50/80 dark:border-slate-800 dark:hover:border-sky-500/40 dark:hover:bg-slate-800/60 sm:p-4"
+                >
+                  {/* Quick Complete Checkbox */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleQuickComplete(task, e)}
+                    disabled={completingTaskId === task.id}
+                    title="Tandai Selesai"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-300 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600 dark:hover:border-emerald-500 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
+                  >
+                    {completingTaskId === task.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+                    ) : (
+                      <Check className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                    )}
+                  </button>
+
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-liquid-text dark:text-slate-100">{task.title}</p>
-                    <p className="mt-1 truncate text-xs text-liquid-text-secondary dark:text-slate-400">{task.course ? `${task.course.code} · ${task.course.name}` : "Tanpa mata kuliah"}</p>
+                    <p className="truncate text-sm font-semibold text-liquid-text group-hover:text-liquid-accent dark:text-slate-100 dark:group-hover:text-sky-400 transition-colors">
+                      {task.title}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-liquid-text-secondary dark:text-slate-400">
+                      {task.course ? `${task.course.code} · ${task.course.name}` : "Tanpa mata kuliah"}
+                    </p>
                   </div>
 
                   <div className="ml-2 shrink-0 text-right">
@@ -187,6 +240,39 @@ export function Overview({ tasks, schedules }: OverviewProps) {
 
         <OverviewSchedule schedules={schedules} />
       </div>
+
+      {/* Task Detail Modal for Overview */}
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          courses={courses}
+          roles={roles}
+          userId={userId}
+          onClose={() => setSelectedTask(null)}
+          onStatusChange={async (t, newStatus) => {
+            try {
+              await fetch(`/api/tasks/${t.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus }),
+              });
+              onTaskMutate?.();
+              setSelectedTask((prev) => (prev ? { ...prev, status: newStatus } : null));
+            } catch (err) {
+              console.error("Gagal mengubah status tugas:", err);
+            }
+          }}
+          onDelete={async (t) => {
+            try {
+              await fetch(`/api/tasks/${t.id}`, { method: "DELETE" });
+              onTaskMutate?.();
+              setSelectedTask(null);
+            } catch (err) {
+              console.error("Gagal menghapus tugas:", err);
+            }
+          }}
+        />
+      )}
 
       {/* Course Workload & Task Composition */}
       <div className="grid w-full max-w-full min-w-0 gap-5 sm:gap-6 md:grid-cols-2">

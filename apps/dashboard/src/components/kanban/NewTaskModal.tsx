@@ -60,6 +60,18 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
 
   const canCreateClass = roles.some((role) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(role)));
 
+  function setQuickDueDate(daysFromNow: number) {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromNow);
+    d.setHours(23, 59, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    setDueDate(`${year}-${month}-${day}T${hours}:${minutes}`);
+  }
+
   function handleAiParse() {
     if (!aiInput.trim()) {
       setError("Ketik deskripsi tugas yang ingin di-parse.");
@@ -470,6 +482,37 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                     onChange={(e) => setDueDate(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800 p-2.5 text-xs outline-none transition focus:border-sky-500 text-slate-800 dark:text-slate-100"
                   />
+                  {/* Smart Due Date Quick Presets */}
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setQuickDueDate(0)}
+                      className="rounded-lg border border-slate-200/90 bg-slate-100/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500 dark:hover:bg-slate-700"
+                    >
+                      Malam ini 23:59
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDueDate(1)}
+                      className="rounded-lg border border-slate-200/90 bg-slate-100/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500 dark:hover:bg-slate-700"
+                    >
+                      Besok 23:59
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDueDate(3)}
+                      className="rounded-lg border border-slate-200/90 bg-slate-100/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500 dark:hover:bg-slate-700"
+                    >
+                      3 Hari Lagi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickDueDate(7)}
+                      className="rounded-lg border border-slate-200/90 bg-slate-100/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500 dark:hover:bg-slate-700"
+                    >
+                      1 Minggu Lagi
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -120,3 +120,25 @@ html.dark [data-rfd-placeholder-context-id] {
   border-color: rgba(99, 102, 241, 0.4) !important;
   background-color: rgba(30, 41, 59, 0.5) !important;
 }
+
+/* Smooth Modern View Transitions for Theme Toggle */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

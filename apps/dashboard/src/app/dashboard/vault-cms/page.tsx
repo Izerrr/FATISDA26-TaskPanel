@@ -16,7 +16,7 @@ const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 export default function VaultCmsPage() {
   const { user, roles, isLoading: roleLoading } = useRole();
   const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
-  const { courses, isLoading: coursesLoading, isError: coursesError } = useCourses(selectedSemester === "ALL" ? undefined : selectedSemester);
+  const { courses, isLoading: coursesLoading, isError: coursesError } = useCourses({ semester: selectedSemester === "ALL" ? undefined : selectedSemester, all: true });
   const { vaults, isLoading: vaultsLoading, mutate: mutateVaults } = useVault();
 
   const [search, setSearch] = useState("");

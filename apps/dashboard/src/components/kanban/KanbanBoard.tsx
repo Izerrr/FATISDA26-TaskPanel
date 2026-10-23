@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import { LayoutGrid, List } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
@@ -32,6 +33,18 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+
+  const searchParams = useSearchParams();
+  const paramTaskId = searchParams.get("taskId");
+
+  useEffect(() => {
+    if (paramTaskId && tasks.length > 0) {
+      const target = tasks.find((t) => t.id === paramTaskId);
+      if (target) {
+        setDetailTask(target);
+      }
+    }
+  }, [paramTaskId, tasks]);
 
   useEffect(() => {
     try {
