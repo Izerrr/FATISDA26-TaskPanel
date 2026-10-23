@@ -1,5 +1,7 @@
 "use client";
 
+import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -27,12 +29,7 @@ interface OverviewExamProps {
   prodi?: Prodi | null;
 }
 
-const AGAMA_OPTIONS = [
-  { value: "islam", label: "Islam" },
-  { value: "kristen", label: "Kristen" },
-  { value: "katholik", label: "Katholik" },
-  { value: "budha", label: "Budha" },
-];
+
 
 export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
   const { user } = useRole();

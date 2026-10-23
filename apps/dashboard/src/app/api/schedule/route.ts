@@ -5,7 +5,7 @@ import type { Prodi, Kelas } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getScheduleSource, syncSchedule } from "@/lib/schedule";
-import { OFFICIAL_PRODI_ROOMS } from "@/lib/schedule/constants";
+import { OFFICIAL_PRODI_ROOMS, matchesAgamaFilter } from "@/lib/schedule/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -194,19 +194,6 @@ export async function GET(request: NextRequest) {
     });
 
     // Filter agama jika dipilih (default: "islam")
-    const matchesAgamaFilter = (courseName: string, filter: string | null | undefined): boolean => {
-      const norm = courseName.toLowerCase();
-      if (!norm.includes("agama")) return true;
-
-      const selected = (filter || "islam").trim().toLowerCase();
-      if (selected === "semua" || selected === "all") return true;
-      if (selected === "kristen") return norm.includes("kristen");
-      if (selected === "katholik" || selected === "katolik") return norm.includes("katholik") || norm.includes("katolik");
-      if (selected === "budha" || selected === "buddha") return norm.includes("budha") || norm.includes("buddha");
-      if (selected === "hindu") return norm.includes("hindu");
-      return norm.includes("islam");
-    };
-
     const filteredSchedules = schedules.filter((s) => matchesAgamaFilter(s.courseName, agamaParam));
 
     // Deduplikasi jadwal agar sesi yang sama (batch-wide seperti Olahraga) tidak muncul berulang

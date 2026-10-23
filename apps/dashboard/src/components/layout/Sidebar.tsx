@@ -54,11 +54,6 @@ const navItems = [
     icon: Users,
   },
   {
-    href: "/dashboard/discussions",
-    label: "Diskusi",
-    icon: MessageSquare,
-  },
-  {
     href: "/dashboard/profile",
     label: "Profil Saya",
     icon: UserRound,
@@ -297,7 +292,9 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         <p className="label px-2">Menu</p>
 
         <div className="mt-2 space-y-1">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => (item.href === "/dashboard/schedule/exam" ? Boolean(examMode?.enabled) : true))
+            .map((item) => {
             const Icon = item.icon;
 
             const isActive =

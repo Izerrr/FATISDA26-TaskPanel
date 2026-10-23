@@ -162,7 +162,7 @@ export default function CourseDetailPage() {
             </Link>
 
             <Link
-              href={`/dashboard/discussions?courseId=${course.id}`}
+              href={`/dashboard/class?tab=discussions&courseId=${course.id}`}
               className="group rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass transition hover:-translate-y-0.5 hover:border-violet-500/30 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-4">

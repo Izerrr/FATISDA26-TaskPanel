@@ -1,5 +1,7 @@
 "use client";
 
+import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -34,13 +36,7 @@ import type { ExamSchedule, ExamType, Kelas, Prodi } from "@/types";
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 const KELAS_OPTIONS: Kelas[] = ["A", "B", "C", "D"];
-const AGAMA_OPTIONS = [
-  { value: "islam", label: "Islam" },
-  { value: "kristen", label: "Kristen" },
-  { value: "katholik", label: "Katholik" },
-  { value: "budha", label: "Budha" },
-  { value: "semua", label: "Semua" },
-];
+
 
 function parseMinutes(timeStr: string): number {
   const [h, m] = timeStr.split(/[:.]/).map(Number);

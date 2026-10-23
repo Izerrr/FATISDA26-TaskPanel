@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useRole } from "@/hooks/useRole";
@@ -40,6 +40,22 @@ export function DashboardShell() {
   const [createOpen, setCreateOpen] = useState(false);
   const [classModalOpen, setClassModalOpen] = useState(false);
   const [linkingModalOpen, setLinkingModalOpen] = useState(false);
+  const [agamaPref, setAgamaPref] = useState<string>("islam");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("fatisda_agama_preference");
+        if (saved) setAgamaPref(saved);
+        const handleStorageUpdate = () => {
+          const updated = localStorage.getItem("fatisda_agama_preference");
+          if (updated) setAgamaPref(updated);
+        };
+        window.addEventListener("fatisda_agama_change", handleStorageUpdate);
+        return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
+      } catch {}
+    }
+  }, []);
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -68,6 +84,10 @@ export function DashboardShell() {
             <>
               <span className="text-slate-300 dark:text-slate-600">·</span>
               <span className="text-sm font-medium text-liquid-text-secondary dark:text-slate-400">Kelas {user.kelas}</span>
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <span className="text-sm font-medium text-liquid-text-secondary dark:text-slate-400 capitalize">
+                Agama {agamaPref === "semua" ? "Semua" : agamaPref === "katholik" ? "Katolik" : agamaPref === "budha" ? "Buddha" : agamaPref}
+              </span>
             </>
           )}
 

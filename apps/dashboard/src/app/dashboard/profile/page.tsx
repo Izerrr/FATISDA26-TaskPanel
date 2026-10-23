@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { 
@@ -26,6 +26,7 @@ import { useGuild } from "@/components/providers/GuildProvider";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
 import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
+import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 export default function ProfilePage() {
   const { user, roles, isGoogle, mutate: mutateMe } = useRole();
@@ -36,6 +37,35 @@ export default function ProfilePage() {
   const [linkingModalOpen, setLinkingModalOpen] = useState(false);
   const [savingSemester, setSavingSemester] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [agamaPref, setAgamaPref] = useState<string>("islam");
+  const [agamaSaveSuccess, setAgamaSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("fatisda_agama_preference");
+        if (saved) setAgamaPref(saved);
+        const handleStorageUpdate = () => {
+          const updated = localStorage.getItem("fatisda_agama_preference");
+          if (updated) setAgamaPref(updated);
+        };
+        window.addEventListener("fatisda_agama_change", handleStorageUpdate);
+        return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
+      } catch {}
+    }
+  }, []);
+
+  function handleAgamaChange(val: string) {
+    setAgamaPref(val);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("fatisda_agama_preference", val);
+        window.dispatchEvent(new Event("fatisda_agama_change"));
+        setAgamaSaveSuccess(true);
+        setTimeout(() => setAgamaSaveSuccess(false), 2000);
+      } catch {}
+    }
+  }
 
   // Stats calculation
   const totalTasks = tasks.length;
@@ -233,6 +263,45 @@ export default function ProfilePage() {
             <p className="mt-2 text-[11px] text-slate-400 leading-relaxed">
               Jadwal kuliah mingguan di dashboard akan otomatis disesuaikan dengan semester aktif yang kamu pilih.
             </p>
+          </div>
+
+          {/* Interactive Agama Selector */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-2.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Pendidikan Agama (Jadwal Personal)
+                </label>
+                <p className="text-[11px] text-slate-400">
+                  Jadwal kuliah menyaring hanya matkul agama pilihanmu agar tidak menumpuk di hari Kamis/Jumat.
+                </p>
+              </div>
+              {agamaSaveSuccess && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 animate-in fade-in shrink-0">
+                  <Check className="h-3.5 w-3.5" /> Tersimpan
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+              {AGAMA_OPTIONS.map((opt) => {
+                const isActive = agamaPref === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleAgamaChange(opt.value)}
+                    className={`flex items-center justify-center rounded-2xl py-2 px-2 text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-liquid-accent text-white shadow-sm ring-2 ring-liquid-accent/30 dark:ring-sky-500/30 scale-[1.02]"
+                        : "bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </section>
 

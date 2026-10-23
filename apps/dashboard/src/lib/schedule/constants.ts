@@ -82,3 +82,27 @@ export const OFFICIAL_PRODI_ROOMS: Record<string, string[]> = {
   SAINS_DATA: ["Pasca 01", "Pasca 02", "Ruang 1304", "Ruang 1312", "1301", "1302", "B.4.04 (Lab. Dasar Informatika 1)", "B.4.05 (Lab. Dasar Informatika 2)", "B4-12", "LAB 2 DTIK"],
   INFORMATIKA_PSDKU_KEBUMEN: ["LAB KOMPUTER", "RUANG 17", "RUANG 19"],
 };
+
+export const AGAMA_OPTIONS = [
+  { value: "islam", label: "Islam" },
+  { value: "kristen", label: "Kristen" },
+  { value: "katholik", label: "Katolik" },
+  { value: "hindu", label: "Hindu" },
+  { value: "budha", label: "Buddha" },
+  { value: "konghucu", label: "Konghucu" },
+  { value: "semua", label: "Semua Agama" },
+] as const;
+
+export function matchesAgamaFilter(courseName: string, filter: string | null | undefined): boolean {
+  const norm = courseName.toLowerCase();
+  if (!norm.includes("agama")) return true;
+
+  const selected = (filter || "islam").trim().toLowerCase();
+  if (selected === "semua" || selected === "all") return true;
+  if (selected === "kristen") return norm.includes("kristen");
+  if (selected === "katholik" || selected === "katolik") return norm.includes("katholik") || norm.includes("katolik");
+  if (selected === "hindu") return norm.includes("hindu");
+  if (selected === "budha" || selected === "buddha") return norm.includes("budha") || norm.includes("buddha");
+  if (selected === "konghucu" || selected === "khonghucu") return norm.includes("konghucu") || norm.includes("khonghucu");
+  return norm.includes("islam");
+}

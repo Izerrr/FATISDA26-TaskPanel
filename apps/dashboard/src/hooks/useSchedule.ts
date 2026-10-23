@@ -31,10 +31,30 @@ interface UseScheduleOptions {
 export function useSchedule(options: UseScheduleOptions = {}) {
   const { user } = useRole();
 
+  const [prefAgama, setPrefAgama] = useState<string>("islam");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem("fatisda_agama_preference");
+      if (saved) setPrefAgama(saved);
+
+      const handleAgamaChange = () => {
+        const updated = localStorage.getItem("fatisda_agama_preference");
+        if (updated) setPrefAgama(updated);
+      };
+
+      window.addEventListener("fatisda_agama_change", handleAgamaChange);
+      return () => window.removeEventListener("fatisda_agama_change", handleAgamaChange);
+    } catch {
+      // Ignore localStorage security exceptions
+    }
+  }, []);
+
   const prodi = options.prodi ?? user?.prodi;
   const kelas = options.kelas ?? user?.kelas;
   const semester = options.semester ?? user?.semester ?? 1;
-  const agama = options.agama ?? "islam";
+  const agama = options.agama ?? prefAgama;
 
   const key =
     prodi && kelas && semester

@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { ClassDiscussions } from "@/components/class/ClassDiscussions";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -16,6 +18,8 @@ import {
   UserCheck,
   Users,
   X,
+  MessageSquare,
+  BookOpen,
 } from "lucide-react";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
@@ -73,6 +77,12 @@ const PRODI_OPTIONS: { value: Prodi; label: string }[] = [
 
 const KELAS_OPTIONS: Kelas[] = ["A", "B", "C", "D", "E"];
 const SEMESTER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+const MAIN_TABS = [
+  { id: "groups", label: "Pembagian Kelompok", icon: Users },
+  { id: "discussions", label: "Forum & Tanya Jawab", icon: MessageSquare },
+  { id: "directory", label: "Direktori & Pengurus", icon: BookOpen },
+] as const;
+
 
 function getProdiShortLabel(prodi?: Prodi | null): string {
   switch (prodi) {
@@ -94,7 +104,7 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
-export default function ClassGroupsPage() {
+function ClassGroupsContent() {
   const [response, setResponse] = useState<GroupsApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -110,6 +120,32 @@ export default function ClassGroupsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [onlyMyTeam, setOnlyMyTeam] = useState(false);
   const [copiedTeamId, setCopiedTeamId] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
+  const paramCourseId = searchParams.get("courseId");
+  const paramCourseName = searchParams.get("courseName");
+
+  const [activeMainTab, setActiveMainTab] = useState<"groups" | "discussions" | "directory">(() => {
+    if (urlTab === "discussions") return "discussions";
+    if (urlTab === "directory") return "directory";
+    return "groups";
+  });
+
+  useEffect(() => {
+    if (urlTab === "discussions") setActiveMainTab("discussions");
+    else if (urlTab === "directory") setActiveMainTab("directory");
+    else if (urlTab === "groups") setActiveMainTab("groups");
+  }, [urlTab]);
+
+  const handleMainTabChange = (tabId: "groups" | "discussions" | "directory") => {
+    setActiveMainTab(tabId);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      params.set("tab", tabId);
+      window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    }
+  };
 
   // Source configuration modal state (for PJ Kelas / Admin)
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -189,13 +225,23 @@ export default function ClassGroupsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const groupTabs = useMemo(() => {
+    return response?.data?.tabs.filter((t) => t.kind === "groups") ?? [];
+  }, [response?.data?.tabs]);
+
+  const directoryTab = useMemo(() => {
+    return response?.data?.tabs.find((t) => t.kind === "directory");
+  }, [response?.data?.tabs]);
+
   const activeTab = useMemo(() => {
-    if (!response?.data?.tabs.length) return null;
+    if (activeMainTab === "directory") return directoryTab ?? null;
+    if (!response?.data?.tabs?.length) return null;
     return (
-      response.data.tabs.find((t) => t.gid === activeTabGid) ??
+      groupTabs.find((t) => t.gid === activeTabGid) ??
+      groupTabs[0] ??
       response.data.tabs[0]
     );
-  }, [response?.data?.tabs, activeTabGid]);
+  }, [activeMainTab, directoryTab, groupTabs, activeTabGid, response?.data?.tabs]);
 
   // Map student NIM -> list of team assignments across all tabs (used in directory view)
   const studentCrossTabMap = useMemo(() => {
@@ -243,22 +289,24 @@ export default function ClassGroupsPage() {
   }, [activeTab, searchQuery, onlyMyTeam, myTeamNameInActiveTab]);
 
   const filteredDirectory = useMemo(() => {
-    if (!activeTab || activeTab.kind !== "directory") return [];
+    const targetDir = directoryTab ?? (activeTab?.kind === "directory" ? activeTab : null);
+    if (!targetDir) return [];
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return activeTab.directory;
+    if (!q) return targetDir.directory;
 
-    return activeTab.directory.filter(
+    return targetDir.directory.filter(
       (item) =>
         item.name.toLowerCase().includes(q) ||
         item.nim.toLowerCase().includes(q) ||
         (item.status && item.status.toLowerCase().includes(q)),
     );
-  }, [activeTab, searchQuery]);
+  }, [directoryTab, activeTab, searchQuery]);
 
   const classOfficers = useMemo(() => {
-    if (!activeTab || activeTab.kind !== "directory") return [];
-    return activeTab.directory.filter((item) => item.isPjKelas || item.pjMatkul || item.status);
-  }, [activeTab]);
+    const targetDir = directoryTab ?? (activeTab?.kind === "directory" ? activeTab : null);
+    if (!targetDir) return [];
+    return targetDir.directory.filter((item) => item.isPjKelas || item.pjMatkul || item.status);
+  }, [directoryTab, activeTab]);
 
   const handleCopyTeam = async (team: ClassTeam, tabName: string) => {
     const header = `${team.name} - ${tabName}${team.topic ? ` (${team.topic})` : ""}`;
@@ -344,19 +392,39 @@ export default function ClassGroupsPage() {
               </div>
 
               <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                {response?.data?.documentTitle || "Ruang Kelas & Pembagian Kelompok"}
+                {activeMainTab === "discussions"
+                  ? `Forum & Diskusi Kelas ${response?.kelas || ""}`
+                  : activeMainTab === "directory"
+                  ? `Direktori & Pengurus Kelas ${response?.kelas || ""}`
+                  : response?.data?.documentTitle || `Ruang Kelas ${response?.kelas ? `Kelas ${response.kelas}` : ""}`}
               </h1>
 
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {response?.configured && response.data
-                  ? `${response.data.totalStudentsInClass} mahasiswa terdaftar · ${response.data.tabs.filter((t) => t.kind === "groups").length} mata kuliah dengan pembagian kelompok`
+                {activeMainTab === "discussions"
+                  ? "Pusat tanya jawab materi kuliah, kisi-kisi ujian, pengumuman kelas, dan diskusi bersama."
+                  : activeMainTab === "directory"
+                  ? `Daftar lengkap anggota kelas, kontak PJ Kelas, dan PJ Mata Kuliah (${response?.data?.totalStudentsInClass || 0} mahasiswa terdaftar).`
+                  : response?.configured && response.data
+                  ? `${response.data.totalStudentsInClass} mahasiswa terdaftar · ${groupTabs.length} mata kuliah dengan pembagian kelompok`
                   : "Direktori anggota kelas, PJ mata kuliah, dan pembagian tim tugas/praktikum yang tersinkronisasi dari Google Spreadsheet kelas."}
               </p>
             </div>
 
             {/* Header Actions */}
             <div className="flex flex-wrap items-center gap-2.5">
-              {response?.canManageSource && (
+              {activeMainTab === "discussions" && (
+                <a
+                  href="https://discord.com/channels/1547427568599302287"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] px-4 py-2 text-xs font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 shadow-xs"
+                >
+                  <span>Buka Server Discord</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+
+              {activeMainTab !== "discussions" && response?.canManageSource && (
                 <button
                   type="button"
                   onClick={() => {
@@ -370,7 +438,7 @@ export default function ClassGroupsPage() {
                 </button>
               )}
 
-              {currentTabSheetUrl && (
+              {activeMainTab !== "discussions" && currentTabSheetUrl && (
                 <a
                   href={currentTabSheetUrl}
                   target="_blank"
@@ -382,7 +450,7 @@ export default function ClassGroupsPage() {
                 </a>
               )}
 
-              {response?.configured && (
+              {activeMainTab !== "discussions" && response?.configured && (
                 <button
                   type="button"
                   onClick={() => fetchGroups({ refresh: true })}
@@ -457,7 +525,47 @@ export default function ClassGroupsPage() {
           )}
         </section>
 
-        {/* Loading State */}
+        {/* 3 Main Class Hub Navigation Tabs */}
+        <div
+          role="tablist"
+          aria-label="Navigasi Ruang Kelas"
+          className="flex items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-800 overflow-x-auto no-scrollbar"
+        >
+          {MAIN_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = activeMainTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={isSelected}
+                type="button"
+                onClick={() => handleMainTabChange(tab.id)}
+                className={`inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 ${
+                  isSelected
+                    ? "bg-sky-600 text-white shadow-xs dark:bg-sky-600"
+                    : "border border-slate-200/80 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* TAB 2: FORUM DISKUSI & TANYA JAWAB */}
+        {activeMainTab === "discussions" && (
+          <ClassDiscussions
+            initialCourseId={paramCourseId}
+            initialCourseName={paramCourseName}
+            hideHeaderBanner={true}
+          />
+        )}
+
+        {activeMainTab !== "discussions" && (
+          <>
+            {/* Loading State */}
         {isLoading && (
           <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -561,7 +669,9 @@ export default function ClassGroupsPage() {
         {/* Configured Content */}
         {!isLoading && !errorMsg && response?.configured && response.data && (
           <>
-            {/* Personal Team Assignments Strip (Focal Point for Logged-in Student) */}
+            {activeMainTab === "groups" && (
+            <>
+              {/* Personal Team Assignments Strip (Focal Point for Logged-in Student) */}
             {response.myAssignments && response.myAssignments.length > 0 && (
               <section className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4 dark:border-sky-900/60 dark:bg-sky-950/25">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -626,7 +736,7 @@ export default function ClassGroupsPage() {
                 aria-label="Daftar Mata Kuliah dan Direktori Kelas"
                 className="flex flex-wrap gap-2 border-b border-slate-100 pb-4 dark:border-slate-800"
               >
-                {response.data.tabs.map((tab) => {
+                {groupTabs.map((tab) => {
                   const isSelected = activeTab?.gid === tab.gid;
                   const badgeCount =
                     tab.kind === "directory"
@@ -669,11 +779,7 @@ export default function ClassGroupsPage() {
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={
-                      activeTab?.kind === "directory"
-                        ? "Cari nama mahasiswa, NIM, atau jabatan PJ Matkul..."
-                        : "Cari nama mahasiswa, NIM, nomor tim, atau topik..."
-                    }
+                    placeholder="Cari nama mahasiswa, NIM, nomor tim, atau topik..."
                     className="min-h-[42px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-9 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:focus-visible:bg-slate-800"
                   />
                   {searchQuery && (
@@ -894,10 +1000,44 @@ export default function ClassGroupsPage() {
               </section>
             )}
 
-            {/* Active Tab View: Class Student Directory & PJ Officers */}
-            {activeTab?.kind === "directory" && (
-              <div className="space-y-6">
-                {/* PJ Kelas & PJ Matkul Highlight Grid */}
+            </>
+          )}
+
+          {/* Active Tab View: Class Student Directory & PJ Officers */}
+          {activeMainTab === "directory" && (
+            <div className="space-y-6">
+              {/* Directory Search Bar */}
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari nama mahasiswa, NIM, atau jabatan PJ Matkul..."
+                  className="min-h-[42px] w-full rounded-xl border border-slate-200 bg-white pl-10 pr-9 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    aria-label="Bersihkan pencarian"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {!directoryTab && (
+                <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
+                  <Users className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Belum ada tab direktori khusus di spreadsheet kelas. Anda dapat melihat daftar mahasiswa pada tab Pembagian Kelompok.
+                  </p>
+                </div>
+              )}
+
+              {/* PJ Kelas & PJ Matkul Highlight Grid */}
                 {classOfficers.length > 0 && !searchQuery && (
                   <section className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
                     <div className="mb-3 flex items-center gap-2">
@@ -1019,9 +1159,11 @@ export default function ClassGroupsPage() {
             )}
           </>
         )}
-      </div>
+      </>
+    )}
+  </div>
 
-      {/* Modal Konfigurasi Spreadsheet Kelas (PJ Kelas / Admin) */}
+        {/* Modal Konfigurasi Spreadsheet Kelas (PJ Kelas / Admin) */}
       {showConfigModal && (
         <div
           role="dialog"
@@ -1121,4 +1263,10 @@ export default function ClassGroupsPage() {
     </DashboardFrame>
   );
 }
-
+export default function ClassGroupsPage() {
+  return (
+    <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-2xl bg-white/50 dark:bg-slate-900/50" />}>
+      <ClassGroupsContent />
+    </Suspense>
+  );
+}

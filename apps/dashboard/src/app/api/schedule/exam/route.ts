@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
       if (selected === "katholik" || selected === "katolik") return norm.includes("katholik") || norm.includes("katolik");
       if (selected === "budha" || selected === "buddha") return norm.includes("budha") || norm.includes("buddha");
       if (selected === "hindu") return norm.includes("hindu");
+      if (selected === "konghucu" || selected === "khonghucu") return norm.includes("konghucu") || norm.includes("khonghucu");
 
       // Default: Islam -> must match "islam" AND if a target class is given, must match that target class
       if (norm.includes("islam")) {

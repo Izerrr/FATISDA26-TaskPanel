@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { X, Check, BookOpen, Layers, Calendar, AlertCircle } from "lucide-react";
+import { X, Check, BookOpen, Layers, Calendar, AlertCircle, Sparkles } from "lucide-react";
 import type { Prodi, Kelas } from "@/types";
+import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 interface ClassSelectorModalProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function ClassSelectorModal({
   const [prodi, setProdi] = useState<Prodi>(initialProdi ?? "INFORMATIKA");
   const [kelas, setKelas] = useState<Kelas>(initialKelas ?? "A");
   const [semester, setSemester] = useState<number>(initialSemester ?? 1);
+  const [agama, setAgama] = useState<string>("islam");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +32,12 @@ export function ClassSelectorModal({
       if (initialProdi) setProdi(initialProdi);
       if (initialKelas) setKelas(initialKelas);
       if (initialSemester) setSemester(initialSemester);
+      try {
+        const savedAgama = localStorage.getItem("fatisda_agama_preference");
+        if (savedAgama) setAgama(savedAgama);
+      } catch {
+        // Ignore localStorage error
+      }
       setError(null);
     }
   }, [open, initialProdi, initialKelas, initialSemester]);
@@ -67,6 +75,13 @@ export function ClassSelectorModal({
         throw new Error(data.error || "Gagal memperbarui kelas.");
       }
 
+      try {
+        localStorage.setItem("fatisda_agama_preference", agama);
+        window.dispatchEvent(new Event("fatisda_agama_change"));
+      } catch {
+        // Ignore storage error
+      }
+
       onSaved();
       onClose();
     } catch (err) {
@@ -102,10 +117,10 @@ export function ClassSelectorModal({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id="class-selector-title" className="text-lg font-bold text-liquid-text dark:text-slate-100">
-              Pengaturan Kelas &amp; Prodi
+              Pengaturan Kelas &amp; Preferensi
             </h2>
             <p className="mt-0.5 text-xs text-liquid-text-secondary dark:text-slate-400">
-              Jadwal kuliah dan daftar tugas kelas akan disesuaikan dengan pilihanmu.
+              Jadwal kuliah, agama, dan tugas kelas akan disesuaikan dengan pilihanmu.
             </p>
           </div>
           <button
@@ -195,6 +210,37 @@ export function ClassSelectorModal({
                   }`}
                 >
                   Sem {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Pendidikan Agama */}
+          <div>
+            <div className="flex items-baseline justify-between">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <Sparkles className="h-3.5 w-3.5 text-liquid-accent dark:text-sky-400" />
+                <span>Pendidikan Agama</span>
+              </label>
+              <span className="text-[10px] text-slate-400">Jadwal personal</span>
+            </div>
+            <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+              Menyaring hanya matkul agama pilihanmu agar jadwal Kamis/Jumat tidak menumpuk.
+            </p>
+            <div className="mt-2 grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+              {AGAMA_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setAgama(opt.value)}
+                  className={`rounded-xl py-2 px-1.5 text-[11px] font-bold transition-all text-center truncate ${
+                    agama === opt.value
+                      ? "border border-liquid-accent bg-liquid-accent text-white shadow-sm shadow-liquid-accent/20"
+                      : "border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                  title={opt.label}
+                >
+                  {opt.label}
                 </button>
               ))}
             </div>

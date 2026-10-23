@@ -1,5 +1,7 @@
 "use client";
 
+import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useSchedule } from "@/hooks/useSchedule";
+import { useExamMode } from "@/hooks/useExamMode";
 import { useRole } from "@/hooks/useRole";
 import { useTasks } from "@/hooks/useTasks";
 import { getTodayDay, sortSchedules } from "@/lib/schedule-utils";
@@ -56,17 +59,12 @@ function getProdiLabel(prodi: string | null | undefined) {
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-const AGAMA_OPTIONS = [
-  { value: "islam", label: "Islam" },
-  { value: "kristen", label: "Kristen" },
-  { value: "katholik", label: "Katholik" },
-  { value: "budha", label: "Budha" },
-  { value: "semua", label: "Semua" },
-];
+
 
 export default function SchedulePage() {
   const { user } = useRole();
   const { tasks } = useTasks();
+  const { examMode } = useExamMode();
 
   const [selectedSemester, setSelectedSemester] = useState<number>(user?.semester ?? 1);
   const [selectedAgama, setSelectedAgama] = useState<string>("islam");
@@ -165,6 +163,12 @@ export default function SchedulePage() {
             >
               <GraduationCap className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>Jadwal UTS / UAS</span>
+              {examMode?.enabled && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {examMode.activeType}
+                </span>
+              )}
             </Link>
           </div>
 
