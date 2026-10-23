@@ -1100,6 +1100,33 @@ export default function AdminSettingsPage() {
                 })}
           </div>
         </section>
+
+        {/* Section 4: Ruang Kelas & Spreadsheet Kelompok */}
+        <section className="rounded-3xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400">
+                <FileSpreadsheet className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
+                  Sumber Google Sheets Kelompok per Kelas
+                </h2>
+                <p className="text-xs leading-relaxed text-liquid-text-secondary dark:text-slate-400">
+                  Pembagian kelompok tugas dan direktori pengurus kelas diisolasi per Program Studi, Kelas, dan Semester. Admin, Ketua Angkatan, maupun PJ Kelas masing-masing dapat menautkan dan menyinkronkan link spreadsheet kelas secara langsung melalui Ruang Kelas.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/dashboard/class"
+              className="inline-flex min-h-[42px] shrink-0 items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-sky-500"
+            >
+              <Settings2 className="h-4 w-4" />
+              <span>Kelola di Ruang Kelas</span>
+            </Link>
+          </div>
+        </section>
       </div>
     </DashboardFrame>
   );

@@ -5,6 +5,7 @@ import type { Schedule, Task } from "@/types";
 import { formatWib } from "@/lib/datetime";
 import { OverviewSchedule } from "./OverviewSchedule";
 import { OverviewExam } from "./OverviewExam";
+import { OverviewClassGroups } from "./OverviewClassGroups";
 
 interface OverviewProps {
   tasks: Task[];
@@ -136,6 +137,9 @@ export function Overview({ tasks, schedules }: OverviewProps) {
 
       {/* Jadwal UTS / UAS Terdekat & Agenda Ujian */}
       <OverviewExam />
+
+      {/* Ruang Kelas & Pembagian Kelompok */}
+      <OverviewClassGroups />
 
       {/* Main Grid: Deadlines & Today's Schedule */}
       <div className="grid w-full max-w-full min-w-0 gap-5 sm:gap-6 lg:grid-cols-3">

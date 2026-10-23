@@ -1,4 +1,5 @@
 import { ActivityType, Client } from "discord.js";
+import { APP_URL } from "./constants.js";
 
 export interface ActivityItem {
   name: string;
@@ -7,7 +8,7 @@ export interface ActivityItem {
 
 export const ACTIVITIES: ActivityItem[] = [
   {
-    name: "taskpanel.ftsduaenam.web.id",
+    name: APP_URL.replace(/^https?:\/\//, ""),
     type: ActivityType.Watching,
   },
   {

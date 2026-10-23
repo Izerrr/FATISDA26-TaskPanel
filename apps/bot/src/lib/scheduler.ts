@@ -1,8 +1,10 @@
 import cron from "node-cron";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, TextChannel } from "discord.js";
 import { prisma } from "./prisma.js";
-import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "./constants.js";
+import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "./constants.js";
 import { Kelas, Prodi, TaskStatus } from "../types.js";
+import { formatRoomWithLocation } from "./campusBuildings.js";
+import { getActiveSemester, getExamModeConfig } from "./settings.js";
 
 const DAY_NAMES: Record<number, string> = {
   1: "Senin",
@@ -74,14 +76,18 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
     year: "numeric",
   });
 
+  // Ambil semester aktif dinamis dan konfigurasi mode ujian
+  const activeSemester = await getActiveSemester();
+  const examMode = await getExamModeConfig();
+
   const defaultTargets: { prodi: Prodi; kelas: Kelas; channelId?: string; semester?: number }[] = [
-    { prodi: "INFORMATIKA", kelas: "A", semester: 1 },
-    { prodi: "INFORMATIKA", kelas: "B", semester: 1 },
-    { prodi: "INFORMATIKA", kelas: "C", semester: 1 },
-    { prodi: "INFORMATIKA", kelas: "D", semester: 1 },
-    { prodi: "SAINS_DATA", kelas: "A", semester: 1 },
-    { prodi: "SAINS_DATA", kelas: "B", semester: 1 },
-    { prodi: "INFORMATIKA_PSDKU_KEBUMEN", kelas: "A", semester: 1 },
+    { prodi: "INFORMATIKA", kelas: "A", semester: activeSemester },
+    { prodi: "INFORMATIKA", kelas: "B", semester: activeSemester },
+    { prodi: "INFORMATIKA", kelas: "C", semester: activeSemester },
+    { prodi: "INFORMATIKA", kelas: "D", semester: activeSemester },
+    { prodi: "SAINS_DATA", kelas: "A", semester: activeSemester },
+    { prodi: "SAINS_DATA", kelas: "B", semester: activeSemester },
+    { prodi: "INFORMATIKA_PSDKU_KEBUMEN", kelas: "A", semester: activeSemester },
   ];
 
   const classTargets = customTargets && customTargets.length > 0 ? customTargets : defaultTargets;
@@ -106,7 +112,7 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         continue;
       }
 
-      const targetSemester = target.semester ?? 1;
+      const targetSemester = target.semester ?? activeSemester;
 
       // Ambil jadwal hari ini untuk kelas target (semester dinamis)
       const rawSchedules = await prisma.schedule.findMany({
@@ -141,9 +147,26 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
 
+      const endOfToday = new Date(now);
+      endOfToday.setHours(23, 59, 59, 999);
+
       const endOfTomorrow = new Date(now);
       endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
       endOfTomorrow.setHours(23, 59, 59, 999);
+
+      // Cek jadwal ujian hari ini untuk kelas target
+      const todayExams = await prisma.examSchedule.findMany({
+        where: {
+          prodi: target.prodi,
+          kelas: target.kelas,
+          semester: targetSemester,
+          date: {
+            gte: startOfDay,
+            lte: endOfToday,
+          },
+        },
+        orderBy: { startTime: "asc" },
+      });
 
       const tasksDueSoon = await prisma.task.findMany({
         where: {
@@ -160,7 +183,7 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         orderBy: { dueDate: "asc" },
       });
 
-      if (schedules.length === 0 && tasksDueSoon.length === 0) {
+      if (schedules.length === 0 && tasksDueSoon.length === 0 && todayExams.length === 0) {
         console.log(`[Scheduler] Tidak ada jadwal atau tugas untuk ${target.prodi} Kelas ${target.kelas}. Lewati.`);
         result.skipped++;
         continue;
@@ -172,20 +195,35 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
       const embed = new EmbedBuilder()
         .setColor(BRAND_COLOR)
         .setTitle(`🌅 Morning Briefing: ${dayName}, ${dateFormatted}`)
-        .setDescription(`Selamat pagi rekan-rekan **${target.prodi} Kelas ${target.kelas}** (Semester ${targetSemester})! Berikut rangkuman perkuliahan dan tugas Anda hari ini:`)
+        .setDescription(
+          `Selamat pagi rekan-rekan **${target.prodi} Kelas ${target.kelas}** (Semester ${targetSemester})! Berikut rangkuman perkuliahan dan tugas Anda hari ini:` +
+            (examMode.enabled ? `\n\n🎯 **Mode Ujian (${examMode.activeType}) Sedang Aktif** — Cek jadwal ujian dan ruang Anda dengan teliti!` : ""),
+        )
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
-      // Field Jadwal Kuliah
+      // Field Jadwal Ujian Hari Ini (Jika ada)
+      if (todayExams.length > 0) {
+        const examLines = todayExams.map((e, idx) => {
+          const roomStr = formatRoomWithLocation(e.room);
+          return `**${idx + 1}. [${e.type}] ${e.courseName}**\n   ⏰ \`${e.startTime} - ${e.endTime} WIB\`\n   ${roomStr}`.trim();
+        });
+        embed.addFields({
+          name: `🎯 Jadwal Ujian Hari Ini (${examMode.activeType || "UTS/UAS"})`,
+          value: examLines.join("\n\n"),
+        });
+      }
+
+      // Field Jadwal Kuliah Reguler (Hanya tampilkan jika bukan full ujian atau jika ada sesi kuliah)
       if (schedules.length > 0) {
         const scheduleLines = schedules.map((s, idx) => {
           const name = s.course?.name || s.courseName || "Mata Kuliah";
-          const room = s.room ? `📍 ${s.room}` : "";
+          const roomStr = formatRoomWithLocation(s.room);
           const lecturer = s.lecturer ? `· ${s.lecturer}` : "";
-          return `**${idx + 1}. ${name}**\n   ⏰ \`${s.startTime} - ${s.endTime} WIB\` ${room} ${lecturer}`.trim();
+          return `**${idx + 1}. ${name}**\n   ⏰ \`${s.startTime} - ${s.endTime} WIB\`\n   ${roomStr} ${lecturer}`.trim();
         });
         embed.addFields({ name: "📚 Jadwal Kuliah Hari Ini", value: scheduleLines.join("\n\n") });
-      } else {
+      } else if (todayExams.length === 0) {
         embed.addFields({ name: "📚 Jadwal Kuliah Hari Ini", value: "🎉 *Tidak ada jadwal kuliah hari ini. Waktunya istirahat atau nugas!*" });
       }
 
@@ -206,9 +244,18 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         embed.addFields({ name: "⏰ Tugas Mendekati Deadline (Hari Ini / Besok)", value: taskLines.join("\n\n") });
       }
 
-      const button = new ButtonBuilder().setLabel("Buka TaskPanel").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard");
+      const buttons: ButtonBuilder[] = [
+        new ButtonBuilder().setLabel("Buka Dashboard").setStyle(ButtonStyle.Link).setURL(`${APP_URL}/dashboard`),
+        new ButtonBuilder().setLabel("Jadwal Kuliah").setStyle(ButtonStyle.Link).setURL(`${APP_URL}/dashboard/schedule`),
+      ];
 
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+      if (todayExams.length > 0 || examMode.enabled) {
+        buttons.push(
+          new ButtonBuilder().setLabel("Jadwal Ujian").setStyle(ButtonStyle.Link).setURL(`${APP_URL}/dashboard/schedule/exam`),
+        );
+      }
+
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 
       await channel.send({
         content: `${mentionHeader}📢 **Rangkuman Kuliah Hari Ini!**`,
@@ -300,7 +347,7 @@ export async function checkApproachingDeadlines(client: Client) {
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
-      const button = new ButtonBuilder().setLabel("Lihat di TaskPanel").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/tasks");
+      const button = new ButtonBuilder().setLabel("Lihat di TaskPanel").setStyle(ButtonStyle.Link).setURL(`${APP_URL}/dashboard/tasks`);
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
 

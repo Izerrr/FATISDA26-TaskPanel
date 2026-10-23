@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command, Kelas, TaskScope, TaskStatus } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
-import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
+import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "../../lib/constants.js";
 import { prisma } from "../../lib/prisma.js";
 
 const VALID_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
@@ -92,7 +92,7 @@ const command: Command = {
 
       const totalCount = await prisma.task.count({ where: whereClause });
 
-      const linkButton = new ButtonBuilder().setLabel("Buka TaskPanel Web").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id");
+      const linkButton = new ButtonBuilder().setLabel("Buka TaskPanel Web").setStyle(ButtonStyle.Link).setURL(APP_URL);
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(linkButton);
 

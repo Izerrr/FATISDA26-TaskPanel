@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import type { Prodi } from "@/types";
+import type { Kelas, Prodi } from "@/types";
 import {
+  DEFAULT_CLASS_GROUP_SOURCES,
   DEFAULT_EXAM_MODE,
   FULL_DEFAULT_EXAM_SOURCES,
   SCHEDULE_SOURCES,
   buildGoogleSheetsEditUrl,
   parseGoogleSheetsUrl,
+  type ClassGroupSource,
   type ExamModeSetting,
   type ExamScheduleSource,
   type ParsedGoogleSheetUrl,
@@ -14,6 +16,7 @@ import {
 } from "./settings-shared";
 
 export {
+  DEFAULT_CLASS_GROUP_SOURCES,
   DEFAULT_EXAM_MODE,
   FULL_DEFAULT_EXAM_SOURCES,
   SCHEDULE_SOURCES,
@@ -21,6 +24,7 @@ export {
   parseGoogleSheetsUrl,
 };
 export type {
+  ClassGroupSource,
   ExamModeSetting,
   ExamScheduleSource,
   ParsedGoogleSheetUrl,
@@ -113,6 +117,79 @@ export async function getDynamicExamSource(
   return sources.find((s) => s.prodi === prodi && s.type === examType) ?? null;
 }
 
+export async function getClassGroupSourcesSetting(): Promise<ClassGroupSource[]> {
+  try {
+    const row = await (prisma as any).systemSetting.findUnique({
+      where: { key: "class_group_sources" },
+    });
+    if (!row?.value) return DEFAULT_CLASS_GROUP_SOURCES;
+    const parsed = JSON.parse(row.value) as ClassGroupSource[];
+    if (!Array.isArray(parsed)) return DEFAULT_CLASS_GROUP_SOURCES;
+
+    // Merge defaults (like Class B Infor'26) if not explicitly overridden
+    const merged: ClassGroupSource[] = [...parsed.filter((s) => s.spreadsheetId?.trim())];
+    for (const def of DEFAULT_CLASS_GROUP_SOURCES) {
+      const exists = merged.some(
+        (m) => m.prodi === def.prodi && m.kelas === def.kelas && m.semester === def.semester,
+      );
+      if (!exists) {
+        merged.push(def);
+      }
+    }
+    return merged;
+  } catch (err) {
+    console.warn("[settings] Failed to read class_group_sources, using default:", err);
+    return DEFAULT_CLASS_GROUP_SOURCES;
+  }
+}
+
+export async function getDynamicClassGroupSource(
+  prodi: Prodi,
+  kelas: Kelas,
+  semester: number,
+): Promise<ClassGroupSource | null> {
+  const sources = await getClassGroupSourcesSetting();
+  return (
+    sources.find((s) => s.prodi === prodi && s.kelas === kelas && s.semester === semester) ?? null
+  );
+}
+
+export async function upsertClassGroupSource(
+  entry: ClassGroupSource,
+  userId?: string,
+): Promise<ClassGroupSource[]> {
+  const current = await getClassGroupSourcesSetting();
+  const next = current.filter(
+    (s) => !(s.prodi === entry.prodi && s.kelas === entry.kelas && s.semester === entry.semester),
+  );
+  if (entry.spreadsheetId.trim()) {
+    next.push({
+      prodi: entry.prodi,
+      kelas: entry.kelas,
+      semester: entry.semester,
+      spreadsheetId: entry.spreadsheetId.trim(),
+      gid: (entry.gid || "0").trim(),
+      label: entry.label?.trim() || `${entry.prodi} Kelas ${entry.kelas} (Semester ${entry.semester})`,
+    });
+  }
+
+  await (prisma as any).systemSetting.upsert({
+    where: { key: "class_group_sources" },
+    create: {
+      key: "class_group_sources",
+      value: JSON.stringify(next),
+      description: "Konfigurasi Google Sheets Kelompok Kelas per Prodi, Kelas & Semester",
+      updatedById: userId ?? null,
+    },
+    update: {
+      value: JSON.stringify(next),
+      updatedById: userId ?? null,
+    },
+  });
+
+  return next;
+}
+
 export async function getSourcesHistorySetting(): Promise<SourcesHistorySetting | null> {
   try {
     const row = await (prisma as any).systemSetting.findUnique({
@@ -126,10 +203,11 @@ export async function getSourcesHistorySetting(): Promise<SourcesHistorySetting 
 }
 
 export async function getAllAdminSettings() {
-  const [examMode, scheduleSources, examSources, history] = await Promise.all([
+  const [examMode, scheduleSources, examSources, classGroupSources, history] = await Promise.all([
     getExamModeSetting(),
     getScheduleSourcesSetting(),
     getExamSourcesSetting(),
+    getClassGroupSourcesSetting(),
     getSourcesHistorySetting(),
   ]);
 
@@ -137,6 +215,7 @@ export async function getAllAdminSettings() {
     examMode,
     scheduleSources,
     examSources,
+    classGroupSources,
     history,
   };
 }
@@ -146,18 +225,21 @@ export async function saveAdminSettings(
     examMode?: ExamModeSetting;
     scheduleSources?: ScheduleSource[];
     examSources?: ExamScheduleSource[];
+    classGroupSources?: ClassGroupSource[];
   },
   userId?: string,
 ) {
-  if (payload.scheduleSources || payload.examSources) {
-    const [currentSchedule, currentExam] = await Promise.all([
+  if (payload.scheduleSources || payload.examSources || payload.classGroupSources) {
+    const [currentSchedule, currentExam, currentGroups] = await Promise.all([
       getScheduleSourcesSetting(),
       getExamSourcesSetting(),
+      getClassGroupSourcesSetting(),
     ]);
 
     const historySnapshot: SourcesHistorySetting = {
       scheduleSources: currentSchedule,
       examSources: currentExam,
+      classGroupSources: currentGroups,
       savedAt: new Date().toISOString(),
     };
 
@@ -219,6 +301,22 @@ export async function saveAdminSettings(
       },
       update: {
         value: JSON.stringify(payload.examSources),
+        updatedById: userId ?? null,
+      },
+    });
+  }
+
+  if (payload.classGroupSources) {
+    await (prisma as any).systemSetting.upsert({
+      where: { key: "class_group_sources" },
+      create: {
+        key: "class_group_sources",
+        value: JSON.stringify(payload.classGroupSources),
+        description: "Konfigurasi Google Sheets Kelompok Kelas per Prodi, Kelas & Semester",
+        updatedById: userId ?? null,
+      },
+      update: {
+        value: JSON.stringify(payload.classGroupSources),
         updatedById: userId ?? null,
       },
     });

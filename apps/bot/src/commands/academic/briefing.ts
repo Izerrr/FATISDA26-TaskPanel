@@ -4,6 +4,7 @@ import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
 import { prisma } from "../../lib/prisma.js";
 import { sendDailyMorningBriefing } from "../../lib/scheduler.js";
+import { getActiveSemester } from "../../lib/settings.js";
 
 const command: Command = {
   name: "briefing",
@@ -59,7 +60,7 @@ const command: Command = {
         if (semesterOpt === null && dbUser.semester) semesterOpt = dbUser.semester;
       }
     }
-    semesterOpt = semesterOpt ?? 1;
+    semesterOpt = semesterOpt ?? (await getActiveSemester(dbUser?.semester));
 
     try {
       if (isSlash(context)) {

@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../types.js";
 import { reply } from "../../lib/context.js";
-import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
+import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "../../lib/constants.js";
 import { prisma } from "../../lib/prisma.js";
 
 const command: Command = {
@@ -38,16 +38,16 @@ const command: Command = {
           },
           {
             name: "🌐 Web Dashboard",
-            value: "[taskpanel.ftsduaenam.web.id](https://taskpanel.ftsduaenam.web.id)",
+            value: `[${APP_URL.replace(/^https?:\/\//, "")}](${APP_URL})`,
             inline: false,
           },
         )
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
         .setTimestamp();
 
-      const dashboardBtn = new ButtonBuilder().setLabel("Buka Dashboard").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id");
+      const dashboardBtn = new ButtonBuilder().setLabel("Buka Dashboard").setStyle(ButtonStyle.Link).setURL(APP_URL);
 
-      const scheduleBtn = new ButtonBuilder().setLabel("Lihat Jadwal Kuliah").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
+      const scheduleBtn = new ButtonBuilder().setLabel("Lihat Jadwal Kuliah").setStyle(ButtonStyle.Link).setURL(`${APP_URL}/dashboard/schedule`);
 
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(dashboardBtn, scheduleBtn);
 

@@ -1,8 +1,10 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command, Kelas, Prodi } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
-import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON } from "../../lib/constants.js";
+import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "../../lib/constants.js";
 import { prisma } from "../../lib/prisma.js";
+import { formatRoomWithLocation } from "../../lib/campusBuildings.js";
+import { getActiveSemester } from "../../lib/settings.js";
 
 const DAY_NAMES: Record<number, string> = {
   1: "Senin",
@@ -26,7 +28,11 @@ const command: Command = {
         .setName("prodi")
         .setDescription("Program studi target (Informatika / Sains Data / PSDKU Kebumen)")
         .setRequired(false)
-        .addChoices({ name: "Informatika (Solo)", value: "INFORMATIKA" }, { name: "Sains Data", value: "SAINS_DATA" }, { name: "Informatika PSDKU Kebumen", value: "INFORMATIKA_PSDKU_KEBUMEN" }),
+        .addChoices(
+          { name: "Informatika (Solo)", value: "INFORMATIKA" },
+          { name: "Sains Data", value: "SAINS_DATA" },
+          { name: "Informatika PSDKU Kebumen", value: "INFORMATIKA_PSDKU_KEBUMEN" },
+        ),
     )
     .addStringOption((option) =>
       option
@@ -49,15 +55,33 @@ const command: Command = {
         .setName("kelas")
         .setDescription("Filter berdasarkan kelas (A/B/C/D)")
         .setRequired(false)
-        .addChoices({ name: "Kelas A", value: "A" }, { name: "Kelas B", value: "B" }, { name: "Kelas C", value: "C" }, { name: "Kelas D", value: "D" }),
+        .addChoices(
+          { name: "Kelas A", value: "A" },
+          { name: "Kelas B", value: "B" },
+          { name: "Kelas C", value: "C" },
+          { name: "Kelas D", value: "D" },
+        ),
     )
-    .addIntegerOption((option) => option.setName("semester").setDescription("Semester perkuliahan (1-8, default: 1)").setRequired(false).setMinValue(1).setMaxValue(8))
+    .addIntegerOption((option) =>
+      option
+        .setName("semester")
+        .setDescription("Semester perkuliahan (1-8, default: semester kamu)")
+        .setRequired(false)
+        .setMinValue(1)
+        .setMaxValue(8),
+    )
     .addStringOption((option) =>
       option
         .setName("agama")
         .setDescription("Filter mata kuliah agama (default: Islam)")
         .setRequired(false)
-        .addChoices({ name: "Islam (Default)", value: "ISLAM" }, { name: "Kristen", value: "KRISTEN" }, { name: "Katholik", value: "KATHOLIK" }, { name: "Budha", value: "BUDHA" }, { name: "Semua Agama", value: "SEMUA" }),
+        .addChoices(
+          { name: "Islam (Default)", value: "ISLAM" },
+          { name: "Kristen", value: "KRISTEN" },
+          { name: "Katholik", value: "KATHOLIK" },
+          { name: "Budha", value: "BUDHA" },
+          { name: "Semua Agama", value: "SEMUA" },
+        ),
     ),
 
   async run(_client, context, args) {
@@ -66,7 +90,9 @@ const command: Command = {
     const hariOpt = isSlash(context) ? context.options.getString("hari") : args[0]?.toUpperCase();
     let kelasOpt = isSlash(context) ? context.options.getString("kelas") : args[1]?.toUpperCase();
     let semesterOpt = isSlash(context) ? context.options.getInteger("semester") : null;
-    const agamaOpt = isSlash(context) ? context.options.getString("agama")?.toUpperCase() : args[2]?.toUpperCase();
+    const agamaOpt = isSlash(context)
+      ? context.options.getString("agama")?.toUpperCase()
+      : args[2]?.toUpperCase();
 
     // Deteksi argumen prodi jika dipanggil lewat prefix command
     if (!isSlash(context) && args.length > 0) {
@@ -93,7 +119,7 @@ const command: Command = {
       if (semesterOpt === null && dbUser?.semester) {
         semesterOpt = dbUser.semester;
       }
-      semesterOpt = semesterOpt ?? 1;
+      semesterOpt = semesterOpt ?? (await getActiveSemester(dbUser?.semester));
 
       // Hitung hari saat ini dalam zona waktu WIB (UTC+7)
       const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
@@ -182,16 +208,32 @@ const command: Command = {
         }
       }
 
-      const scheduleButton = new ButtonBuilder().setLabel("Jadwal Pribadi").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule");
-      const grandButton = new ButtonBuilder().setLabel("Grand Jadwal (Semua Prodi)").setStyle(ButtonStyle.Link).setURL("https://taskpanel.ftsduaenam.web.id/dashboard/schedule/grand");
+      const scheduleButton = new ButtonBuilder()
+        .setLabel("Jadwal di Web")
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${APP_URL}/dashboard/schedule`);
+      const grandButton = new ButtonBuilder()
+        .setLabel("Grand Jadwal")
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${APP_URL}/dashboard/schedule/grand`);
+      const examButton = new ButtonBuilder()
+        .setLabel("Jadwal Ujian (UTS/UAS)")
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${APP_URL}/dashboard/schedule/exam`);
 
-      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(scheduleButton, grandButton);
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        scheduleButton,
+        grandButton,
+        examButton,
+      );
 
       if (schedules.length === 0) {
         const emptyEmbed = new EmbedBuilder()
           .setTitle(`📅 Jadwal Kuliah — ${getProdiName(userProdi)} (${dayLabel})`)
           .setColor(BRAND_COLOR)
-          .setDescription(`🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** di program studi **${getProdiName(userProdi)}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""}). Selamat beristirahat!`)
+          .setDescription(
+            `🎉 Tidak ada jadwal kuliah untuk **${dayLabel}** di program studi **${getProdiName(userProdi)}** (Semester ${semesterOpt}${kelasOpt ? `, Kelas ${kelasOpt}` : ""}). Selamat beristirahat!`,
+          )
           .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })
           .setTimestamp();
 
@@ -214,12 +256,12 @@ const command: Command = {
       for (const s of schedules) {
         const courseName = s.course?.name || s.courseName;
         const courseCode = s.course?.code ? `\`${s.course.code}\` ` : "";
-        const room = s.room ? `🏛️ **Ruang:** ${s.room}` : "🏛️ **Ruang:** -";
+        const roomLocationStr = formatRoomWithLocation(s.room);
         const lecturer = s.lecturer ? `👨‍🏫 **Dosen:** ${s.lecturer}` : "";
 
         embed.addFields({
           name: `⏰ ${s.startTime} - ${s.endTime} WIB | Kelas ${s.kelas}`,
-          value: `📖 **${courseCode}${courseName}**\n${room}${lecturer ? `\n${lecturer}` : ""}`,
+          value: `📖 **${courseCode}${courseName}**\n${roomLocationStr}${lecturer ? `\n${lecturer}` : ""}`,
           inline: false,
         });
       }

@@ -1,5 +1,11 @@
 export const BRAND_COLOR = "#1a99e2" as const;
 
+export const APP_URL = (
+  process.env.APP_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://taskpanel.ftsduaenam.web.id"
+).replace(/\/+$/, "");
+
 // NOTE: these are signed Discord CDN URLs (ex/is/hm query params) and
 // WILL expire — Discord rotates the signature periodically. Re-upload
 // the assets and refresh these constants if the icons stop loading.

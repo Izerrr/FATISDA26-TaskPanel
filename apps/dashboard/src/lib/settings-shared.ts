@@ -1,3 +1,4 @@
+import type { Kelas, Prodi } from "@/types";
 import { SCHEDULE_SOURCES, type ScheduleSource } from "./schedule/sources";
 import { DEFAULT_EXAM_SOURCES, type ExamScheduleSource } from "./schedule/exam/constants";
 
@@ -7,9 +8,19 @@ export interface ExamModeSetting {
   semesterLabel: string;
 }
 
+export interface ClassGroupSource {
+  prodi: Prodi;
+  kelas: Kelas;
+  semester: number;
+  spreadsheetId: string;
+  gid: string;
+  label: string;
+}
+
 export interface SourcesHistorySetting {
   scheduleSources: ScheduleSource[];
   examSources: ExamScheduleSource[];
+  classGroupSources?: ClassGroupSource[];
   savedAt: string;
 }
 
@@ -18,6 +29,17 @@ export const DEFAULT_EXAM_MODE: ExamModeSetting = {
   activeType: "UTS",
   semesterLabel: "Semester Genap 2025/2026",
 };
+
+export const DEFAULT_CLASS_GROUP_SOURCES: ClassGroupSource[] = [
+  {
+    prodi: "INFORMATIKA",
+    kelas: "B",
+    semester: 1,
+    spreadsheetId: "1oQt6d9MvtLfzExhRikWJWpf9K4sKeKY5IzUlP1sMZ2Y",
+    gid: "1897715766",
+    label: "Class B Infor'26 - Teams",
+  },
+];
 
 export const FULL_DEFAULT_EXAM_SOURCES: ExamScheduleSource[] = [
   ...DEFAULT_EXAM_SOURCES,

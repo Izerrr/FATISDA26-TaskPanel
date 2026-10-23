@@ -7,6 +7,7 @@ import {
   rollbackSourcesSetting,
   saveAdminSettings,
 } from "@/lib/settings";
+import { invalidateClassGroupsCache } from "@/lib/groups/fetch-groups";
 
 export const dynamic = "force-dynamic";
 
@@ -95,9 +96,13 @@ export async function PUT(request: NextRequest) {
         examMode: body.examMode,
         scheduleSources: body.scheduleSources,
         examSources: body.examSources,
+        classGroupSources: body.classGroupSources,
       },
       auth.userId,
     );
+    if (body.classGroupSources) {
+      invalidateClassGroupsCache();
+    }
 
     return NextResponse.json({
       success: true,

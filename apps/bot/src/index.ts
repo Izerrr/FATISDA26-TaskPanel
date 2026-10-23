@@ -16,6 +16,7 @@ import { ActivityType, GatewayIntentBits } from "discord.js";
 import { ExtendedClient } from "./types.js";
 import { loadEvents } from "./handlers/eventHandler.js";
 import { loadCommands } from "./handlers/commandHandler.js";
+import { APP_URL } from "./lib/constants.js";
 
 const client = new ExtendedClient({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers],
@@ -23,7 +24,7 @@ const client = new ExtendedClient({
     status: "online",
     activities: [
       {
-        name: "taskpanel.ftsduaenam.web.id",
+        name: APP_URL.replace(/^https?:\/\//, ""),
         type: ActivityType.Watching,
       },
     ],
