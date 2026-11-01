@@ -66,13 +66,53 @@ function LoginContent() {
           </div>
         )}
 
+        {/* Error: Not In Guild for Discord Login */}
+        {authError === "not_in_guild" && (
+          <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/90 dark:bg-rose-950/50 p-3 text-left animate-in fade-in duration-200">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-rose-800 dark:text-rose-300">Belum Terdaftar di Server</p>
+              <p className="text-[11px] text-rose-700 dark:text-rose-400 leading-relaxed">
+                Akun Discord ini belum bergabung di server Discord FATISDA 2026. Silakan join server terlebih dahulu, atau gunakan opsi <strong>Masuk dengan Akun UNS</strong> di bawah.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Error: OAuth Callback State Mismatch */}
+        {authError === "OAuthCallback" && (
+          <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/90 dark:bg-amber-950/50 p-3 text-left animate-in fade-in duration-200">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Sesi Login Mismatch</p>
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                Terjadi ketidaksesuaian sesi verifikasi OAuth (biasanya terjadi jika membuka via IP lokal atau browser berbeda). Silakan muat ulang dan coba kembali.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Error: Callback error (e.g. server check failure) */}
+        {authError === "Callback" && (
+          <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/90 dark:bg-rose-950/50 p-3 text-left animate-in fade-in duration-200">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-rose-800 dark:text-rose-300">Gagal Verifikasi Server</p>
+              <p className="text-[11px] text-rose-700 dark:text-rose-400 leading-relaxed">
+                Akun Discord kamu tidak ditemukan di server FATISDA 2026 atau bot tidak dapat memverifikasi statusmu. Silakan gunakan opsi <strong>Masuk dengan Akun UNS</strong> jika kamu mahasiswa.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Error: Generic OAuth or Access Denied */}
-        {authError && authError !== "invalid_domain" && (
+        {authError && !["invalid_domain", "not_in_guild", "OAuthCallback", "Callback"].includes(authError) && (
           <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-red-200 dark:border-red-900/60 bg-red-50/90 dark:bg-red-950/50 p-3 text-left animate-in fade-in duration-200">
             <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-red-800 dark:text-red-300">Gagal Masuk</p>
               <p className="text-[11px] text-red-700 dark:text-red-400 leading-relaxed">Terjadi kendala saat proses autentikasi. Pastikan akun kamu sudah terdaftar atau tergabung di server.</p>
+              <p className="mt-1 font-mono text-[10px] text-red-600/80 dark:text-red-400/80">Kode error: {authError}</p>
             </div>
           </div>
         )}

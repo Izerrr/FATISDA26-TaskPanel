@@ -229,7 +229,7 @@ function mappedKelas(discordRoles: string[]): Kelas | null {
 }
 
 export async function syncCurrentUser(userId: string): Promise<void> {
-  const candidateGuildIds = Array.from(new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
+  const candidateGuildIds = Array.from(new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622"].filter(Boolean) as string[]));
 
   let member: DiscordMember | null = null;
   let guild: DiscordGuildDetails | null = null;

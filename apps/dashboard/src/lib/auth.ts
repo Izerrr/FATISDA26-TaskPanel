@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
-import { fetchUserGuilds, syncCurrentUser } from "./discord";
+import { fetchGuildMember, fetchUserGuilds, syncCurrentUser } from "./discord";
 import { verifyLinkIntent } from "./link-token";
 
 export const authOptions: NextAuthOptions = {
@@ -45,6 +45,40 @@ export const authOptions: NextAuthOptions = {
           return "/login?error=invalid_domain";
         }
       }
+
+      if (account?.provider === "discord") {
+        const discordId = account.providerAccountId;
+        const candidateGuildIds = Array.from(
+          new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622"].filter(Boolean) as string[])
+        );
+
+        // 1. Cek via Bot API (paling akurat)
+        let isMember = false;
+        for (const gid of candidateGuildIds) {
+          const member = await fetchGuildMember(gid, discordId);
+          if (member) {
+            isMember = true;
+            break;
+          }
+        }
+
+        // 2. Fallback via User OAuth Access Token jika Bot API tidak menemukan / rate limit
+        if (!isMember && account.access_token) {
+          try {
+            const guilds = await fetchUserGuilds(account.access_token);
+            if (guilds.length > 0 && guilds.some((g) => candidateGuildIds.includes(g.id))) {
+              isMember = true;
+            }
+          } catch (err) {
+            console.warn("[NextAuth signIn] Fallback fetchUserGuilds error:", err);
+          }
+        }
+
+        if (!isMember) {
+          return "/login?error=not_in_guild";
+        }
+      }
+
       return true;
     },
 
@@ -208,28 +242,14 @@ export const authOptions: NextAuthOptions = {
           token.accessTokenExpires = account.expires_at ? account.expires_at * 1000 : Date.now() + 604800 * 1000;
 
           /*
-           * Pastikan user memang berada di
-           * salah satu server FATISDA yang didukung.
-           */
-          const accessToken = account.access_token;
-
-          const candidateGuildIds = Array.from(new Set([process.env.DISCORD_GUILD_ID, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
-
-          if (accessToken) {
-            const guilds = await fetchUserGuilds(accessToken);
-
-            const isFatisdaMember = guilds.some((guild) => candidateGuildIds.includes(guild.id));
-
-            if (!isFatisdaMember) {
-              throw new Error("Akun Discord kamu belum menjadi anggota server FATISDA 2026.");
-            }
-          }
-
-          /*
            * Sync role, prodi, kelas, dan Discord
            * roles ke database.
            */
-          await syncCurrentUser(discordId);
+          try {
+            await syncCurrentUser(discordId);
+          } catch (syncErr) {
+            console.warn("[NextAuth jwt] Gagal sinkronisasi data user Discord:", syncErr);
+          }
 
           // Cek apakah ada linking cookie dari user google yang sedang aktif
           let targetUser: any = null;
