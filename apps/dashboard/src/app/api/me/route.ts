@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -72,7 +72,7 @@ export async function PATCH(req: NextRequest) {
     // Authentication Verification
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -84,6 +84,73 @@ export async function PATCH(req: NextRequest) {
     // Parse & Validate Body
     const body = await req.json();
     const updateData: any = {};
+
+    if (body.name !== undefined) {
+      if (body.name === null || body.name === "") {
+        updateData.name = null;
+      } else if (typeof body.name === "string") {
+        const cleanName = body.name.trim();
+        if (cleanName.length < 2 || cleanName.length > 60) {
+          return NextResponse.json({ error: "Nama lengkap harus antara 2 hingga 60 karakter." }, { status: 400 });
+        }
+        updateData.name = cleanName;
+      }
+    }
+
+    if (body.username !== undefined) {
+      if (typeof body.username !== "string") {
+        return NextResponse.json({ error: "Username tidak valid." }, { status: 400 });
+      }
+      const cleanUsername = body.username.trim().toLowerCase().replace(/^@+/, "");
+      if (!/^[a-z0-9_.-]{3,30}$/.test(cleanUsername)) {
+        return NextResponse.json(
+          { error: "Username harus 3-30 karakter (huruf kecil, angka, titik, strip, atau underscore)." },
+          { status: 400 }
+        );
+      }
+
+      const duplicate = await (prisma.user as any).findFirst({
+        where: {
+          username: { equals: cleanUsername, mode: "insensitive" },
+          NOT: { id: userId },
+        },
+        select: { id: true },
+      });
+      if (duplicate) {
+        return NextResponse.json({ error: `Username @${cleanUsername} sudah digunakan oleh akun lain.` }, { status: 409 });
+      }
+
+      updateData.username = cleanUsername;
+    }
+
+    if (body.nim !== undefined) {
+      if (body.nim === null || body.nim === "") {
+        updateData.nim = null;
+      } else if (typeof body.nim === "string") {
+        const cleanNim = body.nim.trim().toUpperCase();
+        if (cleanNim.length > 25) {
+          return NextResponse.json({ error: "Format NIM terlalu panjang." }, { status: 400 });
+        }
+        updateData.nim = cleanNim;
+      }
+    }
+
+    if (body.avatarSource !== undefined) {
+      if (body.avatarSource === "discord" || body.avatarSource === "google") {
+        const currentUser = await (prisma.user as any).findUnique({
+          where: { id: userId },
+          select: { discordAvatar: true, googleAvatar: true, avatar: true },
+        });
+        updateData.avatarSource = body.avatarSource;
+        if (body.avatarSource === "discord" && currentUser?.discordAvatar) {
+          updateData.avatar = currentUser.discordAvatar;
+        } else if (body.avatarSource === "google" && currentUser?.googleAvatar) {
+          updateData.avatar = currentUser.googleAvatar;
+        }
+      } else {
+        return NextResponse.json({ error: "Sumber foto profil tidak valid." }, { status: 400 });
+      }
+    }
 
     if (body.semester !== undefined) {
       const semester = Number(body.semester);

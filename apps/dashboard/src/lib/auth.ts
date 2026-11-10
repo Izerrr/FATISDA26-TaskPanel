@@ -101,8 +101,9 @@ export const authOptions: NextAuthOptions = {
         if (account.provider === "google") {
           const googleAccountId = account.providerAccountId;
           const email = ((profile as { email?: string }).email ?? "").toLowerCase();
-          const nim = email.split("@")[0].toUpperCase();
-          const username = (profile as { name?: string }).name ?? nim;
+          const emailPrefix = email.split("@")[0].toLowerCase();
+          const nim = emailPrefix.toUpperCase();
+          const googleDisplayName = (profile as { name?: string }).name ?? nim;
           const avatar = (profile as { picture?: string }).picture ?? null;
 
           // 1. Cek apakah ada target user dari linking cookie
@@ -140,6 +141,9 @@ export const authOptions: NextAuthOptions = {
                   where: { assignedTo: tempGoogleId },
                   data: { assignedTo: targetUser.id },
                 });
+                await (prisma as any).taskUserProgress.deleteMany({
+                  where: { userId: tempGoogleId },
+                });
                 await (prisma.user as any).deleteMany({
                   where: { id: tempGoogleId },
                 });
@@ -148,13 +152,16 @@ export const authOptions: NextAuthOptions = {
               }
             }
 
+            const useGoogleAvatar = targetUser.avatarSource === "google" || !targetUser.avatar;
             const updatedUser = await (prisma.user as any).update({
               where: { id: targetUser.id },
               data: {
                 googleId: googleAccountId,
                 email,
-                nim,
-                avatar: targetUser.avatar ?? avatar,
+                nim: targetUser.nim ?? nim,
+                name: targetUser.name ?? googleDisplayName,
+                googleAvatar: avatar,
+                avatar: useGoogleAvatar ? (avatar ?? targetUser.avatar) : targetUser.avatar,
                 hasAccessedApp: true,
                 lastLoginAt: new Date(),
                 lastActiveAt: new Date(),
@@ -165,8 +172,8 @@ export const authOptions: NextAuthOptions = {
             token.discordId = updatedUser.discordId ?? updatedUser.id;
             token.provider = updatedUser.discordId ? "discord" : "google";
             token.email = email;
-            token.nim = nim;
-            token.username = updatedUser.username;
+            token.nim = updatedUser.nim ?? nim;
+            token.username = updatedUser.name ?? updatedUser.username;
             token.avatar = updatedUser.avatar;
             token.roles = updatedUser.roles;
             token.prodi = updatedUser.prodi;
@@ -181,8 +188,11 @@ export const authOptions: NextAuthOptions = {
                 googleId: googleAccountId,
                 email,
                 nim,
-                username,
+                name: googleDisplayName,
+                username: emailPrefix,
                 avatar,
+                googleAvatar: avatar,
+                avatarSource: "google",
                 roles: ["STUDENT"],
                 discordRoles: [],
                 hasAccessedApp: true,
@@ -196,7 +206,7 @@ export const authOptions: NextAuthOptions = {
             token.provider = "google";
             token.email = email;
             token.nim = nim;
-            token.username = username;
+            token.username = googleDisplayName;
             token.avatar = avatar;
             token.roles = ["STUDENT"];
             token.prodi = null;
@@ -263,7 +273,7 @@ export const authOptions: NextAuthOptions = {
           if (targetUser && targetUser.id.startsWith("google_")) {
             // Gabungkan user Google ke Discord (akun Discord jadi id utama)
             try {
-              const { googleId, email, nim } = targetUser;
+              const { googleId, email, nim, googleAvatar, name: googleName } = targetUser;
 
               await prisma.task.updateMany({
                 where: { createdById: targetUser.id },
@@ -273,6 +283,13 @@ export const authOptions: NextAuthOptions = {
                 where: { assignedTo: targetUser.id },
                 data: { assignedTo: discordId },
               });
+              await (prisma as any).taskUserProgress.deleteMany({
+                where: { userId: targetUser.id },
+              });
+
+              await (prisma.user as any).delete({
+                where: { id: targetUser.id },
+              });
 
               await (prisma.user as any).update({
                 where: { id: discordId },
@@ -281,14 +298,12 @@ export const authOptions: NextAuthOptions = {
                   googleId: googleId ?? undefined,
                   email: email ?? undefined,
                   nim: nim ?? undefined,
+                  googleAvatar: googleAvatar ?? undefined,
+                  name: googleName ?? undefined,
                   hasAccessedApp: true,
                   lastLoginAt: new Date(),
                   lastActiveAt: new Date(),
                 },
-              });
-
-              await (prisma.user as any).delete({
-                where: { id: targetUser.id },
               });
             } catch (mergeErr) {
               console.warn("[NextAuth] Gagal merge google user ke discord:", mergeErr);
@@ -298,6 +313,8 @@ export const authOptions: NextAuthOptions = {
               where: { id: discordId },
               data: {
                 discordId,
+                discordUsername: username,
+                discordAvatar: avatar,
                 hasAccessedApp: true,
                 lastLoginAt: new Date(),
                 lastActiveAt: new Date(),
@@ -315,6 +332,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
+          token.username = user?.name ?? user?.username ?? username;
+          token.avatar = user?.avatar ?? avatar;
           token.roles = user?.roles ?? ["STUDENT"];
           token.prodi = user?.prodi ?? null;
           token.kelas = user?.kelas ?? null;

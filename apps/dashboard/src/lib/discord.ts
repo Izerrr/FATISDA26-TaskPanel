@@ -7,6 +7,7 @@ export interface DiscordMember {
   user: {
     id: string;
     username: string;
+    global_name?: string | null;
     avatar: string | null;
     discriminator?: string;
   };
@@ -256,38 +257,55 @@ export async function syncCurrentUser(userId: string): Promise<void> {
   const isGuildOwner = guild.owner_id === member.user.id;
 
   const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+  const discordHandle = member.user.username;
+  const defaultDisplayName = member.nick ?? member.user.global_name ?? member.user.username;
 
-  await (prisma.user as any).upsert({
+  const existingUser = await (prisma.user as any).findFirst({
     where: {
-      id: member.user.id,
-    },
-
-    create: {
-      id: member.user.id,
-      discordId: member.user.id,
-      username: member.nick ?? member.user.username,
-      avatar,
-      discordRoles,
-      roles: mappedRoles(discordRoles, isGuildOwner),
-      prodi: mappedProdi(discordRoles),
-      kelas: mappedKelas(discordRoles),
-      hasAccessedApp: true,
-      lastLoginAt: new Date(),
-      lastActiveAt: new Date(),
-    },
-
-    update: {
-      discordId: member.user.id,
-      username: member.nick ?? member.user.username,
-      avatar,
-      discordRoles,
-      roles: mappedRoles(discordRoles, isGuildOwner),
-      prodi: mappedProdi(discordRoles),
-      kelas: mappedKelas(discordRoles),
-      hasAccessedApp: true,
-      lastActiveAt: new Date(),
+      OR: [{ id: member.user.id }, { discordId: member.user.id }],
     },
   });
+
+  if (existingUser) {
+    const useDiscordAvatar = existingUser.avatarSource !== "google" || !existingUser.avatar;
+    await (prisma.user as any).update({
+      where: { id: existingUser.id },
+      data: {
+        discordId: member.user.id,
+        discordUsername: discordHandle,
+        discordAvatar: avatar,
+        name: existingUser.name ?? defaultDisplayName,
+        username: existingUser.username || discordHandle,
+        avatar: useDiscordAvatar ? (avatar ?? existingUser.avatar) : existingUser.avatar,
+        discordRoles,
+        roles: mappedRoles(discordRoles, isGuildOwner),
+        prodi: mappedProdi(discordRoles) ?? existingUser.prodi,
+        kelas: mappedKelas(discordRoles) ?? existingUser.kelas,
+        hasAccessedApp: true,
+        lastActiveAt: new Date(),
+      },
+    });
+  } else {
+    await (prisma.user as any).create({
+      data: {
+        id: member.user.id,
+        discordId: member.user.id,
+        discordUsername: discordHandle,
+        discordAvatar: avatar,
+        avatarSource: "discord",
+        name: defaultDisplayName,
+        username: discordHandle,
+        avatar,
+        discordRoles,
+        roles: mappedRoles(discordRoles, isGuildOwner),
+        prodi: mappedProdi(discordRoles),
+        kelas: mappedKelas(discordRoles),
+        hasAccessedApp: true,
+        lastLoginAt: new Date(),
+        lastActiveAt: new Date(),
+      },
+    });
+  }
 }
 
 export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]> {
@@ -304,14 +322,16 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
     const discordRoles = member.roles ?? [];
     const isGuildOwner = guild?.owner_id === member.user.id;
     const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+    const discordHandle = member.user.username;
+    const defaultDisplayName = member.nick ?? member.user.global_name ?? member.user.username;
 
     const newRoles = isFatisdaGuild ? mappedRoles(discordRoles, isGuildOwner) : ["STUDENT" as const];
     const newProdi = isFatisdaGuild ? mappedProdi(discordRoles) : null;
     const newKelas = isFatisdaGuild ? mappedKelas(discordRoles) : null;
 
     const updateData: any = {
-      username: member.nick ?? member.user.username,
-      avatar,
+      discordUsername: discordHandle,
+      discordAvatar: avatar,
     };
 
     if (isFatisdaGuild) {
@@ -321,14 +341,19 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
       if (newKelas !== null) updateData.kelas = newKelas;
     }
 
-    await prisma.user.upsert({
+    await (prisma.user as any).upsert({
       where: {
         id: member.user.id,
       },
 
       create: {
         id: member.user.id,
-        username: member.nick ?? member.user.username,
+        discordId: member.user.id,
+        discordUsername: discordHandle,
+        discordAvatar: avatar,
+        avatarSource: "discord",
+        name: defaultDisplayName,
+        username: discordHandle,
         avatar,
         discordRoles: isFatisdaGuild ? discordRoles : [],
         roles: newRoles,
