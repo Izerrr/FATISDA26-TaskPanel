@@ -6,17 +6,22 @@ export type Role = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "AD
 
 export type TaskScope = "PERSONAL" | "CLASS";
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
+export type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 
 export interface User {
   id: string;
   provider?: "discord" | "google";
+  name?: string | null;
   email?: string | null;
   nim?: string | null;
   discordId?: string | null;
+  discordUsername?: string | null;
   googleId?: string | null;
   username: string;
   avatar: string | null;
+  avatarSource?: "discord" | "google" | null;
+  discordAvatar?: string | null;
+  googleAvatar?: string | null;
   prodi: Prodi | null;
   kelas: Kelas | null;
   semester: number | null;
@@ -103,12 +108,14 @@ export interface Task {
 
   createdBy: {
     id: string;
+    name?: string | null;
     username: string;
     avatar: string | null;
   };
 
   assignee: {
     id: string;
+    name?: string | null;
     username: string;
     avatar: string | null;
   } | null;

@@ -38,6 +38,7 @@ enum TaskScope {
 
 enum TaskStatus {
   TODO
+  WAITING
   IN_PROGRESS
   NEED_REVIEW
   DONE
@@ -59,14 +60,19 @@ model Guild {
 }
 
 model User {
-  id        String   @id
-  provider  String   @default("discord")
-  email     String?  @unique
-  nim       String?
-  discordId String?  @unique
-  googleId  String?  @unique
-  username  String
-  avatar    String?
+  id              String   @id
+  provider        String   @default("discord")
+  name            String?
+  email           String?  @unique
+  nim             String?
+  discordId       String?  @unique
+  discordUsername String?
+  googleId        String?  @unique
+  username        String
+  avatar          String?
+  avatarSource    String?  @default("discord")
+  discordAvatar   String?
+  googleAvatar    String?
 
   prodi    Prodi?
   kelas    Kelas?
@@ -77,6 +83,7 @@ model User {
 
   createdTasks  Task[] @relation("CreatedTasks")
   assignedTasks Task[] @relation("AssignedTasks")
+  taskProgress  TaskUserProgress[]
 
   updatedVaults CourseVault[]
 
@@ -94,6 +101,8 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([username])
 }
 
 model Schedule {
@@ -220,8 +229,9 @@ model Task {
 
   dueDate DateTime?
 
-  comments   TaskComment[]
-  activities TaskActivity[]
+  comments     TaskComment[]
+  activities   TaskActivity[]
+  userProgress TaskUserProgress[]
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
@@ -234,6 +244,21 @@ model Task {
   @@index([courseId])
   @@index([status])
   @@index([scope])
+}
+
+model TaskUserProgress {
+  id        String     @id @default(cuid())
+  taskId    String
+  task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    TaskStatus @default(TODO)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+
+  @@unique([taskId, userId])
+  @@index([userId])
+  @@index([taskId])
 }
 
 model ScheduleSync {
