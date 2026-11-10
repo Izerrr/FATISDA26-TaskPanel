@@ -234,6 +234,7 @@ export async function GET(req: NextRequest) {
     // Format status Tugas
     const taskStatusCounts = {
       TODO: 0,
+      WAITING: 0,
       IN_PROGRESS: 0,
       NEED_REVIEW: 0,
       DONE: 0,
@@ -248,6 +249,7 @@ export async function GET(req: NextRequest) {
     const taskScopeCounts = {
       CLASS: 0,
       PERSONAL: 0,
+      GROUP: 0,
     };
     for (const item of tasksByScopeRaw) {
       if (item.scope && item.scope in taskScopeCounts) {

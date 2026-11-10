@@ -184,6 +184,7 @@ export interface AnalyticsTaskSummary {
   total: number;
   byStatus: {
     TODO: number;
+    WAITING?: number;
     IN_PROGRESS: number;
     NEED_REVIEW: number;
     DONE: number;

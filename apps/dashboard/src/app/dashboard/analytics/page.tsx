@@ -452,9 +452,12 @@ export default function AdminAnalyticsPage() {
 
                   {/* Scope & Collaboration Stats */}
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-liquid-text-secondary dark:border-slate-800 dark:text-slate-400">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <span>
                         Tugas Kelas: <strong className="text-liquid-text dark:text-slate-200">{analytics.tasks.byScope.CLASS}</strong>
+                      </span>
+                      <span>
+                        Tugas Kelompok: <strong className="text-liquid-text dark:text-slate-200">{analytics.tasks.byScope.GROUP ?? 0}</strong>
                       </span>
                       <span>
                         Tugas Pribadi: <strong className="text-liquid-text dark:text-slate-200">{analytics.tasks.byScope.PERSONAL}</strong>
