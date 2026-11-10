@@ -4,7 +4,7 @@ export type Kelas = "A" | "B" | "C" | "D" | "E";
 
 export type Role = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "ADMIN" | "OWNER";
 
-export type TaskScope = "PERSONAL" | "CLASS";
+export type TaskScope = "PERSONAL" | "CLASS" | "GROUP";
 
 export type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 
@@ -90,6 +90,20 @@ export interface ExamSchedule {
   updatedAt: string;
 }
 
+export interface TaskMember {
+  id: string;
+  taskId: string;
+  userId: string;
+  role: string;
+  user: {
+    id: string;
+    name?: string | null;
+    username: string;
+    nim?: string | null;
+    avatar: string | null;
+  };
+}
+
 export interface Task {
   id: string;
   guildId: string;
@@ -119,6 +133,8 @@ export interface Task {
     username: string;
     avatar: string | null;
   } | null;
+
+  members?: TaskMember[];
 
   course: Course | null;
 }
@@ -175,6 +191,7 @@ export interface AnalyticsTaskSummary {
   byScope: {
     CLASS: number;
     PERSONAL: number;
+    GROUP?: number;
   };
   completionRate: number;
   totalComments: number;

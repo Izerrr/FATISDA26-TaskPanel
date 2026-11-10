@@ -34,6 +34,7 @@ enum Role {
 enum TaskScope {
   PERSONAL
   CLASS
+  GROUP
 }
 
 enum TaskStatus {
@@ -84,6 +85,7 @@ model User {
   createdTasks  Task[] @relation("CreatedTasks")
   assignedTasks Task[] @relation("AssignedTasks")
   taskProgress  TaskUserProgress[]
+  taskMembers   TaskMember[] @relation("TaskMembers")
 
   updatedVaults CourseVault[]
 
@@ -232,6 +234,7 @@ model Task {
   comments     TaskComment[]
   activities   TaskActivity[]
   userProgress TaskUserProgress[]
+  members      TaskMember[]
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
@@ -244,6 +247,20 @@ model Task {
   @@index([courseId])
   @@index([status])
   @@index([scope])
+}
+
+model TaskMember {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("TaskMembers", fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("MEMBER")
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
 }
 
 model TaskUserProgress {
