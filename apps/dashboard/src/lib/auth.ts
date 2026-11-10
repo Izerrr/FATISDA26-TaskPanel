@@ -144,6 +144,9 @@ export const authOptions: NextAuthOptions = {
                 await (prisma as any).taskUserProgress.deleteMany({
                   where: { userId: tempGoogleId },
                 });
+                await (prisma as any).taskMember.deleteMany({
+                  where: { userId: tempGoogleId },
+                });
                 await (prisma.user as any).deleteMany({
                   where: { id: tempGoogleId },
                 });
@@ -284,6 +287,9 @@ export const authOptions: NextAuthOptions = {
                 data: { assignedTo: discordId },
               });
               await (prisma as any).taskUserProgress.deleteMany({
+                where: { userId: targetUser.id },
+              });
+              await (prisma as any).taskMember.deleteMany({
                 where: { userId: targetUser.id },
               });
 

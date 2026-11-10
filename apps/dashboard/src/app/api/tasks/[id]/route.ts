@@ -36,9 +36,12 @@ export async function PATCH(
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    const existing = await prisma.task.findUnique({
+    const existing = await (prisma.task as any).findUnique({
       where: {
         id: params.id,
+      },
+      include: {
+        members: true,
       },
     });
 
@@ -47,15 +50,18 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { title, description, status, assignedTo, dueDate, courseId, scope, kelas } = body;
+    const { title, description, status, assignedTo, dueDate, courseId, scope, kelas, memberIds } = body;
 
     const canManageClass = user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
     const isOwner = existing.createdById === user.id;
     const isAssignee = existing.assignedTo === user.id;
     const isClassTask = existing.scope === "CLASS";
-    const isManager = isOwner || (isClassTask && canManageClass);
+    const isGroupMember =
+      existing.scope === "GROUP" &&
+      (isOwner || (Array.isArray(existing.members) && existing.members.some((m: { userId: string }) => m.userId === user.id)));
+    const isManager = isOwner || isGroupMember || (isClassTask && canManageClass);
 
-    // Untuk tugas PERSONAL: hanya owner atau assignee yang boleh mengubah
+    // Untuk tugas PERSONAL atau GROUP: hanya owner, assignee, atau anggota kelompok yang boleh mengubah
     if (!isClassTask && !isManager && !isAssignee) {
       return NextResponse.json({ error: "Tidak memiliki izin untuk mengubah tugas ini" }, { status: 403 });
     }
@@ -82,11 +88,20 @@ export async function PATCH(
 
     const updateData: any = {};
 
-    // Untuk tugas PERSONAL, status disimpan langsung di tabel Task.
+    // Untuk tugas PERSONAL & GROUP, status disimpan langsung di tabel Task (linked).
     // Untuk tugas CLASS, status disimpan per-user di tabel TaskUserProgress agar tidak mengubah status mahasiswa lain!
     if (status !== undefined && !isClassTask) {
       updateData.status = status;
     }
+
+    const nextScope =
+      isManager && scope !== undefined
+        ? scope === "CLASS" && canManageClass
+          ? "CLASS"
+          : scope === "GROUP"
+            ? "GROUP"
+            : "PERSONAL"
+        : existing.scope;
 
     if (isManager) {
       if (typeof title === "string" && title.trim()) {
@@ -105,10 +120,52 @@ export async function PATCH(
         updateData.courseId = validCourseId;
       }
       if (scope !== undefined) {
-        updateData.scope = scope === "CLASS" ? "CLASS" : "PERSONAL";
+        updateData.scope = nextScope;
       }
       if (targetKelas !== undefined) {
         updateData.kelas = targetKelas;
+      }
+
+      if (nextScope === "GROUP" && Array.isArray(memberIds)) {
+        const cleanMemberIds = Array.from(
+          new Set(memberIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0 && id !== existing.createdById)),
+        );
+        const allTargetIds = [existing.createdById, ...cleanMemberIds];
+
+        await (prisma as any).taskMember.deleteMany({
+          where: {
+            taskId: params.id,
+            userId: { notIn: allTargetIds },
+          },
+        });
+
+        await (prisma as any).taskMember.upsert({
+          where: {
+            taskId_userId: { taskId: params.id, userId: existing.createdById },
+          },
+          create: {
+            taskId: params.id,
+            userId: existing.createdById,
+            role: "LEADER",
+          },
+          update: {
+            role: "LEADER",
+          },
+        });
+
+        for (const mId of cleanMemberIds) {
+          await (prisma as any).taskMember.upsert({
+            where: {
+              taskId_userId: { taskId: params.id, userId: mId },
+            },
+            create: {
+              taskId: params.id,
+              userId: mId,
+              role: "MEMBER",
+            },
+            update: {},
+          });
+        }
       }
     }
 
@@ -141,26 +198,52 @@ export async function PATCH(
       }
     }
 
+    const taskInclude = {
+      createdBy: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatar: true,
+        },
+      },
+      assignee: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatar: true,
+        },
+      },
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              nim: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" as const },
+      },
+      course: true,
+    };
+
     const task =
       Object.keys(updateData).length > 0
-        ? await prisma.task.update({
+        ? await (prisma.task as any).update({
             where: {
               id: params.id,
             },
             data: updateData,
-            include: {
-              createdBy: true,
-              assignee: true,
-              course: true,
-            },
+            include: taskInclude,
           })
-        : await prisma.task.findUniqueOrThrow({
+        : await (prisma.task as any).findUniqueOrThrow({
             where: { id: params.id },
-            include: {
-              createdBy: true,
-              assignee: true,
-              course: true,
-            },
+            include: taskInclude,
           });
 
     const effectiveStatus = isClassTask ? ((status as TaskStatus | undefined) ?? previousUserStatus) : (task.status as TaskStatus);

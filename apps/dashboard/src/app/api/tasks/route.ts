@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { formatWib, parseWibDateInput } from "@/lib/datetime";
-type TaskScope = "PERSONAL" | "CLASS";
+type TaskScope = "PERSONAL" | "CLASS" | "GROUP";
 type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -76,7 +76,12 @@ export async function GET(req: NextRequest) {
     const rawTasks = await (prisma.task as any).findMany({
       where: {
         guildId: guildCondition,
-        OR: [classTaskFilter, { scope: "PERSONAL", createdById: userId }, { scope: "PERSONAL", assignedTo: userId }],
+        OR: [
+          classTaskFilter,
+          { scope: "PERSONAL", createdById: userId },
+          { scope: "PERSONAL", assignedTo: userId },
+          { scope: "GROUP", OR: [{ createdById: userId }, { members: { some: { userId } } }] },
+        ],
       },
       include: {
         createdBy: {
@@ -94,6 +99,20 @@ export async function GET(req: NextRequest) {
             username: true,
             avatar: true,
           },
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                nim: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
         },
         course: true,
         userProgress: {
@@ -140,7 +159,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId } = body;
+    const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId, memberIds } = body;
 
     const configuredGuildId = process.env.DISCORD_GUILD_ID || "1547427568599302287";
     const targetGuildId = (typeof guildId === "string" && guildId.trim() ? guildId.trim() : null) || configuredGuildId;
@@ -159,7 +178,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    const taskScope: TaskScope = scope === "CLASS" ? "CLASS" : "PERSONAL";
+    const taskScope: TaskScope = scope === "CLASS" ? "CLASS" : scope === "GROUP" ? "GROUP" : "PERSONAL";
 
     const taskStatus: TaskStatus = typeof status === "string" && VALID_TASK_STATUSES.includes(status as TaskStatus) ? (status as TaskStatus) : "TODO";
 
@@ -174,6 +193,10 @@ export async function POST(req: NextRequest) {
         { status: 403 },
       );
     }
+
+    const cleanMemberIds = Array.isArray(memberIds)
+      ? Array.from(new Set(memberIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0 && id !== user.id)))
+      : [];
 
     await prisma.guild.upsert({
       where: {
@@ -192,7 +215,7 @@ export async function POST(req: NextRequest) {
     // Safely resolve courseId (handles DB courses, schedule synthetic IDs, and prevents constraint conflicts)
     const validCourseId = await resolveCourseId(courseId, targetProdi ?? "INFORMATIKA", targetKelas ?? null);
 
-    const task = await prisma.task.create({
+    const task = await (prisma.task as any).create({
       data: {
         guildId: targetGuildId,
         title: title.trim(),
@@ -205,11 +228,48 @@ export async function POST(req: NextRequest) {
         kelas: targetKelas,
         courseId: validCourseId,
         createdById: user.id,
+        members:
+          taskScope === "GROUP"
+            ? {
+                create: [
+                  { userId: user.id, role: "LEADER" },
+                  ...cleanMemberIds.map((mId) => ({ userId: mId, role: "MEMBER" })),
+                ],
+              }
+            : undefined,
       },
 
       include: {
-        createdBy: true,
-        assignee: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                nim: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
         course: true,
       },
     });
