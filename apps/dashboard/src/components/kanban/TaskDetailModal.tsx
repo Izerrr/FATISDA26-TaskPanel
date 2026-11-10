@@ -99,7 +99,8 @@ export function TaskDetailModal({
   const urgency = getUrgency(task.dueDate);
   const canManageClass = roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(String(r)));
   const isOwner = task.createdById === userId;
-  const canModify = isOwner || (task.scope === "CLASS" && canManageClass);
+  const isGroupMember = task.scope === "GROUP" && (isOwner || Boolean(task.members?.some((m) => m.userId === userId)));
+  const canModify = isOwner || isGroupMember || (task.scope === "CLASS" && canManageClass);
 
   async function handleQuickStatus(newStatus: TaskStatus) {
     if (!task || task.status === newStatus || statusUpdating) return;
@@ -145,10 +146,12 @@ export function TaskDetailModal({
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                 task.scope === "CLASS"
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900"
-                  : "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-200 dark:border-violet-900"
+                  : task.scope === "GROUP"
+                    ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900"
+                    : "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-200 dark:border-violet-900"
               }`}
             >
-              {task.scope === "CLASS" ? "Tugas Kelas" : "Tugas Personal"}
+              {task.scope === "CLASS" ? "Tugas Kelas" : task.scope === "GROUP" ? "Tugas Kelompok" : "Tugas Personal"}
             </span>
 
             {task.course && (
@@ -298,6 +301,48 @@ export function TaskDetailModal({
               </label>
               <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
                 {task.description}
+              </div>
+            </div>
+          )}
+
+          {/* Group Members Section */}
+          {task.scope === "GROUP" && task.members && task.members.length > 0 && (
+            <div className="rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/40 dark:bg-indigo-950/20 p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                  Anggota Kelompok ({task.members.length} orang)
+                </span>
+                <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
+                  Linked Progress
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {task.members.map((m) => {
+                  const displayName = m.user.name || m.user.username;
+                  return (
+                    <div
+                      key={m.id}
+                      className="inline-flex items-center gap-2 rounded-xl border border-indigo-200/70 dark:border-indigo-800/60 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs shadow-2xs"
+                    >
+                      {m.user.avatar ? (
+                        <img src={m.user.avatar} alt={displayName} className="h-5 w-5 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                          {displayName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">{displayName}</span>
+                        <span className="ml-1 font-mono text-[10px] text-slate-400">@{m.user.username}</span>
+                      </div>
+                      {m.role === "LEADER" && (
+                        <span className="rounded bg-indigo-50 dark:bg-indigo-950/80 px-1.5 py-0.5 text-[9px] font-bold text-indigo-600 dark:text-indigo-300">
+                          Ketua
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

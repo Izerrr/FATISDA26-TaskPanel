@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, Bot, Check, HelpCircle, Loader2, Sparkles, User, Users, X } from "lucide-react";
+import { ArrowRight, Bot, Check, HelpCircle, Loader2, Sparkles, User, Users, UsersRound, X } from "lucide-react";
 import type { Course, Role } from "@/types";
 import { parseTaskNaturalLanguage, type ParsedTaskResult } from "@/lib/ai-task-parser";
+import { GroupMemberPicker, type SelectedGroupMember } from "./GroupMemberPicker";
 
 interface Props {
   open: boolean;
@@ -18,7 +19,7 @@ interface Props {
   onCreated: () => Promise<unknown> | void;
 }
 
-export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onCreated }: Props) {
+export function NewTaskModal({ open, guildId, courses, roles, user, userId, onClose, onCreated }: Props) {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<"MANUAL" | "AI">("MANUAL");
 
@@ -27,8 +28,9 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
   const [description, setDescription] = useState("");
   const [courseId, setCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [scope, setScope] = useState<"PERSONAL" | "CLASS">("PERSONAL");
+  const [scope, setScope] = useState<"PERSONAL" | "GROUP" | "CLASS">("PERSONAL");
   const [targetKelas, setTargetKelas] = useState<string>("ALL");
+  const [groupMembers, setGroupMembers] = useState<SelectedGroupMember[]>([]);
 
   // AI Mode Fields
   const [aiInput, setAiInput] = useState("");
@@ -123,6 +125,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
           dueDate: dueDate || null,
           scope,
           kelas: scope === "CLASS" ? (targetKelas === "ALL" ? null : targetKelas) : null,
+          memberIds: scope === "GROUP" ? groupMembers.map((m) => m.id) : undefined,
           status: "TODO",
         }),
       });
@@ -141,6 +144,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
       setCourseId("");
       setDueDate("");
       setScope("PERSONAL");
+      setGroupMembers([]);
       setAiInput("");
       setAiParsed(null);
       setMode("MANUAL");
@@ -199,7 +203,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
             }`}
           >
-            <span>✏️ Mode Manual</span>
+            <span>Mode Manual</span>
           </button>
 
           <button
@@ -210,7 +214,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            <span>✨ Mode AI (Otomatis)</span>
+            <span>Mode AI (Otomatis)</span>
           </button>
         </div>
 
@@ -224,11 +228,11 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
               {/* Scope Selector in Mode AI */}
               <div>
                 <label className="label mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">Lingkup Tugas AI</label>
-                <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+                <div className="grid grid-cols-3 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
                   <button
                     type="button"
                     onClick={() => setScope("PERSONAL")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
                       scope === "PERSONAL" ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
@@ -238,17 +242,34 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
 
                   <button
                     type="button"
+                    onClick={() => setScope("GROUP")}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
+                      scope === "GROUP" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    <UsersRound className="h-3.5 w-3.5" />
+                    <span>Kelompok</span>
+                  </button>
+
+                  <button
+                    type="button"
                     disabled={!canCreateClass}
                     onClick={() => setScope("CLASS")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
                       scope === "CLASS" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     } ${!canCreateClass ? "cursor-not-allowed opacity-40" : ""}`}
                     title={!canCreateClass ? "Hanya PJ Kelas/Matkul & Admin" : ""}
                   >
                     <Users className="h-3.5 w-3.5" />
-                    <span>Tugas Kelas</span>
+                    <span>Kelas</span>
                   </button>
                 </div>
+
+                {scope === "GROUP" && (
+                  <div className="mt-2">
+                    <GroupMemberPicker selectedMembers={groupMembers} onChange={setGroupMembers} currentUserId={userId} />
+                  </div>
+                )}
 
                 {scope === "CLASS" && (
                   <div className="mt-2 rounded-2xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/30 p-2.5 space-y-1.5 animate-in fade-in duration-150">
@@ -264,7 +285,14 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                           onClick={() => setTargetKelas(k)}
                           className={`py-1 rounded-lg text-[11px] sm:text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                         >
-                          {k === "ALL" ? "Semua" : <><span className="hidden sm:inline">Kls </span>{k}</>}
+                          {k === "ALL" ? (
+                            "Semua"
+                          ) : (
+                            <>
+                              <span className="hidden sm:inline">Kls </span>
+                              {k}
+                            </>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -357,6 +385,13 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                         </button>
                         <button
                           type="button"
+                          onClick={() => setScope("GROUP")}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition ${scope === "GROUP" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400"}`}
+                        >
+                          Kelompok
+                        </button>
+                        <button
+                          type="button"
                           disabled={!canCreateClass}
                           onClick={() => setScope("CLASS")}
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition ${scope === "CLASS" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 disabled:opacity-40"}`}
@@ -389,31 +424,48 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
               {/* Sleek Segmented Scope Selector */}
               <div>
                 <label className="label mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">Lingkup Tugas</label>
-                <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+                <div className="grid grid-cols-3 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
                   <button
                     type="button"
                     onClick={() => setScope("PERSONAL")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
                       scope === "PERSONAL" ? "bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
                     <User className="h-3.5 w-3.5" />
-                    <span>Personal (Pribadi)</span>
+                    <span>Personal</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setScope("GROUP")}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
+                      scope === "GROUP" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    <UsersRound className="h-3.5 w-3.5" />
+                    <span>Kelompok</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={!canCreateClass}
                     onClick={() => setScope("CLASS")}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
                       scope === "CLASS" ? "bg-blue-600 text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     } ${!canCreateClass ? "cursor-not-allowed opacity-40" : ""}`}
                     title={!canCreateClass ? "Hanya PJ Kelas/Matkul & Admin" : ""}
                   >
                     <Users className="h-3.5 w-3.5" />
-                    <span>Tugas Kelas</span>
+                    <span>Kelas</span>
                   </button>
                 </div>
+
+                {scope === "GROUP" && (
+                  <div className="mt-2">
+                    <GroupMemberPicker selectedMembers={groupMembers} onChange={setGroupMembers} currentUserId={userId} />
+                  </div>
+                )}
 
                 {scope === "CLASS" && (
                   <div className="mt-2 rounded-2xl border border-blue-200/70 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/30 p-2.5 space-y-1.5 animate-in fade-in duration-150">
@@ -429,7 +481,14 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
                           onClick={() => setTargetKelas(k)}
                           className={`py-1 rounded-lg text-[11px] sm:text-xs font-bold transition ${targetKelas === k ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
                         >
-                          {k === "ALL" ? "Semua" : <><span className="hidden sm:inline">Kls </span>{k}</>}
+                          {k === "ALL" ? (
+                            "Semua"
+                          ) : (
+                            <>
+                              <span className="hidden sm:inline">Kls </span>
+                              {k}
+                            </>
+                          )}
                         </button>
                       ))}
                     </div>

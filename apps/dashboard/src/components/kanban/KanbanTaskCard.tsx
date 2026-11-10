@@ -193,11 +193,41 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
           className={`shrink-0 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
             task.scope === "CLASS"
               ? "border-blue-200/60 dark:border-blue-800/50 bg-blue-50/80 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
-              : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50/80 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
+              : task.scope === "GROUP"
+                ? "border-indigo-200/60 dark:border-indigo-800/50 bg-indigo-50/80 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300"
+                : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50/80 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
           }`}
         >
-          {task.scope === "CLASS" ? "Kelas" : "Personal"}
+          {task.scope === "CLASS" ? "Kelas" : task.scope === "GROUP" ? "Kelompok" : "Personal"}
         </span>
+
+        {task.scope === "GROUP" && task.members && task.members.length > 0 && (
+          <div className="flex items-center -space-x-1.5 overflow-hidden py-0.5" title={`Anggota: ${task.members.map((m) => m.user.name || m.user.username).join(", ")}`}>
+            {task.members.slice(0, 4).map((m) => {
+              const label = m.user.name || m.user.username;
+              return m.user.avatar ? (
+                <img
+                  key={m.id}
+                  src={m.user.avatar}
+                  alt={label}
+                  className="inline-block h-5 w-5 rounded-full object-cover ring-2 ring-white dark:ring-slate-900"
+                />
+              ) : (
+                <div
+                  key={m.id}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900"
+                >
+                  {label.charAt(0).toUpperCase()}
+                </div>
+              );
+            })}
+            {task.members.length > 4 && (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-[9px] font-bold text-slate-700 dark:text-slate-200 ring-2 ring-white dark:ring-slate-900">
+                +{task.members.length - 4}
+              </div>
+            )}
+          </div>
+        )}
 
         {task.dueDate && (
           <span

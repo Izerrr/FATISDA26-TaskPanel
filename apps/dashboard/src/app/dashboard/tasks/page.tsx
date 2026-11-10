@@ -44,6 +44,7 @@ export default function TasksPage() {
       if (onlyMyTasks) {
         const isMine =
           task.scope === "PERSONAL" ||
+          task.scope === "GROUP" ||
           (user?.id && (task.createdById === user.id || task.assignedTo === user.id));
         if (!isMine) return false;
       }
@@ -184,6 +185,9 @@ export default function TasksPage() {
                 </option>
                 <option value="PERSONAL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Personal
+                </option>
+                <option value="GROUP" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Kelompok
                 </option>
                 <option value="CLASS" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Kelas

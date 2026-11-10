@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Loader2, User, Users, X } from "lucide-react";
+import { Loader2, User, Users, UsersRound, X } from "lucide-react";
 import type { Course, Role, Task, TaskStatus } from "@/types";
 import { toWibInputValue } from "@/lib/datetime";
+import { GroupMemberPicker, type SelectedGroupMember } from "@/components/kanban/GroupMemberPicker";
 
 interface Props {
   open: boolean;
@@ -21,8 +22,9 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
   const [courseId, setCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState<TaskStatus>("TODO");
-  const [scope, setScope] = useState<"PERSONAL" | "CLASS">("PERSONAL");
+  const [scope, setScope] = useState<"PERSONAL" | "GROUP" | "CLASS">("PERSONAL");
   const [targetKelas, setTargetKelas] = useState<string>("ALL");
+  const [groupMembers, setGroupMembers] = useState<SelectedGroupMember[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,6 +51,19 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
       setStatus(task.status);
       setScope(task.scope);
       setTargetKelas(task.kelas || "ALL");
+      setGroupMembers(
+        Array.isArray(task.members)
+          ? task.members
+              .filter((m) => m.userId !== task.createdById && m.user)
+              .map((m) => ({
+                id: m.user.id,
+                name: m.user.name,
+                username: m.user.username,
+                nim: m.user.nim,
+                avatar: m.user.avatar,
+              }))
+          : [],
+      );
       setError("");
     }
   }, [task]);
@@ -81,6 +96,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
           status,
           scope,
           kelas: scope === "CLASS" ? (targetKelas === "ALL" ? null : targetKelas) : null,
+          memberIds: scope === "GROUP" ? groupMembers.map((m) => m.id) : undefined,
         }),
       });
 
@@ -128,10 +144,10 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
           {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/40 p-3 text-xs font-medium text-red-600 dark:text-red-400">{error}</div>}
 
           {/* Scope & Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-3">
             <div>
               <label className="label mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">Lingkup</label>
-              <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+              <div className="grid grid-cols-3 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
                 <button
                   type="button"
                   onClick={() => setScope("PERSONAL")}
@@ -141,6 +157,17 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
                 >
                   <User className="h-3.5 w-3.5" />
                   <span>Personal</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setScope("GROUP")}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all ${
+                    scope === "GROUP" ? "bg-indigo-600 text-white shadow-xs" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <UsersRound className="h-3.5 w-3.5" />
+                  <span>Kelompok</span>
                 </button>
 
                 <button
@@ -156,6 +183,10 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
                 </button>
               </div>
             </div>
+
+            {scope === "GROUP" && (
+              <GroupMemberPicker selectedMembers={groupMembers} onChange={setGroupMembers} currentUserId={task.createdById} />
+            )}
 
             <div>
               <label className="label mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">Status</label>

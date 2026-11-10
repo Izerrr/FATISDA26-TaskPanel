@@ -143,10 +143,14 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                       {/* Scope tag */}
                       <span
                         className={`inline-flex shrink-0 items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                          task.scope === "CLASS" ? "border-blue-200/60 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300" : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
+                          task.scope === "CLASS"
+                            ? "border-blue-200/60 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300"
+                            : task.scope === "GROUP"
+                              ? "border-indigo-200/60 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300"
+                              : "border-violet-200/60 dark:border-violet-800/50 bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300"
                         }`}
                       >
-                        {task.scope === "CLASS" ? "Kelas" : "Personal"}
+                        {task.scope === "CLASS" ? "Kelas" : task.scope === "GROUP" ? "Kelompok" : "Personal"}
                       </span>
                     </div>
 
