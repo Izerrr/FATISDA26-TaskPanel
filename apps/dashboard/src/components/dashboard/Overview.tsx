@@ -46,7 +46,7 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
   const now = new Date();
 
   const done = tasks.filter((task) => task.status === "DONE").length;
-  const inProgress = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+  const inProgress = tasks.filter((task) => task.status === "WAITING" || task.status === "IN_PROGRESS" || task.status === "NEED_REVIEW").length;
   const overdue = tasks.filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) < now).length;
   const personal = tasks.filter((task) => task.scope === "PERSONAL").length;
   const classTasks = tasks.filter((task) => task.scope === "CLASS").length;

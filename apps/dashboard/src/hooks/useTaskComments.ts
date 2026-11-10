@@ -6,7 +6,7 @@ export interface TaskComment {
   id: string;
   taskId: string;
   authorId: string;
-  author: { id: string; username: string; avatar: string | null };
+  author: { id: string; name?: string | null; username: string; avatar: string | null };
   content: string;
   createdAt: string;
 }

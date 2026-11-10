@@ -14,6 +14,7 @@ interface TaskListViewProps {
 
 const statusOptions: { value: TaskStatus; label: string; bg: string; text: string }[] = [
   { value: "TODO", label: "Todo", bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-700 dark:text-slate-300" },
+  { value: "WAITING", label: "Waiting List", bg: "bg-purple-50 dark:bg-purple-950/60", text: "text-purple-700 dark:text-purple-300" },
   { value: "IN_PROGRESS", label: "In Progress", bg: "bg-blue-50 dark:bg-blue-950/60", text: "text-blue-700 dark:text-blue-300" },
   { value: "NEED_REVIEW", label: "Need Review", bg: "bg-amber-50 dark:bg-amber-950/60", text: "text-amber-700 dark:text-amber-300" },
   { value: "DONE", label: "Done", bg: "bg-emerald-50 dark:bg-emerald-950/60", text: "text-emerald-700 dark:text-emerald-300" },

@@ -201,6 +201,9 @@ export default function TasksPage() {
                 <option value="TODO" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Todo
                 </option>
+                <option value="WAITING" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Waiting List
+                </option>
                 <option value="IN_PROGRESS" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   In Progress
                 </option>

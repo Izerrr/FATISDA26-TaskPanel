@@ -1,6 +1,6 @@
 import type { TaskStatus, Task } from "@/types";
 
-export const KANBAN_COLUMNS: readonly TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
+export const KANBAN_COLUMNS: readonly TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
 export const KANBAN_META: Record<
   TaskStatus,
@@ -24,6 +24,16 @@ export const KANBAN_META: Record<
     activeBorder: "border-slate-400 dark:border-slate-600",
     activeRing: "ring-slate-300 dark:ring-slate-700",
     glow: "shadow-slate-200/50 dark:shadow-slate-900/50",
+  },
+  WAITING: {
+    label: "Waiting List",
+    shortLabel: "Waiting",
+    badge: "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/50",
+    border: "border-purple-100/80 dark:border-purple-900/40",
+    dropBg: "bg-purple-50/50 dark:bg-purple-950/20",
+    activeBorder: "border-purple-400 dark:border-purple-600",
+    activeRing: "ring-purple-200 dark:ring-purple-800",
+    glow: "shadow-purple-200/50 dark:shadow-purple-950/50",
   },
   IN_PROGRESS: {
     label: "Dikerjakan",

@@ -195,11 +195,11 @@ function LoginContent() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="comparison-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150 overscroll-contain"
           onClick={() => setShowComparison(false)}
         >
           <div
-            className="relative w-full max-w-lg rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-lg rounded-3xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -313,8 +313,8 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-liquid-bg dark:bg-slate-950">
-      <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-liquid-accent/10 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-liquid-teal/10 blur-[100px]" />
+      <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-liquid-accent/15 blur-[100px] animate-ambient-slow" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-liquid-teal/15 blur-[100px] animate-ambient-reverse" />
 
       <Suspense fallback={<div className="h-96 w-full max-w-sm rounded-3xl bg-white/50 dark:bg-slate-900/50 animate-pulse" />}>
         <LoginContent />

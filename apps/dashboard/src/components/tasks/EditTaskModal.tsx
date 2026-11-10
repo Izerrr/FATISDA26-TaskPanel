@@ -100,7 +100,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer overscroll-contain"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -124,7 +124,7 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
         </div>
 
         {/* Scrollable Form */}
-        <form id="edit-task-form" onSubmit={handleSubmit} className="overflow-y-auto p-5 space-y-3.5 flex-1">
+        <form id="edit-task-form" onSubmit={handleSubmit} className="overflow-y-auto overscroll-contain p-5 space-y-3.5 flex-1">
           {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/40 p-3 text-xs font-medium text-red-600 dark:text-red-400">{error}</div>}
 
           {/* Scope & Status */}
@@ -166,6 +166,9 @@ export function EditTaskModal({ open, task, courses, roles, onClose, onUpdated }
               >
                 <option value="TODO" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   Todo
+                </option>
+                <option value="WAITING" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                  Waiting List
                 </option>
                 <option value="IN_PROGRESS" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
                   In Progress

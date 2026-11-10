@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Sparkles, PanelRightClose, PanelRightOpen } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
@@ -30,6 +30,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
   const [activeMobileTab, setActiveMobileTab] = useState<TaskStatus>("TODO");
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isDoneCollapsed, setIsDoneCollapsed] = useState(false);
+  const [celebrationTaskTitle, setCelebrationTaskTitle] = useState<string | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
@@ -52,6 +54,10 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
       if (saved === "list" || saved === "kanban") {
         setViewMode(saved);
       }
+      const savedDoneCollapse = localStorage.getItem("fatisda_kanban_done_collapsed");
+      if (savedDoneCollapse === "true") {
+        setIsDoneCollapsed(true);
+      }
     } catch {}
 
     if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
@@ -62,6 +68,23 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
       return () => mq.removeEventListener("change", handler);
     }
   }, []);
+
+  const toggleDoneCollapsed = () => {
+    setIsDoneCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("fatisda_kanban_done_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  function triggerDoneCelebration(title: string) {
+    setCelebrationTaskTitle(title);
+    setTimeout(() => {
+      setCelebrationTaskTitle((curr) => (curr === title ? null : curr));
+    }, 1800);
+  }
 
   const handleToggleView = (mode: "kanban" | "list") => {
     setViewMode(mode);
@@ -81,6 +104,9 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   async function handleMoveTask(task: Task, newStatus: TaskStatus) {
     if (task.status === newStatus) return;
 
+    if (newStatus === "DONE") {
+      triggerDoneCelebration(task.title);
+    }
     setJustMovedTaskId(task.id);
     setTimeout(() => {
       setJustMovedTaskId((curr) => (curr === task.id ? null : curr));
@@ -161,6 +187,10 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     }
 
     if (destinationStatus !== sourceStatus) {
+      if (destinationStatus === "DONE") {
+        const movedTask = items.find((t) => t.id === taskId);
+        if (movedTask) triggerDoneCelebration(movedTask.title);
+      }
       setJustMovedTaskId(taskId);
       setTimeout(() => {
         setJustMovedTaskId((curr) => (curr === taskId ? null : curr));
@@ -242,10 +272,30 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           </button>
         </div>
 
-        <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 hidden sm:block">
-          Tampilan: {viewMode === "kanban" ? "Papan Kolom" : "Daftar Terurut"}
+        <div className="flex items-center gap-2">
+          {viewMode === "kanban" && (
+            <button
+              type="button"
+              onClick={toggleDoneCollapsed}
+              className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-2xs"
+            >
+              {isDoneCollapsed ? <PanelRightOpen className="h-3.5 w-3.5 text-emerald-500" /> : <PanelRightClose className="h-3.5 w-3.5 text-slate-400" />}
+              <span>{isDoneCollapsed ? "Buka Kolom Selesai" : "Lipat Kolom Selesai"}</span>
+            </button>
+          )}
+          <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 hidden sm:block">
+            Tampilan: {viewMode === "kanban" ? "Papan 5 Kolom" : "Daftar Terurut"}
+          </div>
         </div>
       </div>
+
+      {/* Zero-RAM Celebration Pop Banner when a task moves to DONE */}
+      {celebrationTaskTitle && (
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/80 dark:border-emerald-700/80 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/70 dark:via-teal-950/60 dark:to-emerald-950/70 px-4 py-2.5 text-xs font-bold text-emerald-800 dark:text-emerald-200 shadow-md animate-in fade-in zoom-in-95 duration-200">
+          <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span className="truncate">Mantap! Tugas &ldquo;{celebrationTaskTitle}&rdquo; selesai dikerjakan! 🎉</span>
+        </div>
+      )}
 
       {viewMode === "list" ? (
         <TaskListView
@@ -258,8 +308,8 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
         />
       ) : (
         <>
-          {/* Mobile Status Switcher Tabs (Segmented 4-Column Bar on < md) */}
-          <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 md:hidden shadow-2xs">
+          {/* Mobile Status Switcher Tabs (Segmented 5-Column Bar on < md) */}
+          <div className="grid grid-cols-5 gap-1 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 md:hidden shadow-2xs">
             {KANBAN_COLUMNS.map((status) => {
               const meta = KANBAN_META[status];
               const count = items.filter((task) => task.status === status).length;
@@ -270,15 +320,15 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
                   key={status}
                   type="button"
                   onClick={() => setActiveMobileTab(status)}
-                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
+                  className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all cursor-pointer min-w-0 ${
                     isActive
                       ? "bg-white dark:bg-slate-900 text-liquid-accent dark:text-sky-400 shadow-xs font-bold"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
                   }`}
                 >
-                  <span className="text-[11px] leading-tight truncate max-w-full">{meta.shortLabel}</span>
+                  <span className="text-[10px] sm:text-[11px] leading-tight truncate max-w-full px-0.5">{meta.shortLabel}</span>
                   <span
-                    className={`mt-1 inline-flex items-center justify-center min-w-[20px] h-4.5 px-1.5 rounded-full text-[10px] font-bold ${
+                    className={`mt-1 inline-flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full text-[9px] sm:text-[10px] font-bold ${
                       isActive
                         ? "bg-liquid-accent/15 text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300"
                         : "bg-slate-200/70 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400"
@@ -306,25 +356,38 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
             />
           </div>
 
-          {/* Desktop Multi-Column Kanban Board (>= md) - Only mount DragDropContext on desktop to avoid mobile multi-touch sensor conflicts */}
+          {/* Desktop Multi-Column Kanban Board (>= md) */}
           {isDesktop && (
             <div className="hidden md:block">
               <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                  {KANBAN_COLUMNS.map((status) => (
-                    <div key={status} className="min-w-0">
-                      <KanbanColumn
-                        status={status}
-                        tasks={items.filter((task) => task.status === status)}
-                        isDraggingAny={isDragging}
-                        justMovedTaskId={justMovedTaskId}
-                        onSelect={(task) => setDetailTask(task)}
-                        onMoveStatus={handleMoveTask}
-                        onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
-                        onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
-                      />
-                    </div>
-                  ))}
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:flex xl:items-stretch gap-3.5">
+                  {KANBAN_COLUMNS.map((status) => {
+                    const isDone = status === "DONE";
+                    const collapsed = isDone && isDoneCollapsed;
+                    return (
+                      <div
+                        key={status}
+                        className={
+                          collapsed
+                            ? "min-w-0 xl:w-16 xl:shrink-0 transition-all duration-200"
+                            : "min-w-0 xl:flex-1 transition-all duration-200"
+                        }
+                      >
+                        <KanbanColumn
+                          status={status}
+                          tasks={items.filter((task) => task.status === status)}
+                          isDraggingAny={isDragging}
+                          justMovedTaskId={justMovedTaskId}
+                          isCollapsed={collapsed}
+                          onToggleCollapse={isDone ? toggleDoneCollapsed : undefined}
+                          onSelect={(task) => setDetailTask(task)}
+                          onMoveStatus={handleMoveTask}
+                          onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
+                          onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </DragDropContext>
             </div>

@@ -165,7 +165,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer overscroll-contain"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -215,7 +215,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, onClose, onC
         </div>
 
         {/* Scrollable Body */}
-        <div className="overflow-y-auto p-5 space-y-3.5 flex-1">
+        <div className="overflow-y-auto overscroll-contain p-5 space-y-3.5 flex-1">
           {error && <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-3 text-xs font-medium text-red-600 dark:text-red-400">{error}</div>}
 
           {mode === "AI" ? (

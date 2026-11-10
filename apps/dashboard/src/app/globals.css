@@ -164,7 +164,32 @@ html.theme-transitioning *::after {
   transition-delay: 0s !important;
 }
 
+@keyframes ambientFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(24px, -18px, 0) scale(1.06);
+  }
+}
+
+.animate-ambient-slow {
+  animation: ambientFloat 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ambient-reverse {
+  animation: ambientFloat 22s ease-in-out infinite reverse;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-ambient-slow,
+  .animate-ambient-reverse {
+    animation: none !important;
+  }
+
   html,
   body,
   aside,

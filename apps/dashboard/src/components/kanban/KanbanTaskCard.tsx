@@ -22,6 +22,7 @@ interface KanbanTaskCardProps {
 
 const statusLabel: Record<TaskStatus, string> = {
   TODO: "Todo",
+  WAITING: "Waiting List",
   IN_PROGRESS: "In Progress",
   NEED_REVIEW: "Need Review",
   DONE: "Done",
@@ -29,6 +30,7 @@ const statusLabel: Record<TaskStatus, string> = {
 
 const statusIcon: Record<TaskStatus, typeof Clock3> = {
   TODO: Clock3,
+  WAITING: Clock3,
   IN_PROGRESS: Clock3,
   NEED_REVIEW: CalendarClock,
   DONE: CheckCircle2,
@@ -226,14 +228,43 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
           <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Pindah Status:</span>
           <div className="flex flex-wrap items-center gap-1.5">
             {task.status === "TODO" && (
-              <button
-                type="button"
-                onClick={() => onMoveStatus(task, "IN_PROGRESS")}
-                className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 px-2.5 py-1.5 text-[11px] font-bold text-sky-700 dark:text-sky-300 transition active:scale-95"
-              >
-                <span>Mulai Kerjakan</span>
-                <ArrowRight className="h-3 w-3" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => onMoveStatus(task, "WAITING")}
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 px-2.5 py-1.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 transition active:scale-95"
+                >
+                  <span>Waiting List</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMoveStatus(task, "IN_PROGRESS")}
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 px-2.5 py-1.5 text-[11px] font-bold text-sky-700 dark:text-sky-300 transition active:scale-95"
+                >
+                  <span>Kerjakan</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </>
+            )}
+
+            {task.status === "WAITING" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onMoveStatus(task, "IN_PROGRESS")}
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/60 px-2.5 py-1.5 text-[11px] font-bold text-sky-700 dark:text-sky-300 transition active:scale-95"
+                >
+                  <span>Mulai Kerjakan</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMoveStatus(task, "DONE")}
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 transition active:scale-95"
+                >
+                  <span>Selesai ✓</span>
+                </button>
+              </>
             )}
 
             {task.status === "IN_PROGRESS" && (
@@ -241,7 +272,7 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
                 <button
                   type="button"
                   onClick={() => onMoveStatus(task, "NEED_REVIEW")}
-                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 px-2.5 py-1.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 transition active:scale-95"
+                  className="inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-2.5 py-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition active:scale-95"
                 >
                   <span>Review</span>
                   <ArrowRight className="h-3 w-3" />

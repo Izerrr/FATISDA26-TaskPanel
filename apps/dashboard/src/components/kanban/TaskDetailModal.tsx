@@ -40,6 +40,7 @@ interface ActivityItem {
   newValue: string | null;
   createdAt: string;
   user: {
+    name?: string | null;
     username: string;
     avatar: string | null;
   };
@@ -49,9 +50,10 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const statusOptions: { value: TaskStatus; label: string; bg: string; text: string; ring: string }[] = [
   { value: "TODO", label: "Todo", bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-700 dark:text-slate-300", ring: "ring-slate-300 dark:ring-slate-600" },
-  { value: "IN_PROGRESS", label: "In Progress", bg: "bg-amber-50 dark:bg-amber-950/40", text: "text-amber-700 dark:text-amber-300", ring: "ring-amber-400" },
-  { value: "NEED_REVIEW", label: "Need Review", bg: "bg-purple-50 dark:bg-purple-950/40", text: "text-purple-700 dark:text-purple-300", ring: "ring-purple-400" },
-  { value: "DONE", label: "Done", bg: "bg-emerald-50 dark:bg-emerald-950/40", text: "text-emerald-700 dark:text-emerald-300", ring: "ring-emerald-400" },
+  { value: "WAITING", label: "Waiting List", bg: "bg-purple-50 dark:bg-purple-950/50", text: "text-purple-700 dark:text-purple-300", ring: "ring-purple-400" },
+  { value: "IN_PROGRESS", label: "In Progress", bg: "bg-sky-50 dark:bg-sky-950/50", text: "text-sky-700 dark:text-sky-300", ring: "ring-sky-400" },
+  { value: "NEED_REVIEW", label: "Need Review", bg: "bg-amber-50 dark:bg-amber-950/50", text: "text-amber-700 dark:text-amber-300", ring: "ring-amber-400" },
+  { value: "DONE", label: "Done", bg: "bg-emerald-50 dark:bg-emerald-950/50", text: "text-emerald-700 dark:text-emerald-300", ring: "ring-emerald-400" },
 ];
 
 export function TaskDetailModal({
@@ -129,7 +131,7 @@ export function TaskDetailModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto overscroll-contain"
       onClick={onClose}
     >
       <div
@@ -223,7 +225,7 @@ export function TaskDetailModal({
         </div>
 
         {/* Scrollable Modal Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4 sm:space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5 space-y-4 sm:space-y-6">
           {/* Title & Course */}
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
@@ -241,7 +243,7 @@ export function TaskDetailModal({
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
               Status Pengerjaan
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {statusOptions.map((opt) => {
                 const isCurrent = task.status === opt.value;
                 return (
@@ -250,14 +252,14 @@ export function TaskDetailModal({
                     type="button"
                     onClick={() => handleQuickStatus(opt.value)}
                     disabled={statusUpdating}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-bold transition-all ${
                       isCurrent
                         ? `${opt.bg} ${opt.text} ring-2 ${opt.ring} shadow-xs font-extrabold`
                         : "bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    {isCurrent && <CheckCircle2 className="h-3.5 w-3.5" />}
-                    <span>{opt.label}</span>
+                    {isCurrent && <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />}
+                    <span className="truncate">{opt.label}</span>
                   </button>
                 );
               })}
@@ -305,13 +307,16 @@ export function TaskDetailModal({
             {task.createdBy && (
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-400">Dibuat oleh:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200">{task.createdBy.username}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">{task.createdBy.name || task.createdBy.username}</span>
+                {task.createdBy.name && task.createdBy.name !== task.createdBy.username && (
+                  <span className="font-mono text-[10px] text-slate-400">@{task.createdBy.username}</span>
+                )}
               </div>
             )}
             {task.assignee && (
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-400">Penerima tugas:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200">{task.assignee.username}</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">{task.assignee.name || task.assignee.username}</span>
               </div>
             )}
           </div>
@@ -369,7 +374,7 @@ export function TaskDetailModal({
                         <div className="absolute -left-6 top-1 h-2 w-2 rounded-full bg-liquid-accent dark:bg-sky-400 ring-4 ring-white dark:ring-slate-900" />
                         <div className="flex items-baseline justify-between gap-2">
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            {act.user.username}
+                            {act.user.name || act.user.username}
                           </span>
                           <span className="text-[10px] text-slate-400">
                             {formatWib(act.createdAt, {

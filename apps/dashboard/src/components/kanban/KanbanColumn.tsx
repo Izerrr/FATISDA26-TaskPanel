@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, PanelRightClose, PanelRightOpen, CheckCircle2 } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import { KANBAN_META } from "./types";
 import { KanbanTaskCard } from "./KanbanTaskCard";
@@ -11,13 +11,15 @@ interface Props {
   isDraggingAny?: boolean;
   justMovedTaskId?: string | null;
   isMobileSingleView?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
   onSelect?: (task: Task) => void;
   onMoveStatus?: (task: Task, newStatus: TaskStatus) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
 }
 
-export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, isMobileSingleView = false, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
+export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTaskId, isMobileSingleView = false, isCollapsed = false, onToggleCollapse, onSelect, onMoveStatus, onEdit, onDelete }: Props) {
   const meta = KANBAN_META[status];
   const [isExpanded, setIsExpanded] = useState(status !== "DONE");
 
@@ -79,11 +81,54 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
     );
   }
 
+  if (isCollapsed) {
+    return (
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <section
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            onClick={onToggleCollapse}
+            title="Klik untuk membuka kolom Selesai"
+            className={`group flex h-full min-h-[260px] w-full flex-col items-center justify-between rounded-3xl border bg-white/80 dark:bg-slate-900/90 py-4 px-2 shadow-xs transition-all duration-200 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 ${meta.border} ${
+              snapshot.isDraggingOver ? `${meta.dropBg} ring-2 ${meta.activeRing} scale-[1.02]` : ""
+            }`}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleCollapse?.();
+              }}
+              className="rounded-xl p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-300 transition"
+              aria-label="Perluas kolom Selesai"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
+
+            <div className="my-4 flex flex-col items-center gap-3">
+              <span className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/80 px-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
+                {tasks.length}
+              </span>
+              <span className="text-xs font-bold tracking-wider uppercase text-emerald-700 dark:text-emerald-400 [writing-mode:vertical-rl] rotate-180 select-none">
+                {meta.label}
+              </span>
+            </div>
+
+            <CheckCircle2 className="h-4 w-4 text-emerald-500/70 dark:text-emerald-400/70" />
+
+            <div className="hidden">{provided.placeholder}</div>
+          </section>
+        )}
+      </Droppable>
+    );
+  }
+
   return (
     <section className={`flex w-full min-w-0 flex-1 flex-col rounded-3xl border bg-white/80 dark:bg-slate-900/90 shadow-xs transition-all duration-200 ${meta.border}`}>
-      <header className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100/70 dark:border-slate-800">
-        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
-        <div className="flex items-center gap-1.5">
+      <header className="flex items-center justify-between px-3.5 py-3.5 border-b border-slate-100/70 dark:border-slate-800 gap-1.5">
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold truncate transition-all duration-200 ${meta.badge}`}>{meta.label}</span>
+        <div className="flex items-center gap-1 shrink-0">
           <span className="text-xs font-semibold text-liquid-text-secondary dark:text-slate-400">{tasks.length}</span>
           {hasExcess && (
             <button
@@ -94,6 +139,17 @@ export function KanbanColumn({ status, tasks, isDraggingAny = false, justMovedTa
               aria-label={isExpanded ? "Lipat tugas" : "Buka semua tugas"}
             >
               {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          )}
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              title="Lipat kolom Selesai agar papan lebih lega"
+              className="rounded-lg p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition cursor-pointer"
+              aria-label="Lipat kolom Selesai"
+            >
+              <PanelRightClose className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
