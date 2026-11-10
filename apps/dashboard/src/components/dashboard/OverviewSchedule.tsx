@@ -74,7 +74,7 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
 
   return (
     <>
-      <section className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+      <section className="w-full max-w-full min-w-0 rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-2.5">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -159,7 +159,6 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
                 setIsCustomDateSelected(false);
               }}
               isCustomDateSelected={isCustomDateSelected}
-              showCompactList={viewMode === "calendar"}
             />
           )}
 
