@@ -261,14 +261,17 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
           <div className="relative z-10">
             <div className="flex items-center gap-3">
               {user?.avatar ? (
-                <img src={user.avatar} alt={user.username} className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-sky-400/40 dark:ring-sky-500/30" />
+                <img src={user.avatar} alt={user.name || user.username} className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-sky-400/40 dark:ring-sky-500/30" />
               ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white shadow-sm">{(user?.username ?? "U").charAt(0).toUpperCase()}</div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-liquid-accent text-sm font-bold text-white shadow-sm">{(user?.name ?? user?.username ?? "U").charAt(0).toUpperCase()}</div>
               )}
 
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">Welcome back,</p>
-                <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{user?.username ?? "Mahasiswa"}</p>
+                <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{user?.name || user?.username || "Mahasiswa"}</p>
+                {user?.username && (
+                  <p className="truncate text-[10px] font-mono text-slate-500 dark:text-slate-400">@{user.username.replace(/^@+/, "")}</p>
+                )}
               </div>
             </div>
 

@@ -27,7 +27,7 @@ export function ProfileMenu() {
     };
   }, []);
 
-  const displayName = user?.username || session?.user?.name || "Mahasiswa";
+  const displayName = user?.name || user?.username || session?.user?.name || "Mahasiswa";
   const displayAvatar = user?.avatar || session?.user?.image || null;
 
   return (
@@ -78,8 +78,8 @@ export function ProfileMenu() {
                   <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-liquid-accent dark:group-hover:text-sky-400 transition-colors">
                     {displayName}
                   </p>
-                  <p className="truncate text-[11px] text-slate-400">
-                    {user?.nim || user?.email || (user?.kelas ? `Kelas ${user.kelas}` : "Akun Terverifikasi")}
+                  <p className="truncate text-[11px] font-mono text-slate-400">
+                    {user?.username ? `@${user.username.replace(/^@+/, "")}` : user?.nim || user?.email || "Akun Terverifikasi"}
                   </p>
                 </div>
 

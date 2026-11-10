@@ -26,13 +26,15 @@ import { useGuild } from "@/components/providers/GuildProvider";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
 import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
+import { EditProfileModal } from "@/components/dashboard/EditProfileModal";
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 export default function ProfilePage() {
-  const { user, roles, isGoogle, mutate: mutateMe } = useRole();
+  const { user, roles, mutate: mutateMe } = useRole();
   const { selectedGuild } = useGuild();
   const { tasks } = useTasks(selectedGuild);
 
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [classModalOpen, setClassModalOpen] = useState(false);
   const [linkingModalOpen, setLinkingModalOpen] = useState(false);
   const [savingSemester, setSavingSemester] = useState(false);
@@ -70,7 +72,7 @@ export default function ProfilePage() {
   // Stats calculation
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === "DONE").length;
-  const inProgressTasks = tasks.filter((t) => t.status === "IN_PROGRESS" || t.status === "NEED_REVIEW").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "WAITING" || t.status === "IN_PROGRESS" || t.status === "NEED_REVIEW").length;
   const personalTasks = tasks.filter((t) => t.scope === "PERSONAL").length;
 
   const isDiscordConnected = Boolean(user?.discordId || (!user?.id.startsWith("google_") && (user?.id.length ?? 0) > 5));
@@ -132,8 +134,13 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {user?.username ?? "Mahasiswa FATISDA"}
+                  {user?.name || user?.username || "Mahasiswa FATISDA"}
                 </h1>
+                {user?.username && (
+                  <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">
+                    @{user.username.replace(/^@+/, "")}
+                  </span>
+                )}
                 {roles.map((r) => (
                   <span
                     key={String(r)}
@@ -149,6 +156,15 @@ export default function ProfilePage() {
               </p>
 
               <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditProfileOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-liquid-accent px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:brightness-95 active:scale-95 transition"
+                >
+                  <UserRound className="h-3.5 w-3.5" />
+                  <span>Edit Profil</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setClassModalOpen(true)}
@@ -198,7 +214,7 @@ export default function ProfilePage() {
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Informasi Akademik</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-4">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Program Studi</span>
               <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">{getProdiTitle(user?.prodi)}</p>
@@ -212,13 +228,24 @@ export default function ProfilePage() {
             </div>
 
             <div className="rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-4">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nomor Induk Mahasiswa (NIM)</span>
-              <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                {user?.nim || "- (Tautkan Akun Google UNS)"}
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Username Discord</span>
+              <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200 font-mono truncate">
+                {user?.discordUsername
+                  ? `@${user.discordUsername}`
+                  : isDiscordConnected && user?.username
+                    ? `@${user.username}`
+                    : "- (Tautkan Akun Discord)"}
               </p>
             </div>
 
             <div className="rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-4">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nomor Induk Mahasiswa (NIM)</span>
+              <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                {user?.nim || "- (Isi di Edit Profil / Tautkan UNS)"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-4 sm:col-span-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Email Student UNS</span>
               <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                 {user?.email || "- (Tautkan Akun Google UNS)"}
@@ -426,6 +453,16 @@ export default function ProfilePage() {
           </button>
         </section>
       </div>
+
+      <EditProfileModal
+        open={editProfileOpen}
+        user={user}
+        onClose={() => setEditProfileOpen(false)}
+        onSaved={() => {
+          mutateMe?.();
+          setEditProfileOpen(false);
+        }}
+      />
 
       <ClassSelectorModal
         open={classModalOpen}
