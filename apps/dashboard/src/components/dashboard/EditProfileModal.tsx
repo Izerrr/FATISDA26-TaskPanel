@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { X, UserRound, AtSign, Hash, Image as ImageIcon, Check, Loader2, AlertCircle } from "lucide-react";
 import type { User } from "@/types";
