@@ -49,6 +49,7 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
   const inProgress = tasks.filter((task) => task.status === "WAITING" || task.status === "IN_PROGRESS" || task.status === "NEED_REVIEW").length;
   const overdue = tasks.filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) < now).length;
   const personal = tasks.filter((task) => task.scope === "PERSONAL").length;
+  const groupTasks = tasks.filter((task) => task.scope === "GROUP").length;
   const classTasks = tasks.filter((task) => task.scope === "CLASS").length;
 
   const completionRate = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
@@ -322,6 +323,16 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
               </div>
               <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 <div className="h-full rounded-full bg-blue-500" style={{ width: `${tasks.length > 0 ? (classTasks / tasks.length) * 100 : 0}%` }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-liquid-text-secondary dark:text-slate-400 font-medium">Tugas Kelompok (Linked)</span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">{groupTasks} Tugas</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div className="h-full rounded-full bg-indigo-500" style={{ width: `${tasks.length > 0 ? (groupTasks / tasks.length) * 100 : 0}%` }} />
               </div>
             </div>
 
