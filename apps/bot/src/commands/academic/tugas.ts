@@ -4,7 +4,7 @@ import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "../../lib/constants.js";
 import { prisma } from "../../lib/prisma.js";
 
-const VALID_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
+const VALID_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
 const command: Command = {
   name: "tugas",
@@ -28,6 +28,7 @@ const command: Command = {
         .addChoices(
           { name: "Aktif (Belum Selesai)", value: "ACTIVE" },
           { name: "TODO", value: "TODO" },
+          { name: "Waiting List", value: "WAITING" },
           { name: "In Progress", value: "IN_PROGRESS" },
           { name: "Need Review", value: "NEED_REVIEW" },
           { name: "Selesai (Done)", value: "DONE" },
@@ -53,7 +54,7 @@ const command: Command = {
       }
 
       const statusCondition =
-        selectedStatus === "ACTIVE" ? { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] } : selectedStatus !== "ALL" && VALID_STATUSES.includes(selectedStatus as TaskStatus) ? (selectedStatus as TaskStatus) : undefined;
+        selectedStatus === "ACTIVE" ? { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] } : selectedStatus !== "ALL" && VALID_STATUSES.includes(selectedStatus as TaskStatus) ? (selectedStatus as TaskStatus) : undefined;
 
       const classFilter: any = {
         scope: "CLASS",
@@ -113,6 +114,7 @@ const command: Command = {
 
       const statusIcons: Record<string, string> = {
         TODO: "📌",
+        WAITING: "⏸️",
         IN_PROGRESS: "⏳",
         NEED_REVIEW: "👀",
         DONE: "✅",

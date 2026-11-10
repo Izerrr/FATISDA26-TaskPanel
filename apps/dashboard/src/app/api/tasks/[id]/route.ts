@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { parseWibDateInput } from "@/lib/datetime";
-type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
-const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
+type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
+const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
 export async function PATCH(
   req: NextRequest,
@@ -18,7 +18,7 @@ export async function PATCH(
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -52,14 +52,17 @@ export async function PATCH(
     const canManageClass = user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
     const isOwner = existing.createdById === user.id;
     const isAssignee = existing.assignedTo === user.id;
-    const isManager = isOwner || (existing.scope === "CLASS" && canManageClass);
+    const isClassTask = existing.scope === "CLASS";
+    const isManager = isOwner || (isClassTask && canManageClass);
 
-    if (!isManager && !isAssignee) {
+    // Untuk tugas PERSONAL: hanya owner atau assignee yang boleh mengubah
+    if (!isClassTask && !isManager && !isAssignee) {
       return NextResponse.json({ error: "Tidak memiliki izin untuk mengubah tugas ini" }, { status: 403 });
     }
 
-    if (!isManager && isAssignee && status === undefined) {
-      return NextResponse.json({ error: "Assignee hanya memiliki izin untuk memperbarui status tugas" }, { status: 403 });
+    // Jika bukan manager (mahasiswa biasa di tugas kelas atau assignee di tugas personal), hanya boleh mengubah status
+    if (!isManager && status === undefined) {
+      return NextResponse.json({ error: "Kamu hanya memiliki izin untuk memperbarui status pengerjaan tugas" }, { status: 403 });
     }
 
     if (status !== undefined && (typeof status !== "string" || !VALID_TASK_STATUSES.includes(status as TaskStatus))) {
@@ -77,9 +80,11 @@ export async function PATCH(
 
     const targetKelas = isManager && kelas !== undefined ? (kelas === "ALL" || kelas === "" ? null : kelas) : undefined;
 
-    // Jika user hanya assignee (bukan manager/owner), batasi mutasi HANYA pada field status
     const updateData: any = {};
-    if (status !== undefined) {
+
+    // Untuk tugas PERSONAL, status disimpan langsung di tabel Task.
+    // Untuk tugas CLASS, status disimpan per-user di tabel TaskUserProgress agar tidak mengubah status mahasiswa lain!
+    if (status !== undefined && !isClassTask) {
       updateData.status = status;
     }
 
@@ -107,36 +112,68 @@ export async function PATCH(
       }
     }
 
-    const task = await prisma.task.update({
-      where: {
-        id: params.id,
-      },
-      data: updateData,
-
-      include: {
-        createdBy: true,
-        assignee: true,
-        course: true,
-      },
-    });
-
-    if (task.scope === "CLASS" && status && status !== existing.status) {
-      const authorMention = user.discordId ? `<@${user.discordId}>` : user.username;
-      await sendDiscordNotification(task.guildId, [`**${task.title}**`, `Status: ${existing.status} → **${status}**`, `Oleh: ${authorMention}`].join("\n"), {
-        prodi: task.prodi,
-        kelas: task.kelas,
+    let previousUserStatus: TaskStatus = existing.status as TaskStatus;
+    if (isClassTask) {
+      const existingProgress = await (prisma as any).taskUserProgress.findUnique({
+        where: {
+          taskId_userId: { taskId: params.id, userId: user.id },
+        },
+        select: { status: true },
       });
+      if (existingProgress?.status) {
+        previousUserStatus = existingProgress.status as TaskStatus;
+      }
+
+      if (status !== undefined) {
+        await (prisma as any).taskUserProgress.upsert({
+          where: {
+            taskId_userId: { taskId: params.id, userId: user.id },
+          },
+          create: {
+            taskId: params.id,
+            userId: user.id,
+            status: status as TaskStatus,
+          },
+          update: {
+            status: status as TaskStatus,
+          },
+        });
+      }
     }
+
+    const task =
+      Object.keys(updateData).length > 0
+        ? await prisma.task.update({
+            where: {
+              id: params.id,
+            },
+            data: updateData,
+            include: {
+              createdBy: true,
+              assignee: true,
+              course: true,
+            },
+          })
+        : await prisma.task.findUniqueOrThrow({
+            where: { id: params.id },
+            include: {
+              createdBy: true,
+              assignee: true,
+              course: true,
+            },
+          });
+
+    const effectiveStatus = isClassTask ? ((status as TaskStatus | undefined) ?? previousUserStatus) : (task.status as TaskStatus);
 
     // Log activity
     try {
-      if (status && status !== existing.status) {
+      if (status && status !== previousUserStatus) {
         await (prisma as any).taskActivity.create({
           data: {
             taskId: params.id,
             userId: user.id,
             action: 'STATUS_CHANGED',
-            oldValue: existing.status,
+            oldValue: previousUserStatus,
             newValue: status,
           },
         });
@@ -157,7 +194,10 @@ export async function PATCH(
     }
 
     return NextResponse.json({
-      task,
+      task: {
+        ...task,
+        status: effectiveStatus,
+      },
     });
   } catch (error) {
     console.error("[PATCH /api/tasks/:id]", error);
@@ -177,7 +217,7 @@ export async function DELETE(
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;

@@ -177,7 +177,7 @@ const command: Command = {
       const tasksDueSoon = await prisma.task.findMany({
         where: {
           scope: "CLASS",
-          status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+          status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
           prodi: targetProdi,
           OR: [{ kelas: targetKelas }, { kelas: null }],
           dueDate: {

@@ -171,7 +171,7 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
       const tasksDueSoon = await prisma.task.findMany({
         where: {
           scope: "CLASS",
-          status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+          status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
           prodi: target.prodi,
           OR: [{ kelas: target.kelas }, { kelas: null }],
           dueDate: {
@@ -285,7 +285,7 @@ export async function checkApproachingDeadlines(client: Client) {
     const activeTasks = await prisma.task.findMany({
       where: {
         scope: "CLASS",
-        status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+        status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
         dueDate: {
           gte: now,
         },

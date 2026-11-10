@@ -32,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       take: 20,
       include: {
         user: {
-          select: { username: true, avatar: true },
+          select: { name: true, username: true, avatar: true },
         },
       },
     });

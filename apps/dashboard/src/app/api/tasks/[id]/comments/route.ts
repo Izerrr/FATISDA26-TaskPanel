@@ -35,7 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       orderBy: { createdAt: "asc" },
       include: {
         author: {
-          select: { id: true, username: true, avatar: true },
+          select: { id: true, name: true, username: true, avatar: true },
         },
       },
     });
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
       include: {
         author: {
-          select: { id: true, username: true, avatar: true },
+          select: { id: true, name: true, username: true, avatar: true },
         },
       },
     });

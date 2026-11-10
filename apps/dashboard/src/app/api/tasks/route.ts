@@ -5,14 +5,14 @@ import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { formatWib, parseWibDateInput } from "@/lib/datetime";
 type TaskScope = "PERSONAL" | "CLASS";
-type TaskStatus = "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
-const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
+type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
+const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     const candidateGuildIds = Array.from(new Set([targetGuildId, configuredGuildId, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
     const guildCondition = { in: candidateGuildIds };
 
-    const tasks = await prisma.task.findMany({
+    const rawTasks = await (prisma.task as any).findMany({
       where: {
         guildId: guildCondition,
         OR: [classTaskFilter, { scope: "PERSONAL", createdById: userId }, { scope: "PERSONAL", assignedTo: userId }],
@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
         createdBy: {
           select: {
             id: true,
+            name: true,
             username: true,
             avatar: true,
           },
@@ -89,15 +90,30 @@ export async function GET(req: NextRequest) {
         assignee: {
           select: {
             id: true,
+            name: true,
             username: true,
             avatar: true,
           },
         },
         course: true,
+        userProgress: {
+          where: { userId },
+          select: { status: true },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
+    });
+
+    const tasks = rawTasks.map((t: any) => {
+      const personalStatus = t.userProgress?.[0]?.status;
+      const effectiveStatus = t.scope === "CLASS" ? (personalStatus ?? t.status) : t.status;
+      const { userProgress: _unused, ...rest } = t;
+      return {
+        ...rest,
+        status: effectiveStatus,
+      };
     });
 
     return NextResponse.json({
@@ -114,7 +130,7 @@ export async function POST(req: NextRequest) {
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -147,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     const taskStatus: TaskStatus = typeof status === "string" && VALID_TASK_STATUSES.includes(status as TaskStatus) ? (status as TaskStatus) : "TODO";
 
-    const isGoogle = (user as any).provider === "google" || user.id.startsWith("google_");
+    const isGoogle = ((user as any).provider === "google" || user.id.startsWith("google_")) && !(user as any).discordId;
     const canCreateClassTask = !isGoogle && user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
 
     if (taskScope === "CLASS" && !canCreateClassTask) {
@@ -183,7 +199,7 @@ export async function POST(req: NextRequest) {
         description: typeof description === "string" && description.trim() ? description.trim() : null,
         assignedTo: typeof assignedTo === "string" && assignedTo ? assignedTo : null,
         dueDate: parseWibDateInput(dueDate),
-        status: taskStatus,
+        status: taskScope === "CLASS" ? "TODO" : taskStatus,
         scope: taskScope,
         prodi: targetProdi,
         kelas: targetKelas,
@@ -197,6 +213,26 @@ export async function POST(req: NextRequest) {
         course: true,
       },
     });
+
+    if (taskScope === "CLASS" && taskStatus !== "TODO") {
+      try {
+        await (prisma as any).taskUserProgress.upsert({
+          where: {
+            taskId_userId: { taskId: task.id, userId: user.id },
+          },
+          create: {
+            taskId: task.id,
+            userId: user.id,
+            status: taskStatus,
+          },
+          update: {
+            status: taskStatus,
+          },
+        });
+      } catch (progErr) {
+        console.warn("[POST /api/tasks] Gagal menyimpan progres awal pembuat:", progErr);
+      }
+    }
 
     /*
      * Hanya kirim notifikasi Discord jika tugas bertipe CLASS.
@@ -262,7 +298,7 @@ export async function POST(req: NextRequest) {
       console.warn('[TaskActivity] Failed to log creation:', logErr);
     }
 
-    return NextResponse.json({ task }, { status: 201 });
+    return NextResponse.json({ task: { ...task, status: taskStatus } }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/tasks]", error);
 
