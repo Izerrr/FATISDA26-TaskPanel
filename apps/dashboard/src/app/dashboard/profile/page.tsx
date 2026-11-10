@@ -30,7 +30,7 @@ import { EditProfileModal } from "@/components/dashboard/EditProfileModal";
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 export default function ProfilePage() {
-  const { user, roles, mutate: mutateMe } = useRole();
+  const { user, roles, isGoogle, mutate: mutateMe } = useRole();
   const { selectedGuild } = useGuild();
   const { tasks } = useTasks(selectedGuild);
 
