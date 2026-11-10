@@ -1,3 +1,4 @@
+import type { TaskStatus } from "@/types";
 import { formatWibShort } from "./datetime";
 
 export type DueUrgency =
@@ -8,7 +9,7 @@ export type DueUrgency =
 
 export function getUrgency(
   dueDate: string | Date | null,
-  status?: "TODO" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE"
+  status?: TaskStatus
 ): DueUrgency {
   if (!dueDate) return "none";
 
