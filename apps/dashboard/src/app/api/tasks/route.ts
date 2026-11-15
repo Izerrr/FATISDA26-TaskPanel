@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     const candidateGuildIds = Array.from(new Set([targetGuildId, configuredGuildId, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
     const guildCondition = { in: candidateGuildIds };
 
-    const rawTasks = await (prisma.task as any).findMany({
+    const rawTasks = await prisma.task.findMany({
       where: {
         guildId: guildCondition,
         OR: [
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const tasks = rawTasks.map((t: any) => {
+    const tasks = rawTasks.map((t) => {
       const personalStatus = t.userProgress?.[0]?.status;
       const effectiveStatus = t.scope === "CLASS" ? (personalStatus ?? t.status) : t.status;
       const { userProgress: _unused, ...rest } = t;
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
 
     const taskStatus: TaskStatus = typeof status === "string" && VALID_TASK_STATUSES.includes(status as TaskStatus) ? (status as TaskStatus) : "TODO";
 
-    const isGoogle = ((user as any).provider === "google" || user.id.startsWith("google_")) && !(user as any).discordId;
+    const isGoogle = (user.provider === "google" || user.id.startsWith("google_")) && !user.discordId;
     const canCreateClassTask = !isGoogle && user.roles.some((r) => ["ADMIN", "OWNER", "KETUA_ANGKATAN", "PJ_KELAS", "PJ_MATKUL"].includes(r));
 
     if (taskScope === "CLASS" && !canCreateClassTask) {
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
     // Safely resolve courseId (handles DB courses, schedule synthetic IDs, and prevents constraint conflicts)
     const validCourseId = await resolveCourseId(courseId, targetProdi ?? "INFORMATIKA", targetKelas ?? null);
 
-    const task = await (prisma.task as any).create({
+    const task = await prisma.task.create({
       data: {
         guildId: targetGuildId,
         title: title.trim(),
@@ -277,7 +277,7 @@ export async function POST(req: NextRequest) {
 
     if (taskScope === "CLASS" && taskStatus !== "TODO") {
       try {
-        await (prisma as any).taskUserProgress.upsert({
+        await prisma.taskUserProgress.upsert({
           where: {
             taskId_userId: { taskId: task.id, userId: user.id },
           },
@@ -347,7 +347,7 @@ export async function POST(req: NextRequest) {
 
     // Log activity
     try {
-      await (prisma as any).taskActivity.create({
+      await prisma.taskActivity.create({
         data: {
           taskId: task.id,
           userId: user.id,

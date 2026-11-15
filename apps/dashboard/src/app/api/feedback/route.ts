@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     // Proteksi anti-spam / rate limit 30 detik
     const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
-    const recentFeedback = await (prisma as any).feedback.findFirst({
+    const recentFeedback = await prisma.feedback.findFirst({
       where: {
         OR: [
           ...(user?.id ? [{ authorId: user.id }] : []),
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const feedback = await (prisma as any).feedback.create({
+    const feedback = await prisma.feedback.create({
       data: {
         category: chosenCategory,
         message: message.trim(),
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden: Hanya pengurus/admin yang dapat melihat laporan." }, { status: 403 });
     }
 
-    const feedbacks = await (prisma as any).feedback.findMany({
+    const feedbacks = await prisma.feedback.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         author: {

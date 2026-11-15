@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getWibParts, wibDate } from "@/lib/datetime";
 import { getAuthSecret } from "@/lib/auth-secret";
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     // Filter KHUSUS: Hanya mahasiswa yang pernah mengakses / login / menggunakan web TaskPanel
     // Tidak menyertakan anggota Discord mentah yang hanya disinkronkan oleh bot
-    const accessedUserWhere: any = {
+    const accessedUserWhere: Prisma.UserWhereInput = {
       OR: [
         { hasAccessedApp: true },
         { lastActiveAt: { not: null } },
@@ -89,11 +90,11 @@ export async function GET(req: NextRequest) {
       ownerCount,
     ] = await Promise.all([
       // Total seluruh member Discord yang tersinkronisasi di database
-      (prisma.user as any).count(),
+      prisma.user.count(),
       // Total mahasiswa yang AKTIF mengakses TaskPanel
-      (prisma.user as any).count({ where: accessedUserWhere }),
+      prisma.user.count({ where: accessedUserWhere }),
       // Google UNS only (di antara yang mengakses TaskPanel)
-      (prisma.user as any).count({
+      prisma.user.count({
         where: {
           AND: [
             accessedUserWhere,
@@ -102,7 +103,7 @@ export async function GET(req: NextRequest) {
         },
       }),
       // Discord only (di antara yang mengakses TaskPanel)
-      (prisma.user as any).count({
+      prisma.user.count({
         where: {
           AND: [
             accessedUserWhere,
@@ -111,7 +112,7 @@ export async function GET(req: NextRequest) {
         },
       }),
       // Tertaut ganda UNS + Discord (di antara yang mengakses TaskPanel)
-      (prisma.user as any).count({
+      prisma.user.count({
         where: {
           AND: [
             accessedUserWhere,
@@ -119,20 +120,20 @@ export async function GET(req: NextRequest) {
           ],
         },
       }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: startOfDay } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: sevenDaysAgo } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { createdAt: { gte: thirtyDaysAgo } }] } }),
-      (prisma.user as any).groupBy({
+      prisma.user.count({ where: { AND: [accessedUserWhere, { createdAt: { gte: startOfDay } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { createdAt: { gte: sevenDaysAgo } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { createdAt: { gte: thirtyDaysAgo } }] } }),
+      prisma.user.groupBy({
         by: ["prodi"],
         where: accessedUserWhere,
         _count: { id: true },
       }),
-      (prisma.user as any).groupBy({
+      prisma.user.groupBy({
         by: ["kelas"],
         where: accessedUserWhere,
         _count: { id: true },
       }),
-      (prisma.user as any).findMany({
+      prisma.user.findMany({
         where: accessedUserWhere,
         take: 15,
         orderBy: [{ lastActiveAt: "desc" }, { createdAt: "desc" }],
@@ -153,32 +154,32 @@ export async function GET(req: NextRequest) {
         },
       }),
       prisma.task.count(),
-      (prisma.task as any).groupBy({
+      prisma.task.groupBy({
         by: ["status"],
         _count: { id: true },
       }),
-      (prisma.task as any).groupBy({
+      prisma.task.groupBy({
         by: ["scope"],
         _count: { id: true },
       }),
-      (prisma as any).taskComment.count().catch(() => 0),
-      (prisma as any).taskActivity.count().catch(() => 0),
-      (prisma as any).courseDiscussion.count().catch(() => 0),
-      (prisma as any).discussionReply.count().catch(() => 0),
-      (prisma as any).courseVault.count().catch(() => 0),
-      (prisma as any).feedback
+      prisma.taskComment.count().catch(() => 0),
+      prisma.taskActivity.count().catch(() => 0),
+      prisma.courseDiscussion.count().catch(() => 0),
+      prisma.discussionReply.count().catch(() => 0),
+      prisma.courseVault.count().catch(() => 0),
+      prisma.feedback
         .groupBy({
           by: ["category"],
           _count: { id: true },
         })
         .catch(() => []),
-      (prisma as any).feedback
+      prisma.feedback
         .groupBy({
           by: ["status"],
           _count: { id: true },
         })
         .catch(() => []),
-      (prisma as any).feedback
+      prisma.feedback
         .findMany({
           take: 6,
           orderBy: { createdAt: "desc" },
@@ -193,11 +194,11 @@ export async function GET(req: NextRequest) {
           },
         })
         .catch(() => []),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "ADMIN" } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_KELAS" } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_MATKUL" } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "KETUA_ANGKATAN" } }] } }),
-      (prisma.user as any).count({ where: { AND: [accessedUserWhere, { roles: { has: "OWNER" } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { roles: { has: "ADMIN" } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_KELAS" } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { roles: { has: "PJ_MATKUL" } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { roles: { has: "KETUA_ANGKATAN" } }] } }),
+      prisma.user.count({ where: { AND: [accessedUserWhere, { roles: { has: "OWNER" } }] } }),
     ]);
 
     // Format sebaran Prodi bagi user yang mengakses app
@@ -300,7 +301,7 @@ export async function GET(req: NextRequest) {
             PJ_MATKUL: pjMatkulCount,
             STUDENT: studentOnlyCount,
           },
-          recentUsers: recentUsersRaw.map((u: any) => ({
+          recentUsers: recentUsersRaw.map((u) => ({
             id: u.id,
             username: u.username,
             email: u.email,
@@ -333,7 +334,7 @@ export async function GET(req: NextRequest) {
             open: feedbackOpen,
             resolved: feedbackResolved,
             byCategory: feedbackByCategory,
-            recent: recentFeedbacksRaw.map((f: any) => ({
+            recent: recentFeedbacksRaw.map((f) => ({
               id: f.id,
               category: f.category,
               message: f.message,

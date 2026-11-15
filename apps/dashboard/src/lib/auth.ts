@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
+import type { User } from "@prisma/client";
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
@@ -108,16 +109,16 @@ export const authOptions: NextAuthOptions = {
           const avatar = (profile as { picture?: string }).picture ?? null;
 
           // 1. Cek apakah ada target user dari linking cookie
-          let targetUser: any = null;
+          let targetUser: User | null = null;
           if (linkUserId) {
-            targetUser = await (prisma.user as any).findUnique({
+            targetUser = await prisma.user.findUnique({
               where: { id: linkUserId },
             });
           }
 
           // 2. Jika tidak ada linking cookie, cari apakah user ini sudah pernah ditautkan
           if (!targetUser) {
-            targetUser = await (prisma.user as any).findFirst({
+            targetUser = await prisma.user.findFirst({
               where: {
                 OR: [
                   { googleId: googleAccountId },
@@ -140,7 +141,7 @@ export const authOptions: NextAuthOptions = {
             }
 
             const useGoogleAvatar = targetUser.avatarSource === "google" || !targetUser.avatar;
-            const updatedUser = await (prisma.user as any).update({
+            const updatedUser = await prisma.user.update({
               where: { id: targetUser.id },
               data: {
                 googleId: googleAccountId,
@@ -168,7 +169,7 @@ export const authOptions: NextAuthOptions = {
           } else {
             // Akun Google baru murni
             const googleId = `google_${googleAccountId}`;
-            await (prisma.user as any).create({
+            await prisma.user.create({
               data: {
                 id: googleId,
                 provider: "google",
@@ -250,9 +251,9 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Cek apakah ada linking cookie dari user google yang sedang aktif
-          let targetUser: any = null;
+          let targetUser: User | null = null;
           if (linkUserId && linkUserId !== discordId) {
-            targetUser = await (prisma.user as any).findUnique({
+            targetUser = await prisma.user.findUnique({
               where: { id: linkUserId },
             });
           }
@@ -274,7 +275,7 @@ export const authOptions: NextAuthOptions = {
               console.warn("[NextAuth] Gagal merge google user ke discord:", mergeErr);
             }
           } else {
-            await (prisma.user as any).update({
+            await prisma.user.update({
               where: { id: discordId },
               data: {
                 discordId,
@@ -291,7 +292,7 @@ export const authOptions: NextAuthOptions = {
            * Ambil data terbaru setelah sync supaya
            * JWT memiliki informasi role terbaru.
            */
-          const user = await (prisma.user as any).findUnique({
+          const user = await prisma.user.findUnique({
             where: {
               id: discordId,
             },

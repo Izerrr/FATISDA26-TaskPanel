@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { Kelas, type Prisma, Prodi } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { syncCurrentUser } from "@/lib/discord";
 import { getAuthSecret } from "@/lib/auth-secret";
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Jika prodi belum terisi atau ada permintaan sync eksplisit, jalankan sync dari Discord jika user memiliki discordId
-    const targetDiscordId = (user as any)?.discordId || (!userId.startsWith("google_") ? userId : null);
+    const targetDiscordId = user?.discordId || (!userId.startsWith("google_") ? userId : null);
     const forceSync = req.nextUrl.searchParams.get("sync") === "true";
     if (targetDiscordId && (forceSync || (user && !user.prodi))) {
       try {
@@ -92,7 +93,7 @@ export async function PATCH(req: NextRequest) {
 
     // Parse & Validate Body
     const body = await req.json();
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
 
     if (body.name !== undefined) {
       if (body.name === null || body.name === "") {
@@ -118,7 +119,7 @@ export async function PATCH(req: NextRequest) {
         );
       }
 
-      const duplicate = await (prisma.user as any).findFirst({
+      const duplicate = await prisma.user.findFirst({
         where: {
           username: { equals: cleanUsername, mode: "insensitive" },
           NOT: { id: userId },
@@ -146,7 +147,7 @@ export async function PATCH(req: NextRequest) {
 
     if (body.avatarSource !== undefined) {
       if (body.avatarSource === "discord" || body.avatarSource === "google") {
-        const currentUser = await (prisma.user as any).findUnique({
+        const currentUser = await prisma.user.findUnique({
           where: { id: userId },
           select: { discordAvatar: true, googleAvatar: true, avatar: true },
         });
@@ -170,18 +171,18 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (body.kelas !== undefined) {
-      const validKelas = ["A", "B", "C", "D", "E"];
+      const validKelas = Object.values(Kelas) as string[];
       if (body.kelas === null || validKelas.includes(body.kelas)) {
-        updateData.kelas = body.kelas;
+        updateData.kelas = body.kelas as Kelas | null;
       } else {
         return NextResponse.json({ error: "Pilihan kelas tidak valid." }, { status: 400 });
       }
     }
 
     if (body.prodi !== undefined) {
-      const validProdi = ["INFORMATIKA", "SAINS_DATA", "INFORMATIKA_PSDKU_KEBUMEN"];
+      const validProdi = Object.values(Prodi) as string[];
       if (body.prodi === null || validProdi.includes(body.prodi)) {
-        updateData.prodi = body.prodi;
+        updateData.prodi = body.prodi as Prodi | null;
       } else {
         return NextResponse.json({ error: "Pilihan prodi tidak valid." }, { status: 400 });
       }

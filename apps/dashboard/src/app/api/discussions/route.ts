@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthSecret } from "@/lib/auth-secret";
 
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     const courseId = searchParams.get("courseId");
     const courseName = searchParams.get("courseName");
 
-    const whereClause: any = {
+    const whereClause: Prisma.CourseDiscussionWhereInput = {
       OR: [
         { prodi: user.prodi, kelas: user.kelas },
         { prodi: user.prodi, kelas: null },
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
       whereClause.courseName = courseName;
     }
 
-    const discussions = await (prisma as any).courseDiscussion.findMany({
+    const discussions = await prisma.courseDiscussion.findMany({
       where: whereClause,
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       include: {
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Proteksi anti-spam / rate limit 15 detik
-    const recentDiscussion = await (prisma as any).courseDiscussion.findFirst({
+    const recentDiscussion = await prisma.courseDiscussion.findFirst({
       where: {
         authorId: user.id,
         createdAt: { gte: new Date(Date.now() - 15 * 1000) },
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     const isPrivileged = user.roles?.some((r) => ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"].includes(r));
 
-    const discussion = await (prisma as any).courseDiscussion.create({
+    const discussion = await prisma.courseDiscussion.create({
       data: {
         courseId: courseId || null,
         courseName: courseName || null,

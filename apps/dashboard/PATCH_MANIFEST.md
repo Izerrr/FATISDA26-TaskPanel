@@ -25,4 +25,4 @@ The Discord bot is intentionally not modified.
 
 ## Important integration point
 
-The database package must expose the Prisma singleton and generated enums from its workspace package. See `DASHBOARD_SETUP.md` and `DATABASE_SCHEMA_REQUIRED.prisma`.
+The database package must expose the Prisma singleton and generated enums from its workspace package. See `DASHBOARD_SETUP.md` and `packages/database/prisma/schema.prisma`.

@@ -1,24 +1,217 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Share2, Smartphone, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Download, MonitorSmartphone, Share2, Smartphone, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
-export function InstallPrompt() {
+let listenersInitialized = false;
+let sharedDeferredPrompt: BeforeInstallPromptEvent | null = null;
+let sharedIsStandalone = false;
+const subscribers = new Set<() => void>();
+
+function notifySubscribers() {
+  subscribers.forEach((listener) => listener());
+}
+
+function checkIsStandalone(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
+
+function ensureInstallListeners() {
+  if (listenersInitialized || typeof window === "undefined") return;
+  listenersInitialized = true;
+
+  sharedIsStandalone = checkIsStandalone();
+
+  window.addEventListener("beforeinstallprompt", (e: Event) => {
+    e.preventDefault();
+    sharedDeferredPrompt = e as BeforeInstallPromptEvent;
+    notifySubscribers();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    sharedIsStandalone = true;
+    sharedDeferredPrompt = null;
+    notifySubscribers();
+  });
+}
+
+function useSharedInstallPrompt() {
+  const [mounted, setMounted] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    ensureInstallListeners();
+    setMounted(true);
+
+    const syncState = () => {
+      setDeferredPrompt(sharedDeferredPrompt);
+      setIsStandalone(sharedIsStandalone || checkIsStandalone());
+    };
+
+    syncState();
+    subscribers.add(syncState);
+    return () => {
+      subscribers.delete(syncState);
+    };
+  }, []);
+
+  async function triggerNativePrompt(): Promise<"accepted" | "dismissed" | "unavailable"> {
+    if (!sharedDeferredPrompt) return "unavailable";
+    const promptEvent = sharedDeferredPrompt;
+    sharedDeferredPrompt = null;
+    notifySubscribers();
+
+    await promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+    if (choice.outcome === "accepted") {
+      sharedIsStandalone = true;
+      notifySubscribers();
+    }
+    return choice.outcome;
+  }
+
+  return { mounted, deferredPrompt, isStandalone, triggerNativePrompt };
+}
+
+interface InstallInstructionsModalProps {
+  open: boolean;
+  mode: "ios" | "manual";
+  onClose: () => void;
+  onAcknowledge?: () => void;
+}
+
+function InstallInstructionsModal({
+  open,
+  mode,
+  onClose,
+  onAcknowledge,
+}: InstallInstructionsModalProps) {
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pwa-install-instructions-title"
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            {mode === "ios" ? (
+              <Share2 className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+            ) : (
+              <MonitorSmartphone className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+            )}
+            <h3
+              id="pwa-install-instructions-title"
+              className="text-sm font-bold text-slate-800 dark:text-slate-100"
+            >
+              {mode === "ios" ? "Pasang di iPhone / iPad" : "Cara Pasang TaskPanel"}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Tutup panduan instalasi"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {mode === "ios" ? (
+          <div className="mt-4 space-y-3.5 text-xs text-slate-600 dark:text-slate-300">
+            <div className="flex items-start gap-3">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[11px] font-bold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+                1
+              </span>
+              <p>
+                Ketuk tombol <strong>Bagikan / Share</strong> (ikon ⎋) di bilah bawah browser Safari.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[11px] font-bold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+                2
+              </span>
+              <p>
+                Pilih <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3 text-xs text-slate-600 dark:text-slate-300">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-800/50">
+              <p className="font-semibold text-slate-800 dark:text-slate-100">Chrome / Edge</p>
+              <p className="mt-1 leading-relaxed text-slate-600 dark:text-slate-300">
+                Klik ikon <strong>Pasang (Install)</strong> di sisi kanan bilah alamat browser, atau buka menu browser lalu pilih{" "}
+                <strong>Tambahkan ke Layar Utama</strong>.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-800/50">
+              <p className="font-semibold text-slate-800 dark:text-slate-100">Safari iPhone / iPad</p>
+              <p className="mt-1 leading-relaxed text-slate-600 dark:text-slate-300">
+                Ketuk tombol <strong>Bagikan / Share</strong> (ikon ⎋), lalu pilih{" "}
+                <strong>Tambahkan ke Layar Utama</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onAcknowledge?.();
+          }}
+          className="mt-5 w-full rounded-xl bg-sky-600 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-sky-700 active:scale-95 dark:bg-sky-600 dark:hover:bg-sky-500"
+        >
+          {mode === "ios" ? "Mengerti & Jangan Tampilkan Lagi" : "Mengerti"}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+export function InstallPrompt() {
+  const { mounted, deferredPrompt, isStandalone, triggerNativePrompt } = useSharedInstallPrompt();
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    // 1. Never show on desktop web browser!
-    const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768 && /iphone|ipad|ipod|android/i.test(window.navigator.userAgent);
+    const isMobileDevice =
+      typeof window !== "undefined" &&
+      window.innerWidth < 768 &&
+      /iphone|ipad|ipod|android/i.test(window.navigator.userAgent);
 
     setIsMobile(isMobileDevice);
     if (!isMobileDevice) {
@@ -26,73 +219,42 @@ export function InstallPrompt() {
       return;
     }
 
-    // 2. Check if running in standalone PWA mode
-    const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (checkIsStandalone()) return;
 
-    setIsStandalone(isStandaloneMode);
-    if (isStandaloneMode) return;
-
-    // 3. Check permanent dismissal
-    const isPermanentlyDismissed = localStorage.getItem("fatisda_pwa_permanently_dismissed") === "true";
-    if (isPermanentlyDismissed) {
-      setDismissed(true);
-      return;
+    try {
+      if (localStorage.getItem("fatisda_pwa_permanently_dismissed") === "true") {
+        setDismissed(true);
+        return;
+      }
+    } catch {
+      // Ignore storage read restrictions
     }
 
-    // 4. Detect iOS Safari on mobile
     const ua = window.navigator.userAgent.toLowerCase();
-    const isAppleMobile = /iphone|ipad|ipod/.test(ua);
-    setIsIOS(isAppleMobile);
-
-    // If mobile and not dismissed, show
+    setIsIOS(/iphone|ipad|ipod/.test(ua));
     setDismissed(false);
-
-    // 5. Capture beforeinstallprompt event (Android Chrome, Edge)
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    const handleAppInstalled = () => {
-      setIsStandalone(true);
-      setDeferredPrompt(null);
-    };
-
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
   }, []);
 
   async function handleInstall() {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") {
-        setIsStandalone(true);
-      }
-      setDeferredPrompt(null);
-    } else if (isIOS) {
+    const outcome = await triggerNativePrompt();
+    if (outcome === "unavailable" && isIOS) {
       setShowIOSModal(true);
     }
   }
 
   function handleDismiss() {
     setDismissed(true);
-    // Permanently remember dismissal so it never annoys the user again
-    localStorage.setItem("fatisda_pwa_permanently_dismissed", "true");
+    try {
+      localStorage.setItem("fatisda_pwa_permanently_dismissed", "true");
+    } catch {
+      // Ignore storage write restrictions
+    }
   }
 
-  // Do NOT render on desktop, or if already standalone, or if dismissed
-  if (!isMobile || isStandalone || dismissed) {
+  if (!mounted || !isMobile || isStandalone || dismissed) {
     return null;
   }
 
-  // Only show if prompt is captured OR if on mobile iOS
   if (!deferredPrompt && !isIOS) {
     return null;
   }
@@ -101,117 +263,79 @@ export function InstallPrompt() {
     <>
       {/* Strictly Mobile-Only Floating Install Banner (Hidden on desktop md:) */}
       <div className="fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-md animate-in fade-in slide-in-from-bottom-4 duration-300 md:hidden">
-        <div className="flex items-center gap-3.5 rounded-2xl border border-sky-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 p-3.5 shadow-xl backdrop-blur-xl ring-1 ring-black/5">
+        <div className="flex items-center gap-3.5 rounded-2xl border border-sky-200 bg-white/95 p-3.5 shadow-xl backdrop-blur-md ring-1 ring-black/5 dark:border-slate-700 dark:bg-slate-900/95">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-md">
             <Smartphone className="h-5 w-5" />
           </div>
 
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-slate-800 dark:text-slate-100">Pasang Aplikasi TaskPanel</p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">Akses cepat langsung dari layar utama HP</p>
+            <p className="line-clamp-1 text-[11px] text-slate-500 dark:text-slate-400">
+              Akses cepat langsung dari layar utama HP
+            </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <button type="button" onClick={handleInstall} className="flex items-center gap-1.5 rounded-xl bg-liquid-accent px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-sky-700 active:scale-95">
+            <button
+              type="button"
+              onClick={handleInstall}
+              className="flex items-center gap-1.5 rounded-xl bg-liquid-accent px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-sky-700 active:scale-95"
+            >
               <Download className="h-3.5 w-3.5" />
               <span>Pasang</span>
             </button>
 
-            <button type="button" onClick={handleDismiss} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 transition" aria-label="Tutup rekomendasi instalasi">
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+              aria-label="Tutup rekomendasi instalasi"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* iOS Manual Install Instructions Modal */}
-      {showIOSModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm md:hidden">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Share2 className="h-5 w-5 text-sky-600" />
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Pasang di iPhone / iPad</h3>
-              </div>
-              <button type="button" onClick={() => setShowIOSModal(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3.5 text-xs text-slate-600 dark:text-slate-300">
-              <div className="flex items-start gap-3">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900 font-bold text-sky-700 dark:text-sky-300 text-[11px]">1</span>
-                <p>
-                  Ketuk tombol <strong>Bagikan / Share</strong> (ikon ⎋) di bilah bawah browser Safari.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900 font-bold text-sky-700 dark:text-sky-300 text-[11px]">2</span>
-                <p>
-                  Pilih <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong>.
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowIOSModal(false);
-                handleDismiss();
-              }}
-              className="mt-5 w-full rounded-xl bg-sky-600 hover:bg-sky-700 dark:bg-sky-600 dark:hover:bg-sky-500 py-2.5 text-xs font-semibold text-white shadow-xs transition active:scale-95"
-            >
-              Mengerti & Jangan Tampilkan Lagi
-            </button>
-          </div>
-        </div>
-      )}
+      <InstallInstructionsModal
+        open={showIOSModal}
+        mode="ios"
+        onClose={() => setShowIOSModal(false)}
+        onAcknowledge={handleDismiss}
+      />
     </>
   );
 }
 
 export function SidebarInstallButton() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const { mounted, isStandalone, triggerNativePrompt } = useSharedInstallPrompt();
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
 
-  useEffect(() => {
-    const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    setIsStandalone(isStandaloneMode);
-    if (isStandaloneMode) return;
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  if (isStandalone) return null;
+  if (!mounted || isStandalone) return null;
 
   async function handleInstall() {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      setDeferredPrompt(null);
-    } else {
-      alert("Untuk memasang aplikasi:\n• Chrome/Edge: Klik ikon Pasang (Install) di bilah alamat browser.\n• Safari iPhone: Ketuk Bagikan -> Tambahkan ke Layar Utama.");
+    const outcome = await triggerNativePrompt();
+    if (outcome === "unavailable") {
+      setShowInstructionsModal(true);
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleInstall}
-      className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-sky-200/80 dark:border-sky-900/50 bg-sky-50/70 dark:bg-sky-950/40 px-3 py-2 text-xs font-semibold text-sky-700 dark:text-sky-300 transition hover:bg-sky-100/80 dark:hover:bg-sky-900/60"
-    >
-      <Smartphone className="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
-      <span>Pasang Aplikasi (PWA)</span>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleInstall}
+        className="mt-2 flex w-full items-center gap-2.5 rounded-xl border border-sky-200/80 bg-sky-50/70 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-100/80 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/60"
+      >
+        <Smartphone className="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" />
+        <span>Pasang Aplikasi (PWA)</span>
+      </button>
+
+      <InstallInstructionsModal
+        open={showInstructionsModal}
+        mode="manual"
+        onClose={() => setShowInstructionsModal(false)}
+      />
+    </>
   );
 }

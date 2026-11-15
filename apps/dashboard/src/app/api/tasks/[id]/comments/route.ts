@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
     }
 
-    const comments = await (prisma as any).taskComment.findMany({
+    const comments = await prisma.taskComment.findMany({
       where: { taskId: params.id },
       orderBy: { createdAt: "asc" },
       include: {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Proteksi anti-spam / rate limit 5 detik
-    const recentComment = await (prisma as any).taskComment.findFirst({
+    const recentComment = await prisma.taskComment.findFirst({
       where: {
         authorId: userId,
         createdAt: { gte: new Date(Date.now() - 5 * 1000) },
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       );
     }
 
-    const newComment = await (prisma as any).taskComment.create({
+    const newComment = await prisma.taskComment.create({
       data: {
         taskId: params.id,
         authorId: userId,

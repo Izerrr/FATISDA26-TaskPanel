@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { Kelas, type Prisma, Prodi } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthSecret } from "@/lib/auth-secret";
+
+const VALID_PRODI = Object.values(Prodi) as string[];
+const VALID_KELAS = Object.values(Kelas) as string[];
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,23 +16,23 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const prodi = searchParams.get("prodi");
-    const kelas = searchParams.get("kelas");
+    const prodiParam = searchParams.get("prodi");
+    const kelasParam = searchParams.get("kelas");
 
-    const andConditions: any[] = [
+    const andConditions: Prisma.AnnouncementWhereInput[] = [
       {
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     ];
 
-    if (prodi) {
-      andConditions.push({ OR: [{ prodi: null }, { prodi }] });
+    if (prodiParam && VALID_PRODI.includes(prodiParam)) {
+      andConditions.push({ OR: [{ prodi: null }, { prodi: prodiParam as Prodi }] });
     }
-    if (kelas) {
-      andConditions.push({ OR: [{ kelas: null }, { kelas }] });
+    if (kelasParam && VALID_KELAS.includes(kelasParam)) {
+      andConditions.push({ OR: [{ kelas: null }, { kelas: kelasParam as Kelas }] });
     }
 
-    const announcements = await (prisma as any).announcement.findMany({
+    const announcements = await prisma.announcement.findMany({
       where: { AND: andConditions },
       orderBy: [
         { isPinned: "desc" },
@@ -53,11 +57,11 @@ export async function POST(req: NextRequest) {
     const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     
-    const userId = token.userId ?? token.discordId;
+    const userId = (token.userId ?? token.discordId) as string | undefined;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = await prisma.user.findUnique({
-      where: { id: userId as string },
+      where: { id: userId },
       select: { roles: true }
     });
 
@@ -76,13 +80,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const newAnnouncement = await (prisma as any).announcement.create({
+    const resolvedProdi = typeof prodi === "string" && VALID_PRODI.includes(prodi) ? (prodi as Prodi) : null;
+    const resolvedKelas = typeof kelas === "string" && VALID_KELAS.includes(kelas) ? (kelas as Kelas) : null;
+
+    const newAnnouncement = await prisma.announcement.create({
       data: {
         title,
         content,
         authorId: userId,
-        prodi: prodi || null,
-        kelas: kelas || null,
+        prodi: resolvedProdi,
+        kelas: resolvedKelas,
         isPinned: !!isPinned,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },

@@ -260,7 +260,7 @@ export async function syncCurrentUser(userId: string): Promise<void> {
   const discordHandle = member.user.username;
   const defaultDisplayName = member.nick ?? member.user.global_name ?? member.user.username;
 
-  const existingUser = await (prisma.user as any).findFirst({
+  const existingUser = await prisma.user.findFirst({
     where: {
       OR: [{ id: member.user.id }, { discordId: member.user.id }],
     },
@@ -268,7 +268,7 @@ export async function syncCurrentUser(userId: string): Promise<void> {
 
   if (existingUser) {
     const useDiscordAvatar = existingUser.avatarSource !== "google" || !existingUser.avatar;
-    await (prisma.user as any).update({
+    await prisma.user.update({
       where: { id: existingUser.id },
       data: {
         discordId: member.user.id,
@@ -286,7 +286,7 @@ export async function syncCurrentUser(userId: string): Promise<void> {
       },
     });
   } else {
-    await (prisma.user as any).create({
+    await prisma.user.create({
       data: {
         id: member.user.id,
         discordId: member.user.id,

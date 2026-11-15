@@ -8,6 +8,7 @@ out/
 
 # Bot build output
 dist/
+*.tsbuildinfo
 
 # Environment Variables (SANGAT RAHASIA!)
 .env

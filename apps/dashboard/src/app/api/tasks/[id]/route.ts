@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
@@ -37,7 +38,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    const existing = await (prisma.task as any).findUnique({
+    const existing = await prisma.task.findUnique({
       where: {
         id: params.id,
       },
@@ -87,7 +88,7 @@ export async function PATCH(
 
     const targetKelas = isManager && kelas !== undefined ? (kelas === "ALL" || kelas === "" ? null : kelas) : undefined;
 
-    const updateData: any = {};
+    const updateData: Prisma.TaskUncheckedUpdateInput = {};
 
     // Untuk tugas PERSONAL & GROUP, status disimpan langsung di tabel Task (linked).
     // Untuk tugas CLASS, status disimpan per-user di tabel TaskUserProgress agar tidak mengubah status mahasiswa lain!
@@ -133,14 +134,14 @@ export async function PATCH(
         );
         const allTargetIds = [existing.createdById, ...cleanMemberIds];
 
-        await (prisma as any).taskMember.deleteMany({
+        await prisma.taskMember.deleteMany({
           where: {
             taskId: params.id,
             userId: { notIn: allTargetIds },
           },
         });
 
-        await (prisma as any).taskMember.upsert({
+        await prisma.taskMember.upsert({
           where: {
             taskId_userId: { taskId: params.id, userId: existing.createdById },
           },
@@ -155,7 +156,7 @@ export async function PATCH(
         });
 
         for (const mId of cleanMemberIds) {
-          await (prisma as any).taskMember.upsert({
+          await prisma.taskMember.upsert({
             where: {
               taskId_userId: { taskId: params.id, userId: mId },
             },
@@ -172,7 +173,7 @@ export async function PATCH(
 
     let previousUserStatus: TaskStatus = existing.status as TaskStatus;
     if (isClassTask) {
-      const existingProgress = await (prisma as any).taskUserProgress.findUnique({
+      const existingProgress = await prisma.taskUserProgress.findUnique({
         where: {
           taskId_userId: { taskId: params.id, userId: user.id },
         },
@@ -183,7 +184,7 @@ export async function PATCH(
       }
 
       if (status !== undefined) {
-        await (prisma as any).taskUserProgress.upsert({
+        await prisma.taskUserProgress.upsert({
           where: {
             taskId_userId: { taskId: params.id, userId: user.id },
           },
@@ -235,14 +236,14 @@ export async function PATCH(
 
     const task =
       Object.keys(updateData).length > 0
-        ? await (prisma.task as any).update({
+        ? await prisma.task.update({
             where: {
               id: params.id,
             },
             data: updateData,
             include: taskInclude,
           })
-        : await (prisma.task as any).findUniqueOrThrow({
+        : await prisma.task.findUniqueOrThrow({
             where: { id: params.id },
             include: taskInclude,
           });
@@ -252,7 +253,7 @@ export async function PATCH(
     // Log activity
     try {
       if (status && status !== previousUserStatus) {
-        await (prisma as any).taskActivity.create({
+        await prisma.taskActivity.create({
           data: {
             taskId: params.id,
             userId: user.id,
@@ -263,7 +264,7 @@ export async function PATCH(
         });
       }
       if (isManager && title && title !== existing.title) {
-        await (prisma as any).taskActivity.create({
+        await prisma.taskActivity.create({
           data: {
             taskId: params.id,
             userId: user.id,

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: "Komentar tidak boleh kosong" }, { status: 400 });
     }
 
-    const discussion = await (prisma as any).courseDiscussion.findUnique({
+    const discussion = await prisma.courseDiscussion.findUnique({
       where: { id: params.id },
     });
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Proteksi anti-spam / rate limit 5 detik
-    const recentReply = await (prisma as any).discussionReply.findFirst({
+    const recentReply = await prisma.discussionReply.findFirst({
       where: {
         authorId: user.id,
         createdAt: { gte: new Date(Date.now() - 5 * 1000) },
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       );
     }
 
-    const reply = await (prisma as any).discussionReply.create({
+    const reply = await prisma.discussionReply.create({
       data: {
         discussionId: params.id,
         authorId: user.id,

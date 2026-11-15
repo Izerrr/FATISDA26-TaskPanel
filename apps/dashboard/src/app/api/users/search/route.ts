@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { Kelas, type Prisma, Prodi } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthSecret } from "@/lib/auth-secret";
 
 export const dynamic = "force-dynamic";
+
+const VALID_PRODI = Object.values(Prodi) as string[];
+const VALID_KELAS = Object.values(Kelas) as string[];
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,13 +25,13 @@ export async function GET(req: NextRequest) {
     const prodiParam = req.nextUrl.searchParams.get("prodi");
     const kelasParam = req.nextUrl.searchParams.get("kelas");
 
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
 
-    if (prodiParam) {
-      where.prodi = prodiParam;
+    if (prodiParam && VALID_PRODI.includes(prodiParam)) {
+      where.prodi = prodiParam as Prodi;
     }
-    if (kelasParam) {
-      where.kelas = kelasParam;
+    if (kelasParam && VALID_KELAS.includes(kelasParam)) {
+      where.kelas = kelasParam as Kelas;
     }
 
     if (q.length > 0) {
@@ -39,7 +43,7 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    const users = await (prisma.user as any).findMany({
+    const users = await prisma.user.findMany({
       where,
       select: {
         id: true,

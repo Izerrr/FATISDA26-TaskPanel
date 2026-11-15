@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
     }
 
-    const activities = await (prisma as any).taskActivity.findMany({
+    const activities = await prisma.taskActivity.findMany({
       where: { taskId: params.id },
       orderBy: { createdAt: "desc" },
       take: 20,

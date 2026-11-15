@@ -8,10 +8,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     
-    const userId = token.userId ?? token.discordId;
+    const userId = (token.userId ?? token.discordId) as string | undefined;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const announcement = await (prisma as any).announcement.findUnique({
+    const announcement = await prisma.announcement.findUnique({
       where: { id: params.id }
     });
 
@@ -20,7 +20,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId as string },
+      where: { id: userId },
       select: { roles: true }
     });
 
@@ -30,7 +30,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await (prisma as any).announcement.delete({
+    await prisma.announcement.delete({
       where: { id: params.id }
     });
 

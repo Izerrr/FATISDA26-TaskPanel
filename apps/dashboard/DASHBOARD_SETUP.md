@@ -13,7 +13,7 @@ export { PrismaClient, Prodi, Kelas, Role, TaskScope, TaskStatus } from "@prisma
 
 If your database package uses another Prisma-client singleton path, export that singleton instead of creating a second client.
 
-The canonical schema required by this dashboard is in `DATABASE_SCHEMA_REQUIRED.prisma`.
+The canonical schema required by this dashboard is in `packages/database/prisma/schema.prisma`.
 
 Minimum requirements:
 - `Guild` model with `icon`

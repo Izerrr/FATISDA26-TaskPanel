@@ -49,11 +49,11 @@ export async function POST(req: NextRequest) {
 
     // 2. Cari calon user berdasarkan NIM atau prefix email
     const usersByNim = cleanNims.length > 0
-      ? await (prisma.user as any).findMany({
+      ? await prisma.user.findMany({
           where: {
             OR: [
               { nim: { in: cleanNims, mode: "insensitive" } },
-              ...cleanNims.map((n) => ({ email: { startsWith: n, mode: "insensitive" } })),
+              ...cleanNims.map((n) => ({ email: { startsWith: n, mode: "insensitive" as const } })),
             ],
           },
           select: {
@@ -99,11 +99,19 @@ export async function POST(req: NextRequest) {
       }
 
       // Prioritas 1: Kecocokan Persis NIM
-      let foundUser = usersByNim.find(
-        (u: any) =>
-          sourceNim &&
+      type ResolvedCandidate = {
+        id: string;
+        name: string | null;
+        username: string;
+        nim: string | null;
+        avatar: string | null;
+        email?: string | null;
+      };
+      let foundUser: ResolvedCandidate | undefined = usersByNim.find(
+        (u) =>
+          Boolean(sourceNim) &&
           ((u.nim && u.nim.trim().toUpperCase() === sourceNim) ||
-            (u.email && u.email.toUpperCase().startsWith(sourceNim))),
+            (u.email && sourceNim ? u.email.toUpperCase().startsWith(sourceNim) : false)),
       );
 
       // Prioritas 2: Kecocokan Nama / Username jika NIM tidak ketemu
@@ -112,12 +120,12 @@ export async function POST(req: NextRequest) {
         const sourceWords = extractWords(sourceName);
 
         // Cari kandidat berdasarkan nama atau username
-        const candidates = await (prisma.user as any).findMany({
+        const candidates = await prisma.user.findMany({
           where: {
             OR: [
               { name: { contains: sourceName, mode: "insensitive" } },
-              ...sourceWords.map((w) => ({ name: { contains: w, mode: "insensitive" } })),
-              ...sourceWords.map((w) => ({ username: { contains: w, mode: "insensitive" } })),
+              ...sourceWords.map((w) => ({ name: { contains: w, mode: "insensitive" as const } })),
+              ...sourceWords.map((w) => ({ username: { contains: w, mode: "insensitive" as const } })),
             ],
           },
           select: {

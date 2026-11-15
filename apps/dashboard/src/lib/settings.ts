@@ -34,7 +34,7 @@ export type {
 
 export async function getExamModeSetting(): Promise<ExamModeSetting> {
   try {
-    const row = await (prisma as any).systemSetting.findUnique({
+    const row = await prisma.systemSetting.findUnique({
       where: { key: "exam_mode" },
     });
     if (!row?.value) return DEFAULT_EXAM_MODE;
@@ -55,7 +55,7 @@ export async function getExamModeSetting(): Promise<ExamModeSetting> {
 
 export async function getScheduleSourcesSetting(): Promise<ScheduleSource[]> {
   try {
-    const row = await (prisma as any).systemSetting.findUnique({
+    const row = await prisma.systemSetting.findUnique({
       where: { key: "schedule_sources" },
     });
     if (!row?.value) return SCHEDULE_SOURCES;
@@ -85,7 +85,7 @@ export async function getDynamicScheduleSource(prodi: Prodi): Promise<ScheduleSo
 
 export async function getExamSourcesSetting(): Promise<ExamScheduleSource[]> {
   try {
-    const row = await (prisma as any).systemSetting.findUnique({
+    const row = await prisma.systemSetting.findUnique({
       where: { key: "exam_sources" },
     });
     if (!row?.value) return FULL_DEFAULT_EXAM_SOURCES;
@@ -119,7 +119,7 @@ export async function getDynamicExamSource(
 
 export async function getClassGroupSourcesSetting(): Promise<ClassGroupSource[]> {
   try {
-    const row = await (prisma as any).systemSetting.findUnique({
+    const row = await prisma.systemSetting.findUnique({
       where: { key: "class_group_sources" },
     });
     if (!row?.value) return DEFAULT_CLASS_GROUP_SOURCES;
@@ -173,7 +173,7 @@ export async function upsertClassGroupSource(
     });
   }
 
-  await (prisma as any).systemSetting.upsert({
+  await prisma.systemSetting.upsert({
     where: { key: "class_group_sources" },
     create: {
       key: "class_group_sources",
@@ -192,7 +192,7 @@ export async function upsertClassGroupSource(
 
 export async function getSourcesHistorySetting(): Promise<SourcesHistorySetting | null> {
   try {
-    const row = await (prisma as any).systemSetting.findUnique({
+    const row = await prisma.systemSetting.findUnique({
       where: { key: "sources_history" },
     });
     if (!row?.value) return null;
@@ -243,7 +243,7 @@ export async function saveAdminSettings(
       savedAt: new Date().toISOString(),
     };
 
-    await (prisma as any).systemSetting.upsert({
+    await prisma.systemSetting.upsert({
       where: { key: "sources_history" },
       create: {
         key: "sources_history",
@@ -259,7 +259,7 @@ export async function saveAdminSettings(
   }
 
   if (payload.examMode) {
-    await (prisma as any).systemSetting.upsert({
+    await prisma.systemSetting.upsert({
       where: { key: "exam_mode" },
       create: {
         key: "exam_mode",
@@ -275,7 +275,7 @@ export async function saveAdminSettings(
   }
 
   if (payload.scheduleSources) {
-    await (prisma as any).systemSetting.upsert({
+    await prisma.systemSetting.upsert({
       where: { key: "schedule_sources" },
       create: {
         key: "schedule_sources",
@@ -291,7 +291,7 @@ export async function saveAdminSettings(
   }
 
   if (payload.examSources) {
-    await (prisma as any).systemSetting.upsert({
+    await prisma.systemSetting.upsert({
       where: { key: "exam_sources" },
       create: {
         key: "exam_sources",
@@ -307,7 +307,7 @@ export async function saveAdminSettings(
   }
 
   if (payload.classGroupSources) {
-    await (prisma as any).systemSetting.upsert({
+    await prisma.systemSetting.upsert({
       where: { key: "class_group_sources" },
       create: {
         key: "class_group_sources",
@@ -332,7 +332,7 @@ export async function rollbackSourcesSetting(userId?: string) {
   }
 
   await Promise.all([
-    (prisma as any).systemSetting.upsert({
+    prisma.systemSetting.upsert({
       where: { key: "schedule_sources" },
       create: {
         key: "schedule_sources",
@@ -345,7 +345,7 @@ export async function rollbackSourcesSetting(userId?: string) {
         updatedById: userId ?? null,
       },
     }),
-    (prisma as any).systemSetting.upsert({
+    prisma.systemSetting.upsert({
       where: { key: "exam_sources" },
       create: {
         key: "exam_sources",

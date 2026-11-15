@@ -25,10 +25,16 @@ export async function GET(request: NextRequest) {
     const typeParam = searchParams.get("type")?.toUpperCase() === "UAS" ? "UAS" : "UTS";
     const prodiParam = (searchParams.get("prodi") as Prodi) || user?.prodi || "INFORMATIKA";
     const semesterParam = searchParams.get("semester");
-    const kelasParam = searchParams.get("kelas") as Kelas | null;
+    const rawKelasParam = searchParams.get("kelas");
+    const kelasParam = rawKelasParam && rawKelasParam !== "all" ? (rawKelasParam as Kelas) : null;
     const agamaParam = searchParams.get("agama");
 
-    const whereClause: any = {
+    const whereClause: {
+      type: "UTS" | "UAS";
+      prodi: Prodi;
+      semester?: number;
+      OR?: Array<{ kelas: Kelas } | { courseName: { contains: string; mode: "insensitive" } }>;
+    } = {
       type: typeParam,
       prodi: prodiParam,
     };
@@ -40,7 +46,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (kelasParam && kelasParam !== ("all" as any)) {
+    if (kelasParam) {
       // Include user's class OR any Agama courses so batch-wide religion classes (Kristen, Katholik, Budha) can be matched
       whereClause.OR = [
         { kelas: kelasParam },

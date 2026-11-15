@@ -28,7 +28,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fatisda26-taskpanel.v
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    default: "TaskPanel FATISDA 2026 - Task & Schedule Workspace",
     template: "%s | TaskPanel FATISDA 2026",
   },
   description:
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: appUrl,
     siteName: "TaskPanel FATISDA",
-    title: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    title: "TaskPanel FATISDA 2026 - Task & Schedule Workspace",
     description:
       "Platform all-in-one mahasiswa Fakultas Teknologi Informasi dan Sains Data (FATISDA) UNS 2026: manajemen tugas kuliah, jadwal harian, jadwal ujian UTS & UAS, serta vault materi terintegrasi.",
     images: [
@@ -89,7 +89,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TaskPanel FATISDA 2026 — Task & Schedule Workspace",
+    title: "TaskPanel FATISDA 2026 - Task & Schedule Workspace",
     description:
       "Platform all-in-one mahasiswa Fakultas Teknologi Informasi dan Sains Data (FATISDA) UNS 2026: manajemen tugas, jadwal kuliah, UTS & UAS, dan vault materi.",
     images: ["/og-image.png"],
