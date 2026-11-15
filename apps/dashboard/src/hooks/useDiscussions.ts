@@ -24,6 +24,8 @@ export interface CourseDiscussionItem {
   title: string;
   content: string;
   isPinned: boolean;
+  isSolved?: boolean;
+  acceptedReplyId?: string | null;
   authorId: string;
   author: {
     id: string;

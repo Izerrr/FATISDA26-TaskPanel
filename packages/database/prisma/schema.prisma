@@ -88,7 +88,8 @@ model User {
   taskMembers      TaskMember[] @relation("TaskMembers")
   assignedSubtasks TaskSubtask[] @relation("SubtaskAssignee")
 
-  updatedVaults CourseVault[]
+  updatedVaults    CourseVault[]
+  vaultSuggestions VaultSuggestion[] @relation("VaultSuggestions")
 
   taskComments   TaskComment[]  @relation("TaskComments")
   taskActivities TaskActivity[] @relation("TaskActivities")
@@ -174,8 +175,9 @@ model Course {
 
   tasks       Task[]
   schedules   Schedule[]
-  vaults      CourseVault[]
-  discussions CourseDiscussion[]
+  vaults           CourseVault[]
+  vaultSuggestions VaultSuggestion[]
+  discussions      CourseDiscussion[]
 
   createdAt DateTime @default(now())
 
@@ -374,8 +376,10 @@ model CourseDiscussion {
   kelas      Kelas?
   title      String
   content    String
-  isPinned   Boolean  @default(false)
-  authorId   String
+  isPinned        Boolean           @default(false)
+  isSolved        Boolean           @default(false)
+  acceptedReplyId String?
+  authorId        String
   author     User     @relation("CourseDiscussions", fields: [authorId], references: [id])
   replies    DiscussionReply[]
   createdAt  DateTime @default(now())
@@ -421,4 +425,28 @@ model SystemSetting {
   description String?
   updatedById String?
   updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model VaultSuggestion {
+  id           String    @id @default(cuid())
+  courseId     String?
+  course       Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseName   String
+  prodi        Prodi
+  kelas        Kelas?
+  title        String
+  url          String
+  type         String    @default("OTHER") // DRIVE, MODUL, SILABUS, OTHER
+  description  String?
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewNote   String?
+  authorId     String
+  author       User      @relation("VaultSuggestions", fields: [authorId], references: [id], onDelete: Cascade)
+  reviewedById String?
+  createdAt    DateTime  @default(now())
+  reviewedAt   DateTime?
+
+  @@index([prodi, status])
+  @@index([courseName, prodi, status])
+  @@index([authorId])
 }

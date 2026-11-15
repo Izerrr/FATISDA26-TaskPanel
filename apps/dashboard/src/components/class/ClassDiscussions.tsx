@@ -26,8 +26,11 @@ import {
   Share2,
   CheckCircle2,
   FolderGit2,
+  Award,
 } from "lucide-react";
 import { formatWib, formatRelativeWib } from "@/lib/datetime";
+import { splitTextWithMentions } from "@/lib/mentions";
+import { hasPrivilegedTaskRole } from "@/lib/task-access";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
@@ -76,8 +79,10 @@ export function ClassDiscussions({
 
   const { discussions, isLoading: discLoading, mutate: mutateDiscussions } = useDiscussions(channelCourseId, channelCourseName);
 
-  // Search filter
+  // Search & status filter
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "UNSOLVED" | "SOLVED">("ALL");
+  const [updatingDiscussionId, setUpdatingDiscussionId] = useState<string | null>(null);
 
   // New Discussion Topic Modal
   const [topicModalOpen, setTopicModalOpen] = useState(false);
@@ -97,16 +102,76 @@ export function ClassDiscussions({
   const [annPinned, setAnnPinned] = useState(false);
   const [annSubmitting, setAnnSubmitting] = useState(false);
 
-  const isPrivileged = roles?.some((r: string) => ["PJ_KELAS", "PJ_MATKUL", "ADMIN", "OWNER", "KETUA_ANGKATAN"].includes(String(r)));
+  const isPrivileged = hasPrivilegedTaskRole((roles ?? []).map(String));
 
   // Active channel title
   const currentChannelTitle = selectedChannel ? selectedChannel.name : "Forum Umum Kelas";
 
   const filteredDiscussions = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return discussions;
-    return discussions.filter((d) => d.title.toLowerCase().includes(q) || d.content.toLowerCase().includes(q) || d.author.username.toLowerCase().includes(q));
-  }, [discussions, search]);
+    return discussions.filter((d) => {
+      if (statusFilter === "SOLVED" && !d.isSolved) return false;
+      if (statusFilter === "UNSOLVED" && d.isSolved) return false;
+      if (!q) return true;
+      return (
+        d.title.toLowerCase().includes(q) ||
+        d.content.toLowerCase().includes(q) ||
+        d.author.username.toLowerCase().includes(q)
+      );
+    });
+  }, [discussions, search, statusFilter]);
+
+  const handleUpdateDiscussion = async (
+    discussionId: string,
+    payload: { isSolved?: boolean; acceptedReplyId?: string | null; isPinned?: boolean },
+  ) => {
+    setUpdatingDiscussionId(discussionId);
+    try {
+      const res = await fetch(`/api/discussions/${discussionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        mutateDiscussions();
+      }
+    } catch (err) {
+      console.error("Gagal memperbarui diskusi:", err);
+    } finally {
+      setUpdatingDiscussionId(null);
+    }
+  };
+
+  const handleDeleteDiscussion = async (discussionId: string) => {
+    if (!confirm("Hapus topik diskusi ini beserta semua balasannya?")) return;
+    setUpdatingDiscussionId(discussionId);
+    try {
+      const res = await fetch(`/api/discussions/${discussionId}`, { method: "DELETE" });
+      if (res.ok) {
+        mutateDiscussions();
+      }
+    } catch (err) {
+      console.error("Gagal menghapus diskusi:", err);
+    } finally {
+      setUpdatingDiscussionId(null);
+    }
+  };
+
+  const renderMentionText = (text: string) => {
+    const segments = splitTextWithMentions(text);
+    return segments.map((seg, idx) =>
+      seg.isMention ? (
+        <span
+          key={idx}
+          className="inline-block rounded bg-sky-100/80 dark:bg-sky-900/50 px-1 py-0.2 font-semibold text-sky-700 dark:text-sky-300"
+        >
+          {seg.text}
+        </span>
+      ) : (
+        <span key={idx}>{seg.text}</span>
+      ),
+    );
+  };
 
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -417,16 +482,39 @@ export function ClassDiscussions({
                 </div>
               </div>
 
-              {/* Search in Channel */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={`Cari topik diskusi di ${currentChannelTitle}...`}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-liquid-accent shadow-xs"
-                />
+              {/* Search & Status Filter */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={`Cari topik diskusi di ${currentChannelTitle}... (bisa @mention teman)`}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-liquid-accent shadow-xs"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-xs overflow-x-auto no-scrollbar shrink-0">
+                  {[
+                    { id: "ALL" as const, label: `Semua (${discussions.length})` },
+                    { id: "UNSOLVED" as const, label: `Belum Terjawab (${discussions.filter((d) => !d.isSolved).length})` },
+                    { id: "SOLVED" as const, label: `Terjawab (${discussions.filter((d) => d.isSolved).length})` },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setStatusFilter(tab.id)}
+                      className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition cursor-pointer ${
+                        statusFilter === tab.id
+                          ? "bg-liquid-accent text-white shadow-2xs"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Discussion Posts Feed */}
@@ -439,7 +527,13 @@ export function ClassDiscussions({
               ) : filteredDiscussions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
                   <MessageCircle className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" />
-                  <p className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">Belum ada topik diskusi di {currentChannelTitle}</p>
+                  <p className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {statusFilter === "SOLVED"
+                      ? `Belum ada topik yang ditandai terjawab di ${currentChannelTitle}`
+                      : statusFilter === "UNSOLVED"
+                        ? `Semua topik di ${currentChannelTitle} sudah terjawab!`
+                        : `Belum ada topik diskusi di ${currentChannelTitle}`}
+                  </p>
                   <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">Punya pertanyaan materi, kendala praktikum, atau ingin berbagi kisi-kisi? Klik tombol di bawah untuk memulai!</p>
                   <button
                     type="button"
@@ -452,81 +546,177 @@ export function ClassDiscussions({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredDiscussions.map((d) => (
-                    <article
-                      key={d.id}
-                      className={`rounded-2xl border p-5 transition-all ${
-                        d.isPinned ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/20 dark:bg-amber-950/20 shadow-xs" : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
-                      }`}
-                    >
-                      {/* Topic Author Header */}
-                      <div className="flex items-start justify-between gap-3 mb-2.5">
-                        <div className="flex items-center gap-2.5">
-                          {d.author.avatar ? (
-                            <img src={d.author.avatar} alt={d.author.username} className="h-8 w-8 rounded-lg object-cover ring-2 ring-slate-100 dark:ring-slate-800" />
-                          ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-liquid-accent text-xs font-bold text-white shadow-xs">{d.author.username.charAt(0).toUpperCase()}</div>
-                          )}
+                  {filteredDiscussions.map((d) => {
+                    const canModerate = Boolean(user?.id === d.authorId || isPrivileged);
+                    const isBusy = updatingDiscussionId === d.id;
+                    const sortedReplies = [...(d.replies ?? [])].sort((a, b) => {
+                      if (d.acceptedReplyId === a.id) return -1;
+                      if (d.acceptedReplyId === b.id) return 1;
+                      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                    });
 
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{d.author.username}</span>
-                              {d.isPinned && (
-                                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                                  <Pin className="h-3 w-3" /> Pinned
-                                </span>
-                              )}
+                    return (
+                      <article
+                        key={d.id}
+                        className={`rounded-2xl border p-5 transition-all ${
+                          d.isSolved
+                            ? "border-emerald-300/80 dark:border-emerald-800/80 bg-emerald-50/15 dark:bg-emerald-950/10 shadow-xs"
+                            : d.isPinned
+                              ? "border-amber-300/80 dark:border-amber-800 bg-amber-50/20 dark:bg-amber-950/20 shadow-xs"
+                              : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs"
+                        }`}
+                      >
+                        {/* Topic Author Header */}
+                        <div className="flex items-start justify-between gap-3 mb-2.5 flex-wrap">
+                          <div className="flex items-center gap-2.5">
+                            {d.author.avatar ? (
+                              <img src={d.author.avatar} alt={d.author.username} className="h-8 w-8 rounded-lg object-cover ring-2 ring-slate-100 dark:ring-slate-800" />
+                            ) : (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-liquid-accent text-xs font-bold text-white shadow-xs">{d.author.username.charAt(0).toUpperCase()}</div>
+                            )}
+
+                            <div>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">{d.author.username}</span>
+                                {d.isPinned && (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                                    <Pin className="h-3 w-3" /> Pinned
+                                  </span>
+                                )}
+                                {d.isSolved && (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                    <CheckCircle2 className="h-3 w-3" /> Terjawab
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-slate-400">
+                                {formatWib(d.createdAt, {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                WIB
+                              </span>
                             </div>
-                            <span className="text-[10px] text-slate-400">
-                              {formatWib(d.createdAt, {
-                                day: "numeric",
-                                month: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
-                              WIB
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {d.courseName && <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 shrink-0">{d.courseName}</span>}
+
+                            {canModerate && (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => void handleUpdateDiscussion(d.id, { isSolved: !d.isSolved })}
+                                  className={`rounded-lg border px-2 py-0.5 text-[10px] font-semibold transition cursor-pointer disabled:opacity-50 ${
+                                    d.isSolved
+                                      ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100"
+                                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-600"
+                                  }`}
+                                >
+                                  {d.isSolved ? "Buka Kembali" : "Tandai Terjawab"}
+                                </button>
+
+                                {isPrivileged && (
+                                  <button
+                                    type="button"
+                                    disabled={isBusy}
+                                    onClick={() => void handleUpdateDiscussion(d.id, { isPinned: !d.isPinned })}
+                                    className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600 transition cursor-pointer disabled:opacity-50"
+                                    title={d.isPinned ? "Lepas Pin" : "Sematkan di atas"}
+                                  >
+                                    {d.isPinned ? "Unpin" : "Pin"}
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => void handleDeleteDiscussion(d.id)}
+                                  className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 transition cursor-pointer disabled:opacity-50"
+                                  title="Hapus topik diskusi"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Topic Title & Content */}
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1.5 leading-snug">{d.title}</h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{renderMentionText(d.content)}</p>
+
+                        {/* Replies List */}
+                        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
+                          <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                            <span className="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" />
+                              <span>{sortedReplies.length} Balasan</span>
                             </span>
                           </div>
-                        </div>
 
-                        {d.courseName && <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400 shrink-0">{d.courseName}</span>}
-                      </div>
+                          {sortedReplies.length > 0 && (
+                            <div className="space-y-2 pl-2 border-l-2 border-slate-100 dark:border-slate-800">
+                              {sortedReplies.map((reply) => {
+                                const isAccepted = d.acceptedReplyId === reply.id;
+                                return (
+                                  <div
+                                    key={reply.id}
+                                    className={`rounded-xl p-2.5 text-xs transition ${
+                                      isAccepted
+                                        ? "border border-emerald-300 dark:border-emerald-700 bg-emerald-50/70 dark:bg-emerald-950/35"
+                                        : "bg-slate-50/80 dark:bg-slate-800/50"
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                                      <div className="flex items-center gap-1.5">
+                                        {reply.author.avatar ? (
+                                          <img src={reply.author.avatar} alt={reply.author.username} className="h-4 w-4 rounded-full object-cover" />
+                                        ) : (
+                                          <div className="h-4 w-4 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-[9px] font-bold text-white">{reply.author.username.charAt(0)}</div>
+                                        )}
+                                        <span className="font-semibold text-slate-700 dark:text-slate-200 text-[11px]">{reply.author.username}</span>
+                                        {isAccepted && (
+                                          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-1.5 py-0.2 text-[9px] font-bold text-white">
+                                            <Award className="h-2.5 w-2.5" /> Jawaban Terbaik
+                                          </span>
+                                        )}
+                                      </div>
 
-                      {/* Topic Title & Content */}
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1.5 leading-snug">{d.title}</h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{d.content}</p>
-
-                      {/* Replies List */}
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                          <span className="font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                            <MessageSquare className="h-3 w-3" />
-                            <span>{d.replies?.length ?? 0} Balasan</span>
-                          </span>
-                        </div>
-
-                        {d.replies && d.replies.length > 0 && (
-                          <div className="space-y-2 pl-2 border-l-2 border-slate-100 dark:border-slate-800">
-                            {d.replies.map((reply) => (
-                              <div key={reply.id} className="rounded-xl bg-slate-50/80 dark:bg-slate-800/50 p-2.5 text-xs">
-                                <div className="flex items-center justify-between gap-2 mb-1">
-                                  <div className="flex items-center gap-1.5">
-                                    {reply.author.avatar ? (
-                                      <img src={reply.author.avatar} alt={reply.author.username} className="h-4 w-4 rounded-full object-cover" />
-                                    ) : (
-                                      <div className="h-4 w-4 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-[9px] font-bold text-white">{reply.author.username.charAt(0)}</div>
-                                    )}
-                                    <span className="font-semibold text-slate-700 dark:text-slate-200 text-[11px]">{reply.author.username}</span>
+                                      <div className="flex items-center gap-2">
+                                        {canModerate && (
+                                          <button
+                                            type="button"
+                                            disabled={isBusy}
+                                            onClick={() =>
+                                              void handleUpdateDiscussion(d.id, {
+                                                acceptedReplyId: isAccepted ? null : reply.id,
+                                                isSolved: isAccepted ? false : true,
+                                              })
+                                            }
+                                            className={`text-[10px] font-semibold transition cursor-pointer disabled:opacity-50 ${
+                                              isAccepted
+                                                ? "text-emerald-700 dark:text-emerald-300 hover:underline"
+                                                : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                            }`}
+                                          >
+                                            {isAccepted ? "Batalkan" : "Pilih Jawaban Terbaik"}
+                                          </button>
+                                        )}
+                                        <span className="text-[10px] text-slate-400">
+                                          {formatRelativeWib(reply.createdAt)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-5">{renderMentionText(reply.content)}</p>
                                   </div>
-                                  <span className="text-[10px] text-slate-400">
-                                    {formatRelativeWib(reply.createdAt)}
-                                  </span>
-                                </div>
-                                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-5">{reply.content}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                                );
+                              })}
+                            </div>
+                          )}
 
                         {/* Reply Input Form */}
                         <form
@@ -553,8 +743,9 @@ export function ClassDiscussions({
                           </button>
                         </form>
                       </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -19,8 +19,10 @@ import {
   Mail,
   MessageSquare,
   RefreshCw,
+  RotateCcw,
   ShieldAlert,
   Sparkles,
+  Trash2,
   TrendingUp,
   UserCheck,
   Users,
@@ -73,6 +75,35 @@ function getFeedbackCategoryLabel(cat: string) {
 export default function AdminAnalyticsPage() {
   const { roles, canAccessAnalytics, isLoading: roleLoading } = useRole();
   const { analytics, isLoading, isValidating, mutate } = useAdminAnalytics();
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<"ALL" | "OPEN" | "RESOLVED">("ALL");
+  const [feedbackCatFilter, setFeedbackCatFilter] = useState<string>("ALL");
+  const [feedbackBusyId, setFeedbackBusyId] = useState<string | null>(null);
+
+  async function handleToggleFeedbackStatus(fbId: string, currentStatus?: string) {
+    const nextStatus = currentStatus === "RESOLVED" ? "OPEN" : "RESOLVED";
+    setFeedbackBusyId(fbId);
+    try {
+      const res = await fetch(`/api/feedback/${fbId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (res.ok) await mutate();
+    } finally {
+      setFeedbackBusyId(null);
+    }
+  }
+
+  async function handleDeleteFeedback(fbId: string) {
+    if (!confirm("Hapus laporan masukan ini secara permanen?")) return;
+    setFeedbackBusyId(fbId);
+    try {
+      const res = await fetch(`/api/feedback/${fbId}`, { method: "DELETE" });
+      if (res.ok) await mutate();
+    } finally {
+      setFeedbackBusyId(null);
+    }
+  }
 
   // Role Gate: Hanya ADMIN, OWNER, dan KETUA_ANGKATAN
   if (!roleLoading && !canAccessAnalytics) {
@@ -639,7 +670,7 @@ export default function AdminAnalyticsPage() {
 
               {/* Laporan Feedback & Bug Terbaru */}
               <div className="lg:col-span-2 rounded-2xl border border-liquid-border/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-base font-bold text-liquid-text dark:text-slate-100">
                       Masukan &amp; Laporan Pengguna Terkini
@@ -649,33 +680,119 @@ export default function AdminAnalyticsPage() {
                       {analytics.community.feedback.resolved} selesai)
                     </p>
                   </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-0.5 text-[11px] font-semibold">
+                      {(["ALL", "OPEN", "RESOLVED"] as const).map((st) => (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setFeedbackStatusFilter(st)}
+                          className={`rounded-lg px-2 py-1 transition cursor-pointer ${
+                            feedbackStatusFilter === st
+                              ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs"
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                          }`}
+                        >
+                          {st === "ALL" ? "Semua" : st === "OPEN" ? "Aktif" : "Selesai"}
+                        </button>
+                      ))}
+                    </div>
+
+                    <select
+                      value={feedbackCatFilter}
+                      onChange={(e) => setFeedbackCatFilter(e.target.value)}
+                      aria-label="Filter kategori feedback"
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 outline-none"
+                    >
+                      <option value="ALL">Semua Kategori</option>
+                      <option value="BUG">Bug / Error</option>
+                      <option value="JADWAL">Jadwal</option>
+                      <option value="TUGAS">Tugas</option>
+                      <option value="FEATURE">Ide Fitur</option>
+                      <option value="GENERAL">Umum</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="mt-5 space-y-3">
-                  {analytics.community.feedback.recent.length === 0 ? (
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-6 text-center text-xs text-liquid-text-secondary dark:border-slate-800 dark:bg-slate-800/30 dark:text-slate-400">
-                      Belum ada laporan atau masukan baru dari pengguna.
-                    </div>
-                  ) : (
-                    analytics.community.feedback.recent.map((fb) => {
+                  {(() => {
+                    const filteredFeedback = analytics.community.feedback.recent.filter((fb) => {
+                      if (feedbackStatusFilter !== "ALL" && (fb.status || "OPEN") !== feedbackStatusFilter) return false;
+                      if (feedbackCatFilter !== "ALL" && fb.category !== feedbackCatFilter) return false;
+                      return true;
+                    });
+
+                    if (filteredFeedback.length === 0) {
+                      return (
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-6 text-center text-xs text-liquid-text-secondary dark:border-slate-800 dark:bg-slate-800/30 dark:text-slate-400">
+                          {analytics.community.feedback.recent.length === 0
+                            ? "Belum ada laporan atau masukan baru dari pengguna."
+                            : "Tidak ada masukan yang sesuai dengan filter ini."}
+                        </div>
+                      );
+                    }
+
+                    return filteredFeedback.map((fb) => {
                       const badge = getFeedbackCategoryLabel(fb.category);
+                      const isResolved = fb.status === "RESOLVED";
+                      const isBusy = feedbackBusyId === fb.id;
                       return (
                         <div
                           key={fb.id}
-                          className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:bg-slate-800/70"
+                          className={`rounded-xl border p-3.5 transition ${
+                            isResolved
+                              ? "border-emerald-200/70 bg-emerald-50/30 dark:border-emerald-900/40 dark:bg-emerald-950/15"
+                              : "border-slate-100 bg-slate-50/60 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40 dark:hover:bg-slate-800/70"
+                          }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${badge.color}`}>
                                 {badge.label}
+                              </span>
+                              <span
+                                className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                                  isResolved
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                    : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+                                }`}
+                              >
+                                {isResolved ? "Selesai" : "Aktif"}
                               </span>
                               <span className="text-xs font-semibold text-liquid-text dark:text-slate-200">
                                 {fb.authorName || "Mahasiswa Anonim"}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                              {formatDate(fb.createdAt)}
-                            </span>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                {formatDate(fb.createdAt)}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => void handleToggleFeedbackStatus(fb.id, fb.status)}
+                                className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-semibold transition cursor-pointer disabled:opacity-50 ${
+                                  isResolved
+                                    ? "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100"
+                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                }`}
+                                title={isResolved ? "Buka ulang laporan" : "Tandai selesai"}
+                              >
+                                {isResolved ? <RotateCcw className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
+                                <span>{isResolved ? "Buka Ulang" : "Selesai"}</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => void handleDeleteFeedback(fb.id)}
+                                className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 transition cursor-pointer disabled:opacity-50"
+                                title="Hapus laporan"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
                           <p className="mt-2 text-xs leading-relaxed text-liquid-text-secondary dark:text-slate-300">
                             {fb.message}
@@ -687,8 +804,8 @@ export default function AdminAnalyticsPage() {
                           )}
                         </div>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </div>
               </div>
             </div>

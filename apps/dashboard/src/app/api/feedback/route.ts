@@ -123,14 +123,26 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden: Hanya pengurus/admin yang dapat melihat laporan." }, { status: 403 });
     }
 
+    const statusFilter = req.nextUrl.searchParams.get("status")?.trim().toUpperCase();
+    const categoryFilter = req.nextUrl.searchParams.get("category")?.trim().toUpperCase();
+
+    const whereClause: Record<string, string> = {};
+    if (statusFilter === "OPEN" || statusFilter === "RESOLVED") {
+      whereClause.status = statusFilter;
+    }
+    if (categoryFilter && ["BUG", "JADWAL", "TUGAS", "FEATURE", "GENERAL"].includes(categoryFilter)) {
+      whereClause.category = categoryFilter;
+    }
+
     const feedbacks = await prisma.feedback.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
         author: {
           select: { id: true, username: true, avatar: true, prodi: true, kelas: true },
         },
       },
-      take: 50,
+      take: 100,
     });
 
     return NextResponse.json({ feedbacks });

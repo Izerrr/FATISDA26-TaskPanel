@@ -96,7 +96,7 @@ export function OverviewClassGroups() {
           ? myAssignments.map((assign) => (
               <Link
                 key={`${assign.tabGid}-${assign.teamName}`}
-                href="/dashboard/class"
+                href={`/dashboard/class?tab=${encodeURIComponent(assign.tabGid)}`}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-sky-200/80 bg-sky-50/60 px-3 py-1.5 text-xs font-medium text-slate-800 transition hover:border-sky-400 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-slate-200"
               >
                 <span className="text-slate-500 dark:text-slate-400">{assign.tabName}:</span>

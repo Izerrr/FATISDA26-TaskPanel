@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ExternalLink, FileText, FolderGit2, HardDrive, Info, Loader2, MessageCircle, Pencil, Plus, Settings, Sparkles, Trash2, X } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Clock3, ExternalLink, FileText, FolderGit2, HardDrive, Info, Loader2, MessageCircle, Pencil, Plus, Send, Settings, Sparkles, Trash2, X } from "lucide-react";
 
 import { useVault, type VaultResourceLink } from "@/hooks/useVault";
+import { useVaultSuggestions } from "@/hooks/useVaultSuggestions";
 import type { Course } from "@/types";
 
 interface Props {
@@ -30,6 +31,7 @@ const typeColor = {
 
 export function CourseMaterialSection({ course, canEdit = false }: Props) {
   const { vault, isLoading, mutate } = useVault(course.name, course.id);
+  const { suggestions, mutate: mutateSuggestions } = useVaultSuggestions(course.name);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [driveUrl, setDriveUrl] = useState("");
@@ -39,6 +41,72 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  // Student Vault Suggestion Modal & Review State
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [sugTitle, setSugTitle] = useState("");
+  const [sugType, setSugType] = useState<"DRIVE" | "MODUL" | "SILABUS" | "OTHER">("OTHER");
+  const [sugUrl, setSugUrl] = useState("");
+  const [sugDesc, setSugDesc] = useState("");
+  const [sugSubmitting, setSugSubmitting] = useState(false);
+  const [sugError, setSugError] = useState<string | null>(null);
+  const [sugSuccess, setSugSuccess] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+
+  async function handleSubmitSuggestion(e: React.FormEvent) {
+    e.preventDefault();
+    setSugError(null);
+    setSugSuccess(null);
+    setSugSubmitting(true);
+    try {
+      const res = await fetch("/api/vault/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: course.id,
+          courseName: course.name,
+          title: sugTitle,
+          type: sugType,
+          url: sugUrl,
+          description: sugDesc,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Gagal mengirim usulan materi");
+      }
+      setSugTitle("");
+      setSugUrl("");
+      setSugDesc("");
+      setSugType("OTHER");
+      setSugSuccess("Usulan berhasil dikirim! Menunggu persetujuan PJ Mata Kuliah.");
+      await mutateSuggestions();
+      setTimeout(() => {
+        setSuggestOpen(false);
+        setSugSuccess(null);
+      }, 900);
+    } catch (err) {
+      setSugError(err instanceof Error ? err.message : "Gagal mengirim usulan materi");
+    } finally {
+      setSugSubmitting(false);
+    }
+  }
+
+  async function handleReviewSuggestion(id: string, action: "APPROVE" | "REJECT") {
+    setReviewingId(id);
+    try {
+      const res = await fetch("/api/vault/suggestions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      if (res.ok) {
+        await Promise.all([mutateSuggestions(), mutate()]);
+      }
+    } finally {
+      setReviewingId(null);
+    }
+  }
 
   function openModal() {
     setDriveUrl(vault?.driveUrl || "");
@@ -159,23 +227,38 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
           <p className="text-xs text-liquid-text-secondary dark:text-slate-400 mt-0.5">Akses langsung folder Google Drive materi, modul praktikum, dan silabus RPS {course.name}.</p>
         </div>
 
-        {canEdit && (
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={openModal}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-            >
-              <Pencil className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
-              <span>Edit Vault</span>
-            </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setSugError(null);
+              setSugSuccess(null);
+              setSuggestOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/30 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300 shadow-xs hover:bg-amber-100 dark:hover:bg-amber-900/40 transition cursor-pointer"
+          >
+            <Send className="h-3.5 w-3.5" />
+            <span>Usulkan Materi</span>
+          </button>
 
-            <Link href="/dashboard/vault-cms" className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition">
-              <Settings className="h-3.5 w-3.5" />
-              <span>Buka CMS Vault</span>
-            </Link>
-          </div>
-        )}
+          {canEdit && (
+            <>
+              <button
+                type="button"
+                onClick={openModal}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+              >
+                <Pencil className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                <span>Edit Vault</span>
+              </button>
+
+              <Link href="/dashboard/vault-cms" className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 text-xs font-semibold shadow-xs transition">
+                <Settings className="h-3.5 w-3.5" />
+                <span>Buka CMS Vault</span>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* PJ Announcement / Notes Banner (if any) */}
@@ -251,6 +334,172 @@ export function CourseMaterialSection({ course, canEdit = false }: Props) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Crowdsourced Material Suggestions Queue */}
+      {suggestions.length > 0 && (
+        <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock3 className="h-4 w-4 text-amber-500" />
+              <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                Usulan Materi Mahasiswa ({suggestions.filter((s) => s.status === "PENDING").length} menunggu tinjauan)
+              </h3>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {suggestions.slice(0, 6).map((sug) => {
+              const isBusy = reviewingId === sug.id;
+              return (
+                <div
+                  key={sug.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 px-3 py-2.5 text-xs"
+                >
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-slate-200/70 dark:bg-slate-700 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                        {sug.type}
+                      </span>
+                      <a
+                        href={sug.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-sky-600 dark:text-sky-400 hover:underline truncate"
+                      >
+                        {sug.title} ↗
+                      </a>
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                          sug.status === "APPROVED"
+                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                            : sug.status === "REJECTED"
+                              ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                              : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
+                        }`}
+                      >
+                        {sug.status === "APPROVED" ? "Disetujui" : sug.status === "REJECTED" ? "Ditolak" : "Menunggu PJ"}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      Oleh {sug.author?.name || sug.author?.username || "Mahasiswa"}
+                      {sug.description ? ` · ${sug.description}` : ""}
+                    </p>
+                  </div>
+
+                  {canEdit && sug.status === "PENDING" && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => void handleReviewSuggestion(sug.id, "APPROVE")}
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 px-2.5 py-1 text-[11px] font-bold text-white transition cursor-pointer"
+                      >
+                        <Check className="h-3 w-3" />
+                        <span>Setujui</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => void handleReviewSuggestion(sug.id, "REJECT")}
+                        className="inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 disabled:opacity-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600 dark:text-rose-300 transition cursor-pointer"
+                      >
+                        <X className="h-3 w-3" />
+                        <span>Tolak</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Suggest Material Modal (Crowdsourced by Students) */}
+      {suggestOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Usulkan Materi: {course.name}</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Bagikan link catatan, drive, atau referensi agar ditinjau PJ Matkul.</p>
+              </div>
+              <button type="button" onClick={() => setSuggestOpen(false)} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitSuggestion} className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Judul Materi *</label>
+                <input
+                  type="text"
+                  required
+                  value={sugTitle}
+                  onChange={(e) => setSugTitle(e.target.value)}
+                  placeholder="Contoh: Catatan Minggu 1-4 atau Modul Lab Praktikum"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-3 py-2 text-xs outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori</label>
+                  <select
+                    value={sugType}
+                    onChange={(e) => setSugType(e.target.value as "DRIVE" | "MODUL" | "SILABUS" | "OTHER")}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-2.5 py-2 text-xs outline-none focus:border-sky-500"
+                  >
+                    <option value="DRIVE">Drive</option>
+                    <option value="MODUL">Modul</option>
+                    <option value="SILABUS">Silabus</option>
+                    <option value="OTHER">Lainnya</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tautan Link (URL) *</label>
+                  <input
+                    type="url"
+                    required
+                    value={sugUrl}
+                    onChange={(e) => setSugUrl(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-3 py-2 text-xs outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan (Opsional)</label>
+                <input
+                  type="text"
+                  value={sugDesc}
+                  onChange={(e) => setSugDesc(e.target.value)}
+                  placeholder="Misal: Slide kuliah pertemuan 1-7 + contoh soal UTS"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-3 py-2 text-xs outline-none focus:border-sky-500"
+                />
+              </div>
+
+              {sugError && <p className="rounded-xl bg-rose-50 dark:bg-rose-950/40 px-3 py-2 text-xs font-medium text-rose-600 dark:text-rose-300">{sugError}</p>}
+              {sugSuccess && <p className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">{sugSuccess}</p>}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setSuggestOpen(false)} className="rounded-xl px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={sugSubmitting}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 px-4 py-2 text-xs font-semibold text-white transition cursor-pointer"
+                >
+                  {sugSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{sugSubmitting ? "Mengirim..." : "Kirim Usulan"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

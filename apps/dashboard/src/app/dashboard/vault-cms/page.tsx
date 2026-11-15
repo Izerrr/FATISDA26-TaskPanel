@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, BookOpen, CheckCircle2, ChevronRight, ExternalLink, FileText, FolderGit2, HardDrive, Info, Loader2, MessageCircle, Pencil, Plus, Search, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
+import { AlertCircle, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, FileText, FolderGit2, HardDrive, Info, Loader2, MessageCircle, Pencil, Plus, Search, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
 import { useVault, type VaultData, type VaultResourceLink } from "@/hooks/useVault";
+import { useVaultSuggestions } from "@/hooks/useVaultSuggestions";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import type { Course } from "@/types";
 import { formatWibShort } from "@/lib/datetime";
@@ -18,6 +19,24 @@ export default function VaultCmsPage() {
   const [selectedSemester, setSelectedSemester] = useState<number | "ALL">("ALL");
   const { courses, isLoading: coursesLoading, isError: coursesError } = useCourses({ semester: selectedSemester === "ALL" ? undefined : selectedSemester, all: true });
   const { vaults, isLoading: vaultsLoading, mutate: mutateVaults } = useVault();
+  const { suggestions: pendingSuggestions, mutate: mutateSuggestions } = useVaultSuggestions(undefined, "PENDING");
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+
+  async function handleReviewSuggestion(id: string, action: "APPROVE" | "REJECT") {
+    setReviewingId(id);
+    try {
+      const res = await fetch("/api/vault/suggestions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      if (res.ok) {
+        await Promise.all([mutateSuggestions(), mutateVaults()]);
+      }
+    } finally {
+      setReviewingId(null);
+    }
+  }
 
   const [search, setSearch] = useState("");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -211,6 +230,77 @@ export default function VaultCmsPage() {
             </div>
           </div>
         </div>
+
+        {/* Pending Student Vault Suggestions Queue */}
+        {pendingSuggestions.length > 0 && (
+          <div className="rounded-2xl border border-amber-200/80 dark:border-amber-800/70 bg-amber-50/40 dark:bg-amber-950/20 p-4 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Clock3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                  Antrean Usulan Materi Mahasiswa ({pendingSuggestions.length})
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Menunggu verifikasi PJ/Admin</span>
+            </div>
+
+            <div className="space-y-2">
+              {pendingSuggestions.map((sug) => {
+                const isBusy = reviewingId === sug.id;
+                return (
+                  <div
+                    key={sug.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2.5 text-xs"
+                  >
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded bg-sky-100 dark:bg-sky-950/60 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">
+                          {sug.courseName}
+                        </span>
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                          {sug.type}
+                        </span>
+                        <a
+                          href={sug.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-sky-600 dark:text-sky-400 hover:underline truncate"
+                        >
+                          {sug.title} ↗
+                        </a>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        Oleh {sug.author?.name || sug.author?.username || "Mahasiswa"}
+                        {sug.description ? ` · ${sug.description}` : ""}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => void handleReviewSuggestion(sug.id, "APPROVE")}
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 px-2.5 py-1.5 text-[11px] font-bold text-white transition cursor-pointer"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        <span>Setujui &amp; Terapkan</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => void handleReviewSuggestion(sug.id, "REJECT")}
+                        className="inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 disabled:opacity-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-300 transition cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        <span>Tolak</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Filters & Search Bar */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

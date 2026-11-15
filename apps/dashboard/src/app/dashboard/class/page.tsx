@@ -21,10 +21,24 @@ import {
   MessageSquare,
   MessageSquareShare,
   BookOpen,
+  ListTodo,
+  Loader2,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
+import { useGuild } from "@/components/providers/GuildProvider";
+import { useRole } from "@/hooks/useRole";
+import { useCourses } from "@/hooks/useCourses";
+import { useTasks } from "@/hooks/useTasks";
+import type { TaskInitialPreset } from "@/components/kanban/NewTaskModal";
+import type { SelectedGroupMember } from "@/components/kanban/GroupMemberPicker";
 import { buildGoogleSheetsEditUrl } from "@/lib/settings-shared";
+
+const NewTaskModal = dynamic(
+  () => import("@/components/kanban/NewTaskModal").then((m) => m.NewTaskModal),
+  { ssr: false }
+);
 import type {
   ClassStudentDirectoryItem,
   ClassTeam,
@@ -121,6 +135,14 @@ function ClassGroupsContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [onlyMyTeam, setOnlyMyTeam] = useState(false);
   const [copiedTeamId, setCopiedTeamId] = useState<string | null>(null);
+  const [resolvingTeamTaskId, setResolvingTeamTaskId] = useState<string | null>(null);
+  const [groupTaskPreset, setGroupTaskPreset] = useState<TaskInitialPreset | null>(null);
+  const [createdTaskNotice, setCreatedTaskNotice] = useState<string | null>(null);
+
+  const { selectedGuild } = useGuild();
+  const { user, roles } = useRole();
+  const { courses } = useCourses();
+  const { mutate: mutateTasks } = useTasks(selectedGuild || undefined);
 
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab");
@@ -360,6 +382,58 @@ function ClassGroupsContent() {
     if (typeof window !== "undefined") {
       window.open(waUrl, "_blank", "noopener,noreferrer");
     }
+  };
+
+  const handleCreateGroupTask = async (team: ClassTeam, tabName: string) => {
+    setResolvingTeamTaskId(team.id);
+    setCreatedTaskNotice(null);
+
+    let matchedMembers: SelectedGroupMember[] = [];
+    let unmatchedNames: string[] = [];
+
+    try {
+      const res = await fetch("/api/groups/resolve-members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ members: team.members }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const matched = Array.isArray(data.matched) ? data.matched : [];
+        matchedMembers = matched.map((m: SelectedGroupMember) => ({
+          id: m.id,
+          name: m.name,
+          username: m.username,
+          nim: m.nim,
+          avatar: m.avatar,
+        }));
+        const unmatched = Array.isArray(data.unmatched) ? data.unmatched : [];
+        unmatchedNames = unmatched
+          .map((u: { name?: string }) => u?.name)
+          .filter((name: unknown): name is string => typeof name === "string" && name.length > 0);
+      }
+    } catch {
+      // Fall back to empty auto-matched members so user can still adjust manually in modal
+    } finally {
+      setResolvingTeamTaskId((prev) => (prev === team.id ? null : prev));
+    }
+
+    const descLines = [`Kelompok: ${team.name} (${tabName})`];
+    if (team.topic) descLines.push(`Topik: ${team.topic}`);
+    if (team.link) descLines.push(`Folder Drive: ${team.link}`);
+    if (unmatchedNames.length > 0) {
+      descLines.push(`Catatan: belum terhubung ke akun TaskPanel: ${unmatchedNames.join(", ")}`);
+    }
+
+    setGroupTaskPreset({
+      scope: "GROUP",
+      courseName: tabName,
+      title: team.topic ? `Tugas ${team.name} - ${team.topic}` : `Tugas ${team.name} (${tabName})`,
+      description: descLines.join("\n"),
+      members: matchedMembers,
+      autoSplitSubtasks: matchedMembers.length > 0,
+    });
   };
 
   const handleSaveSourceConfig = async (e: React.FormEvent) => {
@@ -1023,6 +1097,21 @@ function ClassGroupsContent() {
                                 <MessageSquareShare className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                                 <span>Format WA</span>
                               </button>
+
+                              <button
+                                type="button"
+                                onClick={() => void handleCreateGroupTask(team, activeTab.name)}
+                                disabled={team.members.length === 0 || resolvingTeamTaskId === team.id}
+                                className="inline-flex min-h-[40px] sm:min-h-[36px] items-center gap-1.5 rounded-lg border border-indigo-200/80 bg-indigo-50/80 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-40 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/50 cursor-pointer"
+                                title="Buat tugas kelompok otomatis bersama anggota tim ini"
+                              >
+                                {resolvingTeamTaskId === team.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <ListTodo className="h-3.5 w-3.5" />
+                                )}
+                                <span>Buat Tugas</span>
+                              </button>
                             </div>
 
                             {team.link && (
@@ -1304,6 +1393,44 @@ function ClassGroupsContent() {
             </form>
           </div>
         </div>
+      )}
+
+      {createdTaskNotice && (
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-50 flex items-center gap-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 px-4 py-3 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <div className="text-xs">
+            <p className="font-bold text-slate-900 dark:text-slate-100">{createdTaskNotice}</p>
+            <Link href="/dashboard/tasks" className="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
+              Buka Papan Tugas →
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCreatedTaskNotice(null)}
+            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Tutup notifikasi"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {groupTaskPreset && (
+        <NewTaskModal
+          open={Boolean(groupTaskPreset)}
+          guildId={selectedGuild || ""}
+          courses={courses}
+          roles={roles}
+          user={user}
+          userId={user?.id}
+          initialPreset={groupTaskPreset}
+          onClose={() => setGroupTaskPreset(null)}
+          onCreated={async () => {
+            const titleSnapshot = groupTaskPreset.title || "Tugas kelompok";
+            await mutateTasks();
+            setCreatedTaskNotice(`"${titleSnapshot}" berhasil ditambahkan ke Tugas`);
+          }}
+        />
       )}
     </DashboardFrame>
   );

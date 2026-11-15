@@ -33,23 +33,59 @@ export async function GET(req: NextRequest) {
       whereClause.courseName = courseName;
     }
 
-    const discussions = await prisma.courseDiscussion.findMany({
-      where: whereClause,
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-      include: {
-        author: {
-          select: { id: true, username: true, avatar: true },
-        },
-        replies: {
-          include: {
-            author: {
-              select: { id: true, username: true, avatar: true },
-            },
+    let discussions;
+    try {
+      discussions = await prisma.courseDiscussion.findMany({
+        where: whereClause,
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        include: {
+          author: {
+            select: { id: true, username: true, avatar: true },
           },
-          orderBy: { createdAt: "asc" },
+          replies: {
+            include: {
+              author: {
+                select: { id: true, username: true, avatar: true },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      const code = err && typeof err === "object" && "code" in err ? (err as { code?: string }).code : undefined;
+      if (code !== "P2022" && code !== "P2021") throw err;
+      // Fallback before `prisma db push` adds isSolved/acceptedReplyId columns
+      const legacy = await prisma.courseDiscussion.findMany({
+        where: whereClause,
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          courseId: true,
+          courseName: true,
+          prodi: true,
+          kelas: true,
+          title: true,
+          content: true,
+          isPinned: true,
+          authorId: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: { id: true, username: true, avatar: true },
+          },
+          replies: {
+            include: {
+              author: {
+                select: { id: true, username: true, avatar: true },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+      discussions = legacy.map((item) => ({ ...item, isSolved: false, acceptedReplyId: null }));
+    }
 
     return NextResponse.json({ discussions });
   } catch (error) {

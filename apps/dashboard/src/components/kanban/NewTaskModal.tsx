@@ -7,6 +7,17 @@ import { useSchedule } from "@/hooks/useSchedule";
 import { getNextCourseClassDueDate } from "@/lib/schedule-utils";
 import { GroupMemberPicker, type SelectedGroupMember } from "./GroupMemberPicker";
 
+export interface TaskInitialPreset {
+  scope?: "PERSONAL" | "GROUP" | "CLASS";
+  title?: string;
+  description?: string;
+  courseId?: string;
+  courseName?: string;
+  dueDate?: string;
+  members?: SelectedGroupMember[];
+  autoSplitSubtasks?: boolean;
+}
+
 interface Props {
   open: boolean;
   guildId: string;
@@ -17,11 +28,22 @@ interface Props {
     prodi?: string | null;
     kelas?: string | null;
   } | null;
+  initialPreset?: TaskInitialPreset | null;
   onClose: () => void;
   onCreated: () => Promise<unknown> | void;
 }
 
-export function NewTaskModal({ open, guildId, courses, roles, user, userId, onClose, onCreated }: Props) {
+function matchCourseIdByName(courses: Course[], name?: string): string {
+  if (!name) return "";
+  const q = name.trim().toLowerCase();
+  if (!q) return "";
+  const exact = courses.find((c) => c.name.toLowerCase() === q || c.code.toLowerCase() === q);
+  if (exact) return exact.id;
+  const partial = courses.find((c) => c.name.toLowerCase().includes(q) || q.includes(c.name.toLowerCase()));
+  return partial?.id ?? `sched-${encodeURIComponent(name.trim())}`;
+}
+
+export function NewTaskModal({ open, guildId, courses, roles, user, userId, initialPreset, onClose, onCreated }: Props) {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<"MANUAL" | "AI">("MANUAL");
 
@@ -33,6 +55,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
   const [scope, setScope] = useState<"PERSONAL" | "GROUP" | "CLASS">("PERSONAL");
   const [targetKelas, setTargetKelas] = useState<string>("ALL");
   const [groupMembers, setGroupMembers] = useState<SelectedGroupMember[]>([]);
+  const [autoSplitSubtasks, setAutoSplitSubtasks] = useState(false);
 
   // AI Mode Fields
   const [aiInput, setAiInput] = useState("");
@@ -51,6 +74,25 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
       setTargetKelas(user.kelas);
     }
   }, [user?.kelas]);
+
+  useEffect(() => {
+    if (!open || !initialPreset) return;
+    setMode("MANUAL");
+    setError("");
+    if (initialPreset.scope) setScope(initialPreset.scope);
+    if (typeof initialPreset.title === "string") setTitle(initialPreset.title);
+    if (typeof initialPreset.description === "string") setDescription(initialPreset.description);
+    if (initialPreset.courseId) {
+      setCourseId(initialPreset.courseId);
+    } else if (initialPreset.courseName) {
+      setCourseId(matchCourseIdByName(courses, initialPreset.courseName));
+    }
+    if (typeof initialPreset.dueDate === "string") setDueDate(initialPreset.dueDate);
+    if (Array.isArray(initialPreset.members)) {
+      setGroupMembers(initialPreset.members);
+    }
+    setAutoSplitSubtasks(Boolean(initialPreset.autoSplitSubtasks));
+  }, [open, initialPreset, courses]);
 
   useEffect(() => {
     if (!open) return;
@@ -117,6 +159,14 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
       setLoading(true);
       setError("");
 
+      const generatedSubtasks =
+        scope === "GROUP" && autoSplitSubtasks && groupMembers.length > 0
+          ? groupMembers.map((m) => ({
+              title: `Bagian ${(m.name || m.username).trim()}`,
+              assigneeId: m.id,
+            }))
+          : undefined;
+
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,6 +179,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
           scope,
           kelas: scope === "CLASS" ? (targetKelas === "ALL" ? null : targetKelas) : null,
           memberIds: scope === "GROUP" ? groupMembers.map((m) => m.id) : undefined,
+          subtasks: generatedSubtasks,
           status: "TODO",
         }),
       });
@@ -148,6 +199,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
       setDueDate("");
       setScope("PERSONAL");
       setGroupMembers([]);
+      setAutoSplitSubtasks(false);
       setAiInput("");
       setAiParsed(null);
       setMode("MANUAL");
@@ -271,8 +323,19 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
                 </div>
 
                 {scope === "GROUP" && (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <GroupMemberPicker selectedMembers={groupMembers} onChange={setGroupMembers} currentUserId={userId} />
+                    {groupMembers.length > 0 && (
+                      <label className="flex items-center gap-2 rounded-xl border border-indigo-200/70 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30 px-3 py-2 text-[11px] font-medium text-indigo-900 dark:text-indigo-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autoSplitSubtasks}
+                          onChange={(e) => setAutoSplitSubtasks(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span>Otomatis buat checklist awal per anggota ({groupMembers.length} sub-tugas)</span>
+                      </label>
+                    )}
                   </div>
                 )}
 
@@ -467,8 +530,19 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
                 </div>
 
                 {scope === "GROUP" && (
-                  <div className="mt-2">
+                  <div className="mt-2 space-y-2">
                     <GroupMemberPicker selectedMembers={groupMembers} onChange={setGroupMembers} currentUserId={userId} />
+                    {groupMembers.length > 0 && (
+                      <label className="flex items-center gap-2 rounded-xl border border-indigo-200/70 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30 px-3 py-2 text-[11px] font-medium text-indigo-900 dark:text-indigo-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={autoSplitSubtasks}
+                          onChange={(e) => setAutoSplitSubtasks(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span>Otomatis buat checklist awal per anggota ({groupMembers.length} sub-tugas)</span>
+                      </label>
+                    )}
                   </div>
                 )}
 
