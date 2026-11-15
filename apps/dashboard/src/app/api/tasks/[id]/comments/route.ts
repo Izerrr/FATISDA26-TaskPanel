@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { getAuthSecret } from "@/lib/auth-secret";
 import { canAccessTask } from "@/lib/task-access";
+import { notifyUsers, resolveUserIdsByMentions } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       where: { id: params.id },
       select: {
         id: true,
+        title: true,
         scope: true,
         createdById: true,
         assignedTo: true,
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       where: { id: params.id },
       select: {
         id: true,
+        title: true,
         scope: true,
         createdById: true,
         assignedTo: true,
@@ -120,6 +123,44 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         },
       },
     });
+
+    const actorName = newComment.author?.name || newComment.author?.username || "Seseorang";
+    const commentPreview = content.trim().slice(0, 90);
+    const mentionIds = await resolveUserIdsByMentions(content.trim());
+    const mentionSet = new Set(mentionIds);
+
+    const participantIds = new Set<string>();
+    if (task.createdById) participantIds.add(task.createdById);
+    if (task.scope !== "CLASS") {
+      if (task.assignedTo) participantIds.add(task.assignedTo);
+      for (const m of task.members) {
+        participantIds.add(m.userId);
+      }
+    }
+    const commentRecipients = Array.from(participantIds).filter((id) => !mentionSet.has(id));
+
+    await Promise.all([
+      commentRecipients.length > 0
+        ? notifyUsers({
+            recipientIds: commentRecipients,
+            actorId: userId,
+            type: "TASK_COMMENT",
+            title: `Komentar baru di "${task.title}"`,
+            body: `${actorName}: ${commentPreview}`,
+            href: `/dashboard/tasks?taskId=${task.id}`,
+          })
+        : Promise.resolve(),
+      mentionIds.length > 0
+        ? notifyUsers({
+            recipientIds: mentionIds,
+            actorId: userId,
+            type: "MENTION",
+            title: `${actorName} menyebutmu di "${task.title}"`,
+            body: commentPreview,
+            href: `/dashboard/tasks?taskId=${task.id}`,
+          })
+        : Promise.resolve(),
+    ]);
 
     return NextResponse.json(newComment);
   } catch (error) {

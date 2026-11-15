@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Calendar, Check, Download, ExternalLink, Info, X } from "lucide-react";
 import type { Schedule } from "@/types";
 import { downloadFile, generateICS, getGoogleCalendarUrl } from "@/lib/calendar-export";
+import { LiveCalendarFeedCard } from "@/components/schedule/LiveCalendarFeedCard";
 
 interface ScheduleExportModalProps {
   open: boolean;
@@ -135,6 +136,9 @@ export function ScheduleExportModal({ open, schedules, semester, kelas, onClose 
               })}
             </div>
           </div>
+
+          {/* Live Auto-Sync Subscription */}
+          <LiveCalendarFeedCard compact />
 
           {/* Tips Info */}
           <div className="flex items-start gap-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 p-3 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">

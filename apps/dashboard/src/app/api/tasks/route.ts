@@ -6,6 +6,7 @@ import { resolveCourseId } from "@/lib/course-resolver";
 import { formatWib, parseWibDateInput } from "@/lib/datetime";
 import { getAuthSecret } from "@/lib/auth-secret";
 import { isMissingTableError } from "@/lib/task-access";
+import { notifyUsers } from "@/lib/notifications";
 import type { Prisma } from "@prisma/client";
 type TaskScope = "PERSONAL" | "CLASS" | "GROUP";
 type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
@@ -415,6 +416,18 @@ export async function POST(req: NextRequest) {
       });
     } catch (logErr) {
       console.warn('[TaskActivity] Failed to log creation:', logErr);
+    }
+
+    if (scope === "GROUP" && cleanMemberIds.length > 0) {
+      const actorName = user.name || user.username || "Teman sekelas";
+      await notifyUsers({
+        recipientIds: cleanMemberIds,
+        actorId: user.id,
+        type: "GROUP_INVITE",
+        title: "Tugas Kelompok Baru",
+        body: `${actorName} menambahkanmu ke "${task.title}"`,
+        href: `/dashboard/tasks?taskId=${task.id}`,
+      });
     }
 
     return NextResponse.json({ task: { ...task, status: taskStatus } }, { status: 201 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { getAuthSecret } from "@/lib/auth-secret";
+import { notifyUsers, resolveUserIdsByMentions } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,30 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         },
       },
     });
+
+    const actorName = user.name || user.username;
+    const mentionIds = await resolveUserIdsByMentions(content.trim());
+
+    await Promise.all([
+      notifyUsers({
+        recipientIds: [discussion.authorId],
+        actorId: user.id,
+        type: "DISCUSSION_REPLY",
+        title: `Balasan Baru di Forum: ${discussion.title}`,
+        body: `${actorName}: ${content.trim().slice(0, 140)}`,
+        href: "/dashboard/class",
+      }),
+      mentionIds.length > 0
+        ? notifyUsers({
+            recipientIds: mentionIds,
+            actorId: user.id,
+            type: "MENTION",
+            title: `${actorName} menyebutmu di Forum`,
+            body: `${discussion.title}: ${content.trim().slice(0, 140)}`,
+            href: "/dashboard/class",
+          })
+        : Promise.resolve(),
+    ]);
 
     return NextResponse.json({ reply }, { status: 201 });
   } catch (error) {

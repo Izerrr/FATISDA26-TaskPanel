@@ -1,5 +1,7 @@
 "use client";
 
+import { PushAndCalendarSettings } from "@/components/profile/PushAndCalendarSettings";
+
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { signOut } from "next-auth/react";
@@ -396,6 +398,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+
+        <PushAndCalendarSettings />
 
         {/* Ketentuan Layanan & Kebijakan Privasi */}
         <section className="rounded-3xl border border-liquid-border dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">

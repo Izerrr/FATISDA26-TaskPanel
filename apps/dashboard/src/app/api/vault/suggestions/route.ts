@@ -7,6 +7,7 @@ import { normalizeSafeHttpUrl } from "@/lib/url-safety";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { hasPrivilegedTaskRole, isMissingTableError } from "@/lib/task-access";
 import { applySuggestionToVaultLinks, normalizeVaultSuggestionType } from "@/lib/vault-suggestions";
+import { notifyUsers } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -192,6 +193,14 @@ export async function PATCH(req: NextRequest) {
           author: { select: { id: true, name: true, username: true, avatar: true } },
         },
       });
+      await notifyUsers({
+        recipientIds: [suggestion.authorId],
+        actorId: reviewer.id,
+        type: "VAULT_REJECTED",
+        title: "Usulan Materi Ditolak",
+        body: `"${suggestion.title}" (${suggestion.courseName}) belum dapat ditambahkan ke Course Vault.`,
+        href: suggestion.courseId ? `/dashboard/courses/${suggestion.courseId}` : "/dashboard/courses",
+      });
       return NextResponse.json({ suggestion: updated });
     }
 
@@ -246,6 +255,15 @@ export async function PATCH(req: NextRequest) {
           author: { select: { id: true, name: true, username: true, avatar: true } },
         },
       });
+    });
+
+    await notifyUsers({
+      recipientIds: [result.authorId],
+      actorId: reviewer.id,
+      type: "VAULT_APPROVED",
+      title: "Usulan Materi Disetujui",
+      body: `"${result.title}" (${result.courseName}) telah ditambahkan ke Course Vault.`,
+      href: result.courseId ? `/dashboard/courses/${result.courseId}` : "/dashboard/courses",
     });
 
     return NextResponse.json({ suggestion: result });
