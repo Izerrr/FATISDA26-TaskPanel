@@ -23,7 +23,14 @@ export function useAnnouncements(prodi?: string | null, kelas?: string | null) {
   
   const { data, error, mutate } = useSWR<{ announcements: Announcement[] }>(
     url,
-    (url: string) => fetch(url).then(r => r.json())
+    async (fetchUrl: string) => {
+      const res = await fetch(fetchUrl);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json.error || "Gagal memuat pengumuman");
+      }
+      return json;
+    },
   );
   
   return {

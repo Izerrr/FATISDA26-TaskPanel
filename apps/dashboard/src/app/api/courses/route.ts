@@ -4,13 +4,14 @@ import { Prodi, Kelas } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { syncCurrentUser } from "@/lib/discord";
 import { matchesAgamaFilter } from "@/lib/schedule/constants";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export const dynamic = "force-dynamic";
 
 async function getAuthedUser(req: NextRequest) {
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: getAuthSecret(),
   });
 
   const userId = (token?.userId ?? token?.discordId) as string | undefined;

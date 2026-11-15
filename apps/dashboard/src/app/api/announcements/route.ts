@@ -1,34 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export async function GET(req: NextRequest) {
   try {
+    const token = await getToken({ req, secret: getAuthSecret() });
+    const userId = (token?.userId ?? token?.discordId) as string | undefined;
+    if (!token || !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const prodi = searchParams.get("prodi");
     const kelas = searchParams.get("kelas");
 
-    const where: any = {
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: new Date() } }
-      ]
-    };
+    const andConditions: any[] = [
+      {
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    ];
 
-    if (prodi && kelas) {
-      where.AND = [
-        { OR: [{ prodi: null }, { prodi }] },
-        { OR: [{ kelas: null }, { kelas }] }
-      ];
-    } else if (prodi) {
-      where.OR = [
-        { prodi: null },
-        { prodi }
-      ];
+    if (prodi) {
+      andConditions.push({ OR: [{ prodi: null }, { prodi }] });
+    }
+    if (kelas) {
+      andConditions.push({ OR: [{ kelas: null }, { kelas }] });
     }
 
     const announcements = await (prisma as any).announcement.findMany({
-      where,
+      where: { AND: andConditions },
       orderBy: [
         { isPinned: "desc" },
         { createdAt: "desc" }
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     
     const userId = token.userId ?? token.discordId;

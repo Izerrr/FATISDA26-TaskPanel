@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { getAuthSecret } from "@/lib/auth-secret";
+import { canAccessTask } from "@/lib/task-access";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -18,15 +20,21 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const task = await prisma.task.findUnique({
       where: { id: params.id },
-      select: { id: true, scope: true, createdById: true },
+      select: {
+        id: true,
+        scope: true,
+        createdById: true,
+        assignedTo: true,
+        members: { select: { userId: true } },
+      },
     });
 
     if (!task) {
       return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
     }
 
-    // Proteksi IDOR: Tugas PERSONAL hanya dapat diakses oleh pembuatnya
-    if (task.scope === "PERSONAL" && task.createdById !== userId) {
+    // Proteksi IDOR: Tugas PERSONAL & GROUP hanya dapat diakses pemilik/anggota terkait
+    if (!canAccessTask(task, userId)) {
       return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
     }
 
@@ -49,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -60,15 +68,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const task = await prisma.task.findUnique({
       where: { id: params.id },
-      select: { id: true, scope: true, createdById: true },
+      select: {
+        id: true,
+        scope: true,
+        createdById: true,
+        assignedTo: true,
+        members: { select: { userId: true } },
+      },
     });
 
     if (!task) {
       return NextResponse.json({ error: "Tugas tidak ditemukan" }, { status: 404 });
     }
 
-    // Proteksi IDOR: Tugas PERSONAL hanya dapat dikomentari oleh pemiliknya
-    if (task.scope === "PERSONAL" && task.createdById !== userId) {
+    // Proteksi IDOR: Tugas PERSONAL & GROUP hanya dapat dikomentari pemilik/anggota terkait
+    if (!canAccessTask(task, userId)) {
       return NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
     }
 

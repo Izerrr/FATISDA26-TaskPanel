@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "./prisma";
 import { fetchGuildMember, fetchUserGuilds, syncCurrentUser } from "./discord";
 import { verifyLinkIntent } from "./link-token";
+import { getAuthSecret } from "./auth-secret";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -91,8 +92,7 @@ export const authOptions: NextAuthOptions = {
           const { cookies } = await import("next/headers");
           const signedIntent = cookies().get("fatisda_link_intent")?.value;
           if (signedIntent) {
-            const secret = process.env.NEXTAUTH_SECRET || "fatisda_default_auth_secret";
-            linkUserId = verifyLinkIntent(signedIntent, secret);
+            linkUserId = verifyLinkIntent(signedIntent, getAuthSecret());
           }
         } catch {
           linkUserId = null;
@@ -396,7 +396,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
+  secret: getAuthSecret(),
 
   logger: {
     error(code, metadata) {

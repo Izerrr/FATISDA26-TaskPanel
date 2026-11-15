@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { parseWibDateInput } from "@/lib/datetime";
+import { getAuthSecret } from "@/lib/auth-secret";
 type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -18,7 +19,7 @@ export async function PATCH(
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
+      secret: getAuthSecret(),
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -300,7 +301,7 @@ export async function DELETE(
   try {
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET || "fatisda_auth_secret_session_2026_jwt_fallback_key",
+      secret: getAuthSecret(),
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;

@@ -2,26 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { resolveCourseId } from "@/lib/course-resolver";
+import { getAuthSecret } from "@/lib/auth-secret";
+import { normalizeSafeHttpUrl, sanitizeVaultExtraLinks } from "@/lib/url-safety";
 import type { Kelas, Prodi } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 const AUTHORIZED_ROLES = ["ADMIN", "OWNER", "PJ_KELAS", "PJ_MATKUL", "KETUA_ANGKATAN"];
 
-function normalizeUrl(url?: string | null): string | null {
-  if (!url) return null;
-  const trimmed = url.trim();
-  if (!trimmed) return null;
-  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-    return `https://${trimmed}`;
-  }
-  return trimmed;
-}
-
 async function getAuthedUser(req: NextRequest) {
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: getAuthSecret(),
   });
 
   const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -127,12 +119,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const driveUrl = normalizeUrl(body.driveUrl);
-    const modulUrl = normalizeUrl(body.modulUrl);
-    const silabusUrl = normalizeUrl(body.silabusUrl);
-    const communityUrl = normalizeUrl(body.communityUrl);
+    const driveUrl = normalizeSafeHttpUrl(body.driveUrl);
+    const modulUrl = normalizeSafeHttpUrl(body.modulUrl);
+    const silabusUrl = normalizeSafeHttpUrl(body.silabusUrl);
+    const communityUrl = normalizeSafeHttpUrl(body.communityUrl);
     const notes = typeof body.notes === "string" ? body.notes.trim() || null : null;
-    const extraLinks = Array.isArray(body.extraLinks) ? body.extraLinks : [];
+    const extraLinks = sanitizeVaultExtraLinks(body.extraLinks);
 
     const vault = await prisma.courseVault.upsert({
       where: {

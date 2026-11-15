@@ -201,15 +201,15 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
 
       const meData = await meResponse.json();
 
-      // 2. Jika ada guildId, coba sync seluruh member server juga
-      if (guildId) {
+      if (!meResponse.ok) {
+        throw new Error(meData.error ?? "Sinkronisasi gagal.");
+      }
+
+      // 2. Hanya Admin/Owner yang memicu full guild member sync
+      if (guildId && canAccessSettings) {
         await fetch(`/api/guilds/${guildId}/sync`, {
           method: "POST",
         }).catch(() => null);
-      }
-
-      if (!meResponse.ok) {
-        throw new Error(meData.error ?? "Sinkronisasi gagal.");
       }
 
       const prodiName = meData.user?.prodi ? meData.user.prodi.replace(/_/g, " ") : null;

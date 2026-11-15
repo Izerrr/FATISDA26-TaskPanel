@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { fetchGuildMembers, fetchUserGuilds } from "@/lib/discord";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret: getAuthSecret() });
     if (!token) return NextResponse.json({ error: "Belum masuk" }, { status: 401 });
 
     const configuredGuildId = process.env.DISCORD_GUILD_ID;

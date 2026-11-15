@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { signLinkIntent } from "@/lib/link-token";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const secret = getAuthSecret();
     const token = await getToken({
       req,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret,
     });
 
     const userId = (token?.userId ?? token?.discordId) as string | undefined;
@@ -17,7 +19,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Sesi login aktif diperlukan untuk menautkan akun." }, { status: 401 });
     }
 
-    const secret = process.env.NEXTAUTH_SECRET || "fatisda_default_auth_secret";
     const signedToken = signLinkIntent(userId, secret);
 
     const response = NextResponse.json({ success: true });

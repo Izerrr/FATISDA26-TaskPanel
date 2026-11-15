@@ -5,11 +5,11 @@ dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), "packages/database/.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-// Jika env masih menggunakan URL MySQL peninggalan lama, alihkan otomatis ke PostgreSQL Supabase
-const FALLBACK_PG_URL = "postgresql://postgres.ummznagnzlejdknwnasy:bismillahinformatika@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
-
 if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith("mysql://")) {
-  process.env.DATABASE_URL = FALLBACK_PG_URL;
+  console.error(
+    "[Bot Fatal] DATABASE_URL PostgreSQL tidak ditemukan atau masih menggunakan mysql://. Konfigurasikan DATABASE_URL di environment sebelum menjalankan bot.",
+  );
+  process.exit(1);
 }
 
 import { ActivityType, GatewayIntentBits } from "discord.js";

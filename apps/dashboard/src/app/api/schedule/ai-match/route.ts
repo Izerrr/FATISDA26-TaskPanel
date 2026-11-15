@@ -66,11 +66,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Ambil tugas aktif untuk korelasi deadline
+    // Ambil tugas aktif yang boleh diakses user untuk korelasi deadline (hindari bocornya tugas pribadi user lain)
     const tasks = await prisma.task.findMany({
       where: {
         status: { in: ["TODO", "IN_PROGRESS", "NEED_REVIEW"] },
         prodi: { in: targetProdis },
+        OR: [
+          { scope: "CLASS" },
+          { scope: "PERSONAL", createdById: session.user.id },
+          { scope: "PERSONAL", assignedTo: session.user.id },
+          {
+            scope: "GROUP",
+            OR: [
+              { createdById: session.user.id },
+              { members: { some: { userId: session.user.id } } },
+            ],
+          },
+        ],
       },
       select: {
         title: true,

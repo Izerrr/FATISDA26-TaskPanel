@@ -9,12 +9,17 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const user = session?.user?.id
-      ? await prisma.user.findUnique({
-          where: { id: session.user.id },
-          select: { prodi: true, kelas: true, semester: true },
-        })
-      : null;
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized." },
+        { status: 401 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { prodi: true, kelas: true, semester: true },
+    });
 
     const { searchParams } = request.nextUrl;
     const typeParam = searchParams.get("type")?.toUpperCase() === "UAS" ? "UAS" : "UTS";
