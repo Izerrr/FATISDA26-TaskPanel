@@ -179,7 +179,10 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
             lte: endOfTomorrow,
           },
         },
-        include: { course: true },
+        include: {
+          course: true,
+          subtasks: { select: { isDone: true } },
+        },
         orderBy: { dueDate: "asc" },
       });
 
@@ -239,7 +242,10 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
               })
             : "-";
           const course = t.course ? `[${t.course.code}] ` : "";
-          return `📌 **${t.title}**\n   ${course}Tenggat: **${dueStr} WIB**`;
+          const totalSub = t.subtasks.length;
+          const doneSub = totalSub > 0 ? t.subtasks.filter((s) => s.isDone).length : 0;
+          const subTag = totalSub > 0 ? ` · ${doneSub}/${totalSub} subtugas` : "";
+          return `📌 **${t.title}**\n   ${course}Tenggat: **${dueStr} WIB**${subTag}`;
         });
         embed.addFields({ name: "⏰ Tugas Mendekati Deadline (Hari Ini / Besok)", value: taskLines.join("\n\n") });
       }
@@ -292,6 +298,7 @@ export async function checkApproachingDeadlines(client: Client) {
       },
       include: {
         course: true,
+        subtasks: { select: { isDone: true } },
       },
     });
 
@@ -334,6 +341,9 @@ export async function checkApproachingDeadlines(client: Client) {
         minute: "2-digit",
       });
 
+      const totalSub = task.subtasks.length;
+      const doneSub = totalSub > 0 ? task.subtasks.filter((s) => s.isDone).length : 0;
+
       const embed = new EmbedBuilder()
         .setColor(alertTier === "H-6" ? 0xef4444 : 0xf59e0b)
         .setTitle(alertTitle)
@@ -342,6 +352,7 @@ export async function checkApproachingDeadlines(client: Client) {
           { name: "📌 Judul Tugas", value: `**${task.title}**` },
           { name: "📚 Mata Kuliah", value: task.course ? `${task.course.code} (${task.course.name})` : "Umum" },
           { name: "⏰ Batas Pengumpulan", value: `**${dueFormatted} WIB**` },
+          ...(totalSub > 0 ? [{ name: "☑️ Progress Subtugas", value: `${doneSub}/${totalSub} langkah selesai` }] : []),
           ...(task.description ? [{ name: "📝 Catatan", value: task.description }] : []),
         )
         .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON })

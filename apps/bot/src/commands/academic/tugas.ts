@@ -36,7 +36,16 @@ const command: Command = {
         ),
     )
     .addStringOption((option) =>
-      option.setName("scope").setDescription("Filter tipe tugas").setRequired(false).addChoices({ name: "Semua Tugas", value: "ALL" }, { name: "Tugas Kelas", value: "CLASS" }, { name: "Tugas Personal", value: "PERSONAL" }),
+      option
+        .setName("scope")
+        .setDescription("Filter tipe tugas")
+        .setRequired(false)
+        .addChoices(
+          { name: "Semua Tugas", value: "ALL" },
+          { name: "Tugas Kelas", value: "CLASS" },
+          { name: "Tugas Kelompok", value: "GROUP" },
+          { name: "Tugas Personal", value: "PERSONAL" },
+        ),
     ),
 
   async run(_client, context, args) {
@@ -68,6 +77,11 @@ const command: Command = {
         OR: [{ createdById: authorId }, { assignedTo: authorId }],
       };
 
+      const groupFilter: any = {
+        scope: "GROUP",
+        OR: [{ createdById: authorId }, { members: { some: { userId: authorId } } }],
+      };
+
       const whereClause: any = {};
       if (statusCondition) {
         whereClause.status = statusCondition;
@@ -75,10 +89,12 @@ const command: Command = {
 
       if (selectedScope === "CLASS") {
         Object.assign(whereClause, classFilter);
+      } else if (selectedScope === "GROUP") {
+        Object.assign(whereClause, groupFilter);
       } else if (selectedScope === "PERSONAL") {
         Object.assign(whereClause, personalFilter);
       } else {
-        whereClause.OR = [classFilter, personalFilter];
+        whereClause.OR = [classFilter, groupFilter, personalFilter];
       }
 
       const tasks = await prisma.task.findMany({
@@ -86,6 +102,8 @@ const command: Command = {
         include: {
           course: true,
           createdBy: true,
+          members: { select: { id: true } },
+          subtasks: { select: { isDone: true } },
         },
         orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
         take: 12,
@@ -131,11 +149,19 @@ const command: Command = {
         const icon = statusIcons[t.status] || "📌";
         const courseStr = t.course ? `\`${t.course.code}\` ${t.course.name}` : "Umum";
         const deadlineStr = t.dueDate ? `<t:${Math.floor(t.dueDate.getTime() / 1000)}:R> (<t:${Math.floor(t.dueDate.getTime() / 1000)}:d>)` : "Tidak ada deadline";
-        const scopeStr = t.scope === "CLASS" ? `Kelas ${t.kelas ?? "Semua"}` : "Personal";
+        const scopeStr =
+          t.scope === "CLASS"
+            ? `Kelas ${t.kelas ?? "Semua"}`
+            : t.scope === "GROUP"
+              ? `Kelompok (${t.members.length} anggota)`
+              : "Personal";
+        const totalSubtasks = t.subtasks.length;
+        const doneSubtasks = totalSubtasks > 0 ? t.subtasks.filter((s) => s.isDone).length : 0;
+        const subtaskLine = totalSubtasks > 0 ? `\n☑️ **Subtugas:** ${doneSubtasks}/${totalSubtasks} selesai` : "";
 
         embed.addFields({
           name: `${icon} ${t.title}`,
-          value: `📚 **Matkul:** ${courseStr}\n⏰ **Deadline:** ${deadlineStr}\n🏷️ **Tipe:** ${scopeStr} | **Status:** \`${t.status}\``,
+          value: `📚 **Matkul:** ${courseStr}\n⏰ **Deadline:** ${deadlineStr}\n🏷️ **Tipe:** ${scopeStr} | **Status:** \`${t.status}\`${subtaskLine}`,
           inline: false,
         });
       }

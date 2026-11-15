@@ -26,10 +26,23 @@ import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useRole } from "@/hooks/useRole";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { useExamMode } from "@/hooks/useExamMode";
+import { useVault } from "@/hooks/useVault";
+import { useExamReadiness } from "@/hooks/useExamReadiness";
+import { useCourses } from "@/hooks/useCourses";
+import { useTasks } from "@/hooks/useTasks";
+import { useGuild } from "@/components/providers/GuildProvider";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ExamScheduleSyncPanel } from "@/components/schedule/ExamScheduleSyncPanel";
 import { RoomLocationBadge } from "@/components/schedule/RoomLocationBadge";
+import { ExamReadinessStrip } from "@/components/schedule/ExamReadinessStrip";
+import { buildStudyTaskPresetForExam } from "@/lib/exam-readiness";
+import type { TaskInitialPreset } from "@/components/kanban/NewTaskModal";
 import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const NewTaskModal = dynamic(
+  () => import("@/components/kanban/NewTaskModal").then((m) => m.NewTaskModal),
+  { ssr: false }
+);
 
 const WhatsAppBroadcastModal = dynamic(
   () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
@@ -48,7 +61,12 @@ function parseMinutes(timeStr: string): number {
 }
 
 export default function ExamSchedulePage() {
-  const { user } = useRole();
+  const { user, roles } = useRole();
+  const { selectedGuild } = useGuild();
+  const { courses } = useCourses();
+  const { mutate: mutateTasks } = useTasks(selectedGuild || undefined);
+  const { vaults } = useVault();
+  const { getExamState, toggleStep } = useExamReadiness();
   const { examMode } = useExamMode();
 
   const [activeType, setActiveType] = useState<ExamType>("UTS");
@@ -62,6 +80,8 @@ export default function ExamSchedulePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [broadcastTarget, setBroadcastTarget] = useState<BroadcastModalTarget | null>(null);
+  const [studyTaskPreset, setStudyTaskPreset] = useState<TaskInitialPreset | null>(null);
+  const [studyTaskNotice, setStudyTaskNotice] = useState<string | null>(null);
   const [, setTick] = useState(0);
 
   // Sync initial activeType with Admin Exam Mode setting
@@ -719,8 +739,8 @@ export default function ExamSchedulePage() {
                             </div>
                           </div>
 
-                          {/* Anti-Collision Footer: Stacks cleanly if room name is long */}
-                          <div className="mt-3.5 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800/80">
+                          {/* Anti-Collision Footer + Exam Readiness Tracker */}
+                          <div className="mt-3.5 space-y-2.5 border-t border-slate-100 pt-3 dark:border-slate-800/80">
                             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                               <RoomLocationBadge room={exam.room} variant="amber" compact />
 
@@ -729,6 +749,17 @@ export default function ExamSchedulePage() {
                                 {exam.startTime} - {exam.endTime} WIB
                               </span>
                             </div>
+
+                            <ExamReadinessStrip
+                              compact
+                              examId={exam.id}
+                              courseName={exam.courseName}
+                              vaults={vaults}
+                              readinessState={getExamState(exam.id)}
+                              onToggleStep={toggleStep}
+                              isPast={isPast}
+                              onCreateStudyTask={() => setStudyTaskPreset(buildStudyTaskPresetForExam(exam))}
+                            />
 
                             <div className="flex justify-end">
                               <button
@@ -765,12 +796,35 @@ export default function ExamSchedulePage() {
             })}
           </div>
         )}
+        {studyTaskNotice && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-2.5 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+            {studyTaskNotice}
+          </div>
+        )}
       </div>
 
       {broadcastTarget && (
         <WhatsAppBroadcastModal
           target={broadcastTarget}
           onClose={() => setBroadcastTarget(null)}
+        />
+      )}
+
+      {studyTaskPreset && (
+        <NewTaskModal
+          open={Boolean(studyTaskPreset)}
+          guildId={selectedGuild || ""}
+          courses={courses}
+          roles={roles}
+          user={user}
+          userId={user?.id}
+          initialPreset={studyTaskPreset}
+          onClose={() => setStudyTaskPreset(null)}
+          onCreated={async () => {
+            const titleSnapshot = studyTaskPreset.title || "Tugas belajar";
+            await mutateTasks();
+            setStudyTaskNotice(`"${titleSnapshot}" berhasil ditambahkan ke Papan Tugas.`);
+          }}
         />
       )}
     </DashboardFrame>

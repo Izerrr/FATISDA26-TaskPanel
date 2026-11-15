@@ -19,8 +19,21 @@ import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { useExamMode } from "@/hooks/useExamMode";
 import { useRole } from "@/hooks/useRole";
+import { useVault } from "@/hooks/useVault";
+import { useExamReadiness } from "@/hooks/useExamReadiness";
+import { useCourses } from "@/hooks/useCourses";
+import { useTasks } from "@/hooks/useTasks";
+import { useGuild } from "@/components/providers/GuildProvider";
 import { RoomLocationBadge } from "@/components/schedule/RoomLocationBadge";
+import { ExamReadinessStrip } from "@/components/schedule/ExamReadinessStrip";
+import { buildStudyTaskPresetForExam } from "@/lib/exam-readiness";
+import type { TaskInitialPreset } from "@/components/kanban/NewTaskModal";
 import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const NewTaskModal = dynamic(
+  () => import("@/components/kanban/NewTaskModal").then((m) => m.NewTaskModal),
+  { ssr: false }
+);
 
 const WhatsAppBroadcastModal = dynamic(
   () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
@@ -36,7 +49,12 @@ interface OverviewExamProps {
 
 
 export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
-  const { user } = useRole();
+  const { user, roles } = useRole();
+  const { selectedGuild } = useGuild();
+  const { courses } = useCourses();
+  const { mutate: mutateTasks } = useTasks(selectedGuild || undefined);
+  const { vaults } = useVault();
+  const { getExamState, toggleStep } = useExamReadiness();
   const { examMode, isLoading: modeLoading } = useExamMode();
 
   const currentSemester = semester ?? user?.semester ?? 1;
@@ -45,6 +63,8 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
 
   const [selectedAgama, handleAgamaChange] = useAgamaPreference();
   const [broadcastTarget, setBroadcastTarget] = useState<BroadcastModalTarget | null>(null);
+  const [studyTaskPreset, setStudyTaskPreset] = useState<TaskInitialPreset | null>(null);
+  const [studyTaskNotice, setStudyTaskNotice] = useState<string | null>(null);
 
   const activeExamType = examMode.activeType ?? "UTS";
 
@@ -255,6 +275,19 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
                 </Link>
               </div>
             </div>
+
+            <div className="mt-3">
+              <ExamReadinessStrip
+                compact
+                examId={nextExam.id}
+                courseName={nextExam.courseName}
+                vaults={vaults}
+                readinessState={getExamState(nextExam.id)}
+                onToggleStep={toggleStep}
+                isPast={nextExam.isPast}
+                onCreateStudyTask={() => setStudyTaskPreset(buildStudyTaskPresetForExam(nextExam))}
+              />
+            </div>
           </div>
         ) : (
           <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs font-semibold text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
@@ -304,9 +337,28 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
                     {exam.startTime} - {exam.endTime} WIB
                   </span>
                 </div>
+
+                <div className="mt-2">
+                  <ExamReadinessStrip
+                    compact
+                    examId={exam.id}
+                    courseName={exam.courseName}
+                    vaults={vaults}
+                    readinessState={getExamState(exam.id)}
+                    onToggleStep={toggleStep}
+                    isPast={exam.isPast}
+                    onCreateStudyTask={() => setStudyTaskPreset(buildStudyTaskPresetForExam(exam))}
+                  />
+                </div>
               </div>
             ))}
           </div>
+
+          {studyTaskNotice && (
+            <div className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+              {studyTaskNotice}
+            </div>
+          )}
         </div>
       </section>
 
@@ -314,6 +366,24 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
         <WhatsAppBroadcastModal
           target={broadcastTarget}
           onClose={() => setBroadcastTarget(null)}
+        />
+      )}
+
+      {studyTaskPreset && (
+        <NewTaskModal
+          open={Boolean(studyTaskPreset)}
+          guildId={selectedGuild || ""}
+          courses={courses}
+          roles={roles}
+          user={user}
+          userId={user?.id}
+          initialPreset={studyTaskPreset}
+          onClose={() => setStudyTaskPreset(null)}
+          onCreated={async () => {
+            const titleSnapshot = studyTaskPreset.title || "Tugas belajar";
+            await mutateTasks();
+            setStudyTaskNotice(`"${titleSnapshot}" berhasil ditambahkan ke Papan Tugas.`);
+          }}
         />
       )}
     </>

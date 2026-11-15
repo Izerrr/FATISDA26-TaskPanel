@@ -1,4 +1,4 @@
-import webpush from "web-push";
+import * as webpush from "web-push";
 import { prisma } from "./prisma";
 import { extractMentionUsernames } from "./mentions";
 import { isMissingTableError } from "./task-access";
