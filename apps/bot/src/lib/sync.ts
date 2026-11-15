@@ -99,34 +99,89 @@ export async function syncGuildToDatabase(guild: Guild) {
   }
 }
 
+interface ExistingSyncUser {
+  id: string;
+  discordId: string | null;
+  username: string;
+  name: string | null;
+  avatar: string | null;
+  avatarSource: string | null;
+  prodi: Prodi | null;
+  kelas: Kelas | null;
+}
+
+const SYNC_USER_SELECT = {
+  id: true,
+  discordId: true,
+  username: true,
+  name: true,
+  avatar: true,
+  avatarSource: true,
+  prodi: true,
+  kelas: true,
+} as const;
+
+async function upsertSyncedMember(member: GuildMember, existingUser: ExistingSyncUser | null) {
+  const discordRoles = member.roles.cache.map((r) => r.id);
+  const isGuildOwner = member.guild.ownerId === member.user.id;
+  const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+  const discordHandle = member.user.username;
+  const defaultDisplayName = member.nickname ?? member.user.globalName ?? member.user.username;
+  const nextProdi = mappedProdi(discordRoles);
+  const nextKelas = mappedKelas(discordRoles);
+  const nextRoles = mappedRoles(discordRoles, isGuildOwner);
+
+  if (existingUser) {
+    const useDiscordAvatar = existingUser.avatarSource !== "google" || !existingUser.avatar;
+
+    await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        discordId: member.user.id,
+        discordUsername: discordHandle,
+        discordAvatar: avatar,
+        name: existingUser.name ?? defaultDisplayName,
+        username: existingUser.username || discordHandle,
+        avatar: useDiscordAvatar ? (avatar ?? existingUser.avatar) : existingUser.avatar,
+        discordRoles,
+        roles: nextRoles as any,
+        ...(nextProdi !== null ? { prodi: nextProdi as any } : {}),
+        ...(nextKelas !== null ? { kelas: nextKelas as any } : {}),
+      },
+    });
+    return;
+  }
+
+  await prisma.user.create({
+    data: {
+      id: member.user.id,
+      discordId: member.user.id,
+      discordUsername: discordHandle,
+      discordAvatar: avatar,
+      avatarSource: "discord",
+      name: defaultDisplayName,
+      username: discordHandle,
+      avatar,
+      discordRoles,
+      roles: nextRoles as any,
+      prodi: nextProdi as any,
+      kelas: nextKelas as any,
+    },
+  });
+}
+
 export async function syncMemberToDatabase(member: GuildMember) {
   if (member.user.bot) return;
 
   try {
-    const discordRoles = member.roles.cache.map((r) => r.id);
-    const isGuildOwner = member.guild.ownerId === member.user.id;
-    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
-
-    await prisma.user.upsert({
-      where: { id: member.user.id },
-      create: {
-        id: member.user.id,
-        username: member.nickname ?? member.user.username,
-        avatar,
-        discordRoles,
-        roles: mappedRoles(discordRoles, isGuildOwner) as any,
-        prodi: mappedProdi(discordRoles) as any,
-        kelas: mappedKelas(discordRoles) as any,
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ id: member.user.id }, { discordId: member.user.id }],
       },
-      update: {
-        username: member.nickname ?? member.user.username,
-        avatar,
-        discordRoles,
-        roles: mappedRoles(discordRoles, isGuildOwner) as any,
-        prodi: mappedProdi(discordRoles) as any,
-        kelas: mappedKelas(discordRoles) as any,
-      },
+      select: SYNC_USER_SELECT,
     });
+
+    await upsertSyncedMember(member, existingUser);
   } catch (error) {
     console.error(`[Sync] Gagal menyinkronkan member ${member.user.tag}:`, error);
   }
@@ -136,13 +191,42 @@ export async function syncAllGuildMembers(guild: Guild): Promise<number> {
   await syncGuildToDatabase(guild);
 
   const members = await guild.members.fetch();
+  const nonBotMembers = Array.from(members.values()).filter((member) => !member.user.bot);
+  if (nonBotMembers.length === 0) {
+    return 0;
+  }
+
+  const memberIds = nonBotMembers.map((member) => member.user.id);
+  const existingUsers = await prisma.user.findMany({
+    where: {
+      OR: [{ id: { in: memberIds } }, { discordId: { in: memberIds } }],
+    },
+    select: SYNC_USER_SELECT,
+  });
+
+  const existingByDiscordId = new Map<string, ExistingSyncUser>();
+  for (const user of existingUsers) {
+    existingByDiscordId.set(user.id, user);
+    if (user.discordId) {
+      existingByDiscordId.set(user.discordId, user);
+    }
+  }
+
+  const CHUNK_SIZE = 20;
   let count = 0;
 
-  for (const [, member] of members) {
-    if (!member.user.bot) {
-      await syncMemberToDatabase(member);
-      count++;
-    }
+  for (let i = 0; i < nonBotMembers.length; i += CHUNK_SIZE) {
+    const chunk = nonBotMembers.slice(i, i + CHUNK_SIZE);
+    await Promise.all(
+      chunk.map(async (member) => {
+        try {
+          await upsertSyncedMember(member, existingByDiscordId.get(member.user.id) ?? null);
+          count++;
+        } catch (error) {
+          console.error(`[Sync] Gagal menyinkronkan member ${member.user.tag}:`, error);
+        }
+      }),
+    );
   }
 
   return count;

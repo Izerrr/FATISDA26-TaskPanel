@@ -317,52 +317,91 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
 
   const configuredGuildId = process.env.DISCORD_GUILD_ID;
   const isFatisdaGuild = Boolean(configuredGuildId && guildId === configuredGuildId);
+  if (members.length === 0) {
+    return members;
+  }
 
-  for (const member of members) {
-    const discordRoles = member.roles ?? [];
-    const isGuildOwner = guild?.owner_id === member.user.id;
-    const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
-    const discordHandle = member.user.username;
-    const defaultDisplayName = member.nick ?? member.user.global_name ?? member.user.username;
+  const memberIds = members.map((m) => m.user.id);
+  const existingUsers = await prisma.user.findMany({
+    where: {
+      OR: [{ id: { in: memberIds } }, { discordId: { in: memberIds } }],
+    },
+    select: {
+      id: true,
+      discordId: true,
+      username: true,
+      name: true,
+      avatar: true,
+      avatarSource: true,
+    },
+  });
 
-    const newRoles = isFatisdaGuild ? mappedRoles(discordRoles, isGuildOwner) : ["STUDENT" as const];
-    const newProdi = isFatisdaGuild ? mappedProdi(discordRoles) : null;
-    const newKelas = isFatisdaGuild ? mappedKelas(discordRoles) : null;
+  const existingByDiscordId = new Map(
+    existingUsers.flatMap((u) => {
+      const entries: Array<[string, typeof u]> = [[u.id, u]];
+      if (u.discordId) entries.push([u.discordId, u]);
+      return entries;
+    }),
+  );
 
-    const updateData: any = {
-      discordUsername: discordHandle,
-      discordAvatar: avatar,
-    };
+  const CHUNK_SIZE = 20;
+  for (let i = 0; i < members.length; i += CHUNK_SIZE) {
+    const chunk = members.slice(i, i + CHUNK_SIZE);
+    await Promise.all(
+      chunk.map(async (member) => {
+        const discordRoles = member.roles ?? [];
+        const isGuildOwner = guild?.owner_id === member.user.id;
+        const avatar = member.user.avatar ? `https://cdn.discordapp.com/avatars/${member.user.id}/${member.user.avatar}.png` : null;
+        const discordHandle = member.user.username;
+        const defaultDisplayName = member.nick ?? member.user.global_name ?? member.user.username;
 
-    if (isFatisdaGuild) {
-      updateData.discordRoles = discordRoles;
-      updateData.roles = newRoles;
-      if (newProdi !== null) updateData.prodi = newProdi;
-      if (newKelas !== null) updateData.kelas = newKelas;
-    }
+        const newRoles = isFatisdaGuild ? mappedRoles(discordRoles, isGuildOwner) : (["STUDENT"] as TaskPanelRole[]);
+        const newProdi = isFatisdaGuild ? mappedProdi(discordRoles) : null;
+        const newKelas = isFatisdaGuild ? mappedKelas(discordRoles) : null;
 
-    await (prisma.user as any).upsert({
-      where: {
-        id: member.user.id,
-      },
+        const existingUser = existingByDiscordId.get(member.user.id);
 
-      create: {
-        id: member.user.id,
-        discordId: member.user.id,
-        discordUsername: discordHandle,
-        discordAvatar: avatar,
-        avatarSource: "discord",
-        name: defaultDisplayName,
-        username: discordHandle,
-        avatar,
-        discordRoles: isFatisdaGuild ? discordRoles : [],
-        roles: newRoles,
-        prodi: newProdi,
-        kelas: newKelas,
-      },
-
-      update: updateData,
-    });
+        if (existingUser) {
+          const useDiscordAvatar = existingUser.avatarSource !== "google" || !existingUser.avatar;
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              discordId: member.user.id,
+              discordUsername: discordHandle,
+              discordAvatar: avatar,
+              name: existingUser.name ?? defaultDisplayName,
+              username: existingUser.username || discordHandle,
+              avatar: useDiscordAvatar ? (avatar ?? existingUser.avatar) : existingUser.avatar,
+              ...(isFatisdaGuild
+                ? {
+                    discordRoles,
+                    roles: newRoles,
+                    ...(newProdi !== null ? { prodi: newProdi } : {}),
+                    ...(newKelas !== null ? { kelas: newKelas } : {}),
+                  }
+                : {}),
+            },
+          });
+        } else {
+          await prisma.user.create({
+            data: {
+              id: member.user.id,
+              discordId: member.user.id,
+              discordUsername: discordHandle,
+              discordAvatar: avatar,
+              avatarSource: "discord",
+              name: defaultDisplayName,
+              username: discordHandle,
+              avatar,
+              discordRoles: isFatisdaGuild ? discordRoles : [],
+              roles: newRoles,
+              prodi: newProdi,
+              kelas: newKelas,
+            },
+          });
+        }
+      }),
+    );
   }
 
   return members;

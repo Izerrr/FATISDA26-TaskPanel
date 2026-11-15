@@ -105,6 +105,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@index([username])
+  @@index([nim])
+  @@index([hasAccessedApp, lastActiveAt])
 }
 
 model Schedule {
@@ -242,11 +244,14 @@ model Task {
   updatedAt DateTime @updatedAt
 
   @@index([guildId])
+  @@index([guildId, scope, createdAt])
   @@index([createdById])
   @@index([assignedTo])
   @@index([courseId])
   @@index([status])
   @@index([scope])
+  @@index([prodi, kelas])
+  @@index([prodi, scope, status])
 }
 
 model TaskMember {
@@ -306,6 +311,8 @@ model TaskComment {
   createdAt DateTime @default(now())
 
   @@index([taskId])
+  @@index([taskId, createdAt])
+  @@index([authorId, createdAt])
 }
 
 model TaskActivity {
@@ -320,6 +327,7 @@ model TaskActivity {
   createdAt DateTime @default(now())
 
   @@index([taskId])
+  @@index([taskId, createdAt])
   @@index([userId])
 }
 
@@ -357,6 +365,7 @@ model CourseDiscussion {
 
   @@index([courseId])
   @@index([prodi, kelas])
+  @@index([authorId, createdAt])
 }
 
 model DiscussionReply {
@@ -369,6 +378,7 @@ model DiscussionReply {
   createdAt    DateTime         @default(now())
 
   @@index([discussionId])
+  @@index([authorId, createdAt])
 }
 
 model Feedback {

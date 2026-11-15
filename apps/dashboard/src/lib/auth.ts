@@ -5,6 +5,7 @@ import { prisma } from "./prisma";
 import { fetchGuildMember, fetchUserGuilds, syncCurrentUser } from "./discord";
 import { verifyLinkIntent } from "./link-token";
 import { getAuthSecret } from "./auth-secret";
+import { mergeUserAccountsTransaction } from "./user-merge";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -128,28 +129,11 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (targetUser) {
-            // Tautkan Google ID & Email ke user yang ditemukan
+            // Tautkan Google ID & Email ke user yang ditemukan secara atomik
             const tempGoogleId = `google_${googleAccountId}`;
             if (tempGoogleId !== targetUser.id) {
               try {
-                // Migrasikan tugas yang mungkin pernah dibuat dengan temp Google ID
-                await prisma.task.updateMany({
-                  where: { createdById: tempGoogleId },
-                  data: { createdById: targetUser.id },
-                });
-                await prisma.task.updateMany({
-                  where: { assignedTo: tempGoogleId },
-                  data: { assignedTo: targetUser.id },
-                });
-                await (prisma as any).taskUserProgress.deleteMany({
-                  where: { userId: tempGoogleId },
-                });
-                await (prisma as any).taskMember.deleteMany({
-                  where: { userId: tempGoogleId },
-                });
-                await (prisma.user as any).deleteMany({
-                  where: { id: tempGoogleId },
-                });
+                await mergeUserAccountsTransaction(tempGoogleId, targetUser.id);
               } catch (migrateErr) {
                 console.warn("[NextAuth] Gagal migrasi tugas temp google user:", migrateErr);
               }
@@ -274,42 +258,17 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (targetUser && targetUser.id.startsWith("google_")) {
-            // Gabungkan user Google ke Discord (akun Discord jadi id utama)
+            // Gabungkan user Google ke Discord secara atomik (akun Discord jadi id utama)
             try {
               const { googleId, email, nim, googleAvatar, name: googleName } = targetUser;
 
-              await prisma.task.updateMany({
-                where: { createdById: targetUser.id },
-                data: { createdById: discordId },
-              });
-              await prisma.task.updateMany({
-                where: { assignedTo: targetUser.id },
-                data: { assignedTo: discordId },
-              });
-              await (prisma as any).taskUserProgress.deleteMany({
-                where: { userId: targetUser.id },
-              });
-              await (prisma as any).taskMember.deleteMany({
-                where: { userId: targetUser.id },
-              });
-
-              await (prisma.user as any).delete({
-                where: { id: targetUser.id },
-              });
-
-              await (prisma.user as any).update({
-                where: { id: discordId },
-                data: {
-                  discordId,
-                  googleId: googleId ?? undefined,
-                  email: email ?? undefined,
-                  nim: nim ?? undefined,
-                  googleAvatar: googleAvatar ?? undefined,
-                  name: googleName ?? undefined,
-                  hasAccessedApp: true,
-                  lastLoginAt: new Date(),
-                  lastActiveAt: new Date(),
-                },
+              await mergeUserAccountsTransaction(targetUser.id, discordId, {
+                discordId,
+                googleId: googleId ?? undefined,
+                email: email ?? undefined,
+                nim: nim ?? undefined,
+                googleAvatar: googleAvatar ?? undefined,
+                name: googleName ?? undefined,
               });
             } catch (mergeErr) {
               console.warn("[NextAuth] Gagal merge google user ke discord:", mergeErr);
