@@ -1,7 +1,7 @@
 {
   "name": "if26-task-panel",
   "private": true,
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "IF26 Task Panel: Hybrid Discord Bot + Next.js Kanban Dashboard",
   "scripts": {
     "dev:dashboard": "pnpm --filter fatisda-dashboard dev",

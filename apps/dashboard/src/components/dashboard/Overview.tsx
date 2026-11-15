@@ -69,13 +69,18 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
 
-  const upcoming = [...tasks]
-    .filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) >= now)
-    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
-    .slice(0, 5);
+  const overdueList = [...tasks]
+    .filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) < now)
+    .sort((a, b) => new Date(b.dueDate!).getTime() - new Date(a.dueDate!).getTime());
 
-  const closestTask = upcoming[0];
-  const closestHours = closestTask ? Math.max(0, Math.round((new Date(closestTask.dueDate!).getTime() - now.getTime()) / (1000 * 60 * 60))) : null;
+  const upcomingList = [...tasks]
+    .filter((task) => task.status !== "DONE" && task.dueDate && new Date(task.dueDate) >= now)
+    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime());
+
+  const urgentDeadlines = [...overdueList, ...upcomingList].slice(0, 6);
+
+  const closestTask = upcomingList[0] ?? overdueList[0];
+  const closestHours = closestTask ? Math.round((new Date(closestTask.dueDate!).getTime() - now.getTime()) / (1000 * 60 * 60)) : null;
 
   const stats = [
     {
@@ -147,14 +152,36 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
           </div>
 
           {closestTask && closestHours !== null && (
-            <div className="flex w-full max-w-full min-w-0 items-center gap-2 overflow-hidden rounded-2xl border border-amber-200/60 bg-amber-50/80 px-3.5 py-2 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300 sm:w-auto sm:max-w-md">
-              <Flame className="h-4 w-4 shrink-0 animate-pulse text-amber-600 dark:text-amber-400" />
+            <div
+              className={`flex w-full max-w-full min-w-0 items-center gap-2 overflow-hidden rounded-2xl border px-3.5 py-2 text-xs sm:w-auto sm:max-w-md ${
+                closestHours < 0
+                  ? "border-rose-200/70 bg-rose-50/90 text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300"
+                  : "border-amber-200/60 bg-amber-50/80 text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300"
+              }`}
+            >
+              <Flame
+                className={`h-4 w-4 shrink-0 animate-pulse ${
+                  closestHours < 0 ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400"
+                }`}
+              />
               <div className="min-w-0 truncate">
-                <span>Deadline Terdekat: </span>
+                <span>{closestHours < 0 ? "Terlewat: " : "Deadline Terdekat: "}</span>
                 <strong className="inline-block max-w-[130px] truncate align-bottom font-bold text-slate-800 dark:text-slate-100 sm:max-w-[200px]" title={closestTask.title}>
                   {closestTask.title}
                 </strong>{" "}
-                <span className="shrink-0 whitespace-nowrap">({closestHours >= 24 ? `${Math.floor(closestHours / 24)} hari lagi` : closestHours > 0 ? `${closestHours} jam lagi` : "Segera berakhir!"})</span>
+                <span className="shrink-0 whitespace-nowrap">
+                  (
+                  {closestHours < 0
+                    ? Math.abs(closestHours) >= 24
+                      ? `${Math.floor(Math.abs(closestHours) / 24)} hari lalu`
+                      : `${Math.max(1, Math.abs(closestHours))} jam lalu`
+                    : closestHours >= 24
+                      ? `${Math.floor(closestHours / 24)} hari lagi`
+                      : closestHours > 0
+                        ? `${closestHours} jam lagi`
+                        : "Segera berakhir!"}
+                  )
+                </span>
               </div>
             </div>
           )}
@@ -177,64 +204,93 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
         <section className="min-w-0 overflow-hidden rounded-2xl border border-liquid-border bg-white p-4 shadow-glass dark:border-slate-800 dark:bg-slate-900 sm:p-6 lg:col-span-2">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="font-bold text-liquid-text dark:text-slate-100">Deadline Terdekat</h2>
-              <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Berdasarkan tugas aktif yang memiliki deadline.</p>
+              <h2 className="font-bold text-liquid-text dark:text-slate-100">Deadline &amp; Pengingat Tugas</h2>
+              <p className="mt-1 text-xs text-liquid-text-secondary dark:text-slate-400">Tugas yang perlu segera diselesaikan, termasuk yang melewati tenggat.</p>
             </div>
 
-            <span className="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-600 dark:bg-blue-950/60 dark:text-blue-300">{upcoming.length} tugas</span>
+            <div className="flex shrink-0 items-center gap-1.5">
+              {overdueList.length > 0 && (
+                <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:bg-rose-950/60 dark:text-rose-300">
+                  {overdueList.length} terlewat
+                </span>
+              )}
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-600 dark:bg-blue-950/60 dark:text-blue-300">
+                {urgentDeadlines.length} tugas
+              </span>
+            </div>
           </div>
 
           <div className="mt-4 space-y-3 sm:mt-5">
-            {upcoming.length === 0 ? (
+            {urgentDeadlines.length === 0 ? (
               <div className="rounded-xl bg-slate-50 p-5 text-sm text-liquid-text-secondary dark:bg-slate-800/50 dark:text-slate-400">🎉 Belum ada deadline yang mendekat. Waktunya santai!</div>
             ) : (
-              upcoming.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => setSelectedTask(task)}
-                  className="group flex min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-100 p-3.5 transition hover:border-liquid-accent/40 hover:bg-slate-50/80 dark:border-slate-800 dark:hover:border-sky-500/40 dark:hover:bg-slate-800/60 sm:p-4"
-                >
-                  {/* Quick Complete Checkbox */}
-                  <button
-                    type="button"
-                    onClick={(e) => handleQuickComplete(task, e)}
-                    disabled={completingTaskId === task.id}
-                    title="Tandai Selesai"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-300 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600 dark:hover:border-emerald-500 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
+              urgentDeadlines.map((task) => {
+                const isOverdue = Boolean(task.dueDate && new Date(task.dueDate) < now);
+                const scopeBadge =
+                  task.scope === "CLASS"
+                    ? { label: "Kelas", cls: "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" }
+                    : task.scope === "GROUP"
+                      ? { label: "Kelompok", cls: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300" }
+                      : { label: "Personal", cls: "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300" };
+
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => setSelectedTask(task)}
+                    className={`group flex min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border p-3.5 transition sm:p-4 ${
+                      isOverdue
+                        ? "border-rose-200/80 bg-rose-50/40 hover:border-rose-300 hover:bg-rose-50/70 dark:border-rose-900/50 dark:bg-rose-950/20 dark:hover:bg-rose-950/35"
+                        : "border-slate-100 hover:border-liquid-accent/40 hover:bg-slate-50/80 dark:border-slate-800 dark:hover:border-sky-500/40 dark:hover:bg-slate-800/60"
+                    }`}
                   >
-                    {completingTaskId === task.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
-                    ) : (
-                      <Check className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
-                    )}
-                  </button>
+                    {/* Quick Complete Checkbox */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleQuickComplete(task, e)}
+                      disabled={completingTaskId === task.id}
+                      title="Tandai Selesai"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-300 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600 dark:hover:border-emerald-500 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-400"
+                    >
+                      {completingTaskId === task.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+                      ) : (
+                        <Check className="h-4 w-4 opacity-0 transition group-hover:opacity-100" />
+                      )}
+                    </button>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-liquid-text group-hover:text-liquid-accent dark:text-slate-100 dark:group-hover:text-sky-400 transition-colors">
-                      {task.title}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs text-liquid-text-secondary dark:text-slate-400">
-                      {task.course ? `${task.course.code} · ${task.course.name}` : "Tanpa mata kuliah"}
-                    </p>
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-sm font-semibold text-liquid-text transition-colors group-hover:text-liquid-accent dark:text-slate-100 dark:group-hover:text-sky-400">
+                          {task.title}
+                        </p>
+                        <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${scopeBadge.cls}`}>
+                          {scopeBadge.label}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-liquid-text-secondary dark:text-slate-400">
+                        {task.course ? `${task.course.code} · ${task.course.name}` : "Tanpa mata kuliah"}
+                      </p>
+                    </div>
 
-                  <div className="ml-2 shrink-0 text-right">
-                    <p className="text-xs font-semibold text-liquid-text dark:text-slate-100">
-                      {formatWib(task.dueDate!, {
-                        day: "2-digit",
-                        month: "short",
-                      })}
-                    </p>
-                    <p className="text-[11px] text-liquid-text-secondary dark:text-slate-400">
-                      {formatWib(task.dueDate!, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}{" "}
-                      WIB
-                    </p>
+                    <div className="ml-2 shrink-0 text-right">
+                      <p className={`text-xs font-semibold ${isOverdue ? "text-rose-600 dark:text-rose-400" : "text-liquid-text dark:text-slate-100"}`}>
+                        {isOverdue ? "Terlewat · " : ""}
+                        {formatWib(task.dueDate!, {
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </p>
+                      <p className={`text-[11px] ${isOverdue ? "text-rose-500 dark:text-rose-400/90" : "text-liquid-text-secondary dark:text-slate-400"}`}>
+                        {formatWib(task.dueDate!, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        WIB
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </section>

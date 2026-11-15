@@ -130,7 +130,7 @@ export default function CourseDetailPage() {
 
           <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Link
-              href={`/dashboard#tasks?courseId=${course.id}`}
+              href={`/dashboard/tasks?courseId=${course.id}`}
               className="group rounded-2xl border border-liquid-border dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-glass transition hover:-translate-y-0.5 hover:border-liquid-accent/20 dark:hover:border-sky-500/30 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-4">

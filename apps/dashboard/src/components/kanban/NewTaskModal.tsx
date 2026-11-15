@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { ArrowRight, Bot, Check, HelpCircle, Loader2, Sparkles, User, Users, UsersRound, X } from "lucide-react";
 import type { Course, Role } from "@/types";
 import { parseTaskNaturalLanguage, type ParsedTaskResult } from "@/lib/ai-task-parser";
+import { useSchedule } from "@/hooks/useSchedule";
+import { getNextCourseClassDueDate } from "@/lib/schedule-utils";
 import { GroupMemberPicker, type SelectedGroupMember } from "./GroupMemberPicker";
 
 interface Props {
@@ -38,6 +40,7 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { schedules } = useSchedule();
 
   useEffect(() => {
     setMounted(true);
@@ -166,6 +169,8 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
           name: decodeURIComponent(courseId.replace(/^sched-/, "")),
         }
       : null);
+
+  const nextCourseClass = courseId ? getNextCourseClassDueDate(schedules, courseId, courses) : null;
 
   const modalContent = (
     <div
@@ -571,6 +576,15 @@ export function NewTaskModal({ open, guildId, courses, roles, user, userId, onCl
                     >
                       1 Minggu Lagi
                     </button>
+                    {nextCourseClass && (
+                      <button
+                        type="button"
+                        onClick={() => setDueDate(nextCourseClass.dueDateValue)}
+                        className="rounded-lg border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 transition hover:border-sky-400 hover:bg-sky-100 dark:border-sky-800/60 dark:bg-sky-950/50 dark:text-sky-300 dark:hover:bg-sky-900/60"
+                      >
+                        Sebelum Kelas ({nextCourseClass.dayLabel} {nextCourseClass.startTime})
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

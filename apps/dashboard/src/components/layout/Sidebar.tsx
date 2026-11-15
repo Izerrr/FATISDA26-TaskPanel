@@ -478,7 +478,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
             Privasi
           </Link>
           <span>•</span>
-          <span>v4.0</span>
+          <span>v4.1</span>
         </div>
       </div>
     </div>

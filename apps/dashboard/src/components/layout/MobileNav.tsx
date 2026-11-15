@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, LayoutDashboard, Users } from "lucide-react";
 
 const navItems = [
   {
@@ -12,7 +11,7 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    href: "/dashboard#tasks",
+    href: "/dashboard/tasks",
     label: "Tugas",
     icon: ClipboardList,
   },
@@ -23,61 +22,46 @@ const navItems = [
   },
   {
     href: "/dashboard/courses",
-    label: "Matkul & Vault",
+    label: "Matkul",
     icon: BookOpen,
+  },
+  {
+    href: "/dashboard/class",
+    label: "Kelas",
+    icon: Users,
   },
 ] as const;
 
 export function MobileNav() {
   const pathname = usePathname();
-  const [hash, setHash] = useState("");
 
-  useEffect(() => {
-    const updateHash = () => {
-      setHash(window.location.hash);
-    };
-
-    updateHash();
-
-    window.addEventListener("hashchange", updateHash);
-
-    return () => {
-      window.removeEventListener("hashchange", updateHash);
-    };
-  }, []);
-
-  function isActive(label: string, href: string) {
-    if (label === "Home") {
-      return pathname === "/dashboard" && hash !== "#tasks";
+  function isActive(href: string) {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard";
     }
-
-    if (label === "Tugas") {
-      return pathname === "/dashboard" && hash === "#tasks";
-    }
-
     return pathname.startsWith(href);
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none md:hidden">
-      <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-liquid-border bg-white/95 px-1.5 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-none md:hidden">
+      <div className="mx-auto flex h-16 max-w-lg items-center justify-around gap-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.label, item.href);
+          const active = isActive(item.href);
 
           return (
             <Link
-              key={item.label}
+              key={item.href}
               href={item.href}
-              className={`flex min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-semibold transition ${
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition ${
                 active ? "text-liquid-accent dark:text-sky-400" : "text-liquid-text-secondary dark:text-slate-400"
               }`}
             >
-              <div className={`flex h-8 w-10 items-center justify-center rounded-xl transition ${active ? "bg-liquid-accent/10 dark:bg-sky-500/20" : "bg-transparent"}`}>
-                <Icon className="h-[18px] w-[18px]" />
+              <div className={`flex h-7 w-9 items-center justify-center rounded-xl transition ${active ? "bg-liquid-accent/10 dark:bg-sky-500/20" : "bg-transparent"}`}>
+                <Icon className="h-[17px] w-[17px]" />
               </div>
 
-              <span>{item.label}</span>
+              <span className="truncate max-w-full">{item.label}</span>
             </Link>
           );
         })}

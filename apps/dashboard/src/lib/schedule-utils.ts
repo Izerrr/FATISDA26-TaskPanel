@@ -1,5 +1,5 @@
-import type { Schedule } from "@/types";
-import { getWibMinutesOfDay, getWibWeekday } from "./datetime";
+import type { Course, Schedule } from "@/types";
+import { getWibMinutesOfDay, getWibParts, getWibWeekday, toWibInputValue, wibDate } from "./datetime";
 
 export interface ScheduleDayResult {
   day: number;
@@ -145,4 +145,70 @@ export function getCurrentLiveClassStatus(schedules: Schedule[]): LiveClassStatu
   // 3. Semua kuliah hari ini telah selesai
   return { state: "DONE_FOR_DAY" };
 }
+
+export interface NextCourseClassDue {
+  dueDateValue: string;
+  dayLabel: string;
+  startTime: string;
+}
+
+/**
+ * Hitung waktu mulai pertemuan kuliah berikutnya untuk mata kuliah yang dipilih
+ * (format YYYY-MM-DDTHH:mm WIB untuk input datetime-local).
+ */
+export function getNextCourseClassDueDate(
+  schedules: Schedule[],
+  courseId: string,
+  courses: Course[] = [],
+  now: Date = new Date()
+): NextCourseClassDue | null {
+  if (!courseId || schedules.length === 0) return null;
+
+  const matchedCourse = courses.find((c) => c.id === courseId);
+  const schedPrefixName = courseId.startsWith("sched-")
+    ? decodeURIComponent(courseId.replace(/^sched-/, "")).trim().toLowerCase()
+    : null;
+  const targetName = (matchedCourse?.name ?? schedPrefixName ?? "").trim().toLowerCase();
+
+  const candidateSchedules = schedules.filter((s) => {
+    if (s.courseId === courseId || s.course?.id === courseId) return true;
+    const schedCourseName = (s.course?.name ?? s.courseName ?? "").trim().toLowerCase();
+    return Boolean(targetName && schedCourseName && schedCourseName === targetName);
+  });
+
+  if (candidateSchedules.length === 0) return null;
+
+  const wibNow = getWibParts(now);
+  let earliestDate: Date | null = null;
+  let earliestMeta: { day: number; startTime: string } | null = null;
+
+  for (const s of candidateSchedules) {
+    const [rawH, rawM] = s.startTime.split(/[:.]/).map(Number);
+    const startH = Number.isFinite(rawH) ? rawH : 8;
+    const startM = Number.isFinite(rawM) ? rawM : 0;
+
+    for (let offset = 0; offset <= 7; offset++) {
+      const candidateDay = ((wibNow.weekday - 1 + offset) % 7) + 1;
+      if (candidateDay !== s.day) continue;
+
+      const candidateDate = wibDate(wibNow.year, wibNow.month, wibNow.day + offset, startH, startM);
+      if (candidateDate.getTime() <= now.getTime() + 5 * 60 * 1000) continue;
+
+      if (!earliestDate || candidateDate.getTime() < earliestDate.getTime()) {
+        earliestDate = candidateDate;
+        earliestMeta = { day: s.day, startTime: s.startTime };
+      }
+      break;
+    }
+  }
+
+  if (!earliestDate || !earliestMeta) return null;
+
+  return {
+    dueDateValue: toWibInputValue(earliestDate),
+    dayLabel: getDayLabel(earliestMeta.day),
+    startTime: earliestMeta.startTime,
+  };
+}
+
 
