@@ -5,14 +5,25 @@ import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import { LayoutGrid, List, Sparkles, PanelRightClose, PanelRightOpen } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
+import dynamic from "next/dynamic";
 import { useCourses } from "@/hooks/useCourses";
 import { useRole } from "@/hooks/useRole";
-import { EditTaskModal } from "@/components/tasks/EditTaskModal";
-import { DeleteTaskModal } from "@/components/tasks/DeleteTaskModal";
 import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
-import { TaskDetailModal } from "./TaskDetailModal";
 import { TaskListView } from "./TaskListView";
+
+const EditTaskModal = dynamic(
+  () => import("@/components/tasks/EditTaskModal").then((m) => m.EditTaskModal),
+  { ssr: false }
+);
+const DeleteTaskModal = dynamic(
+  () => import("@/components/tasks/DeleteTaskModal").then((m) => m.DeleteTaskModal),
+  { ssr: false }
+);
+const TaskDetailModal = dynamic(
+  () => import("./TaskDetailModal").then((m) => m.TaskDetailModal),
+  { ssr: false }
+);
 
 interface Props {
   tasks: Task[];

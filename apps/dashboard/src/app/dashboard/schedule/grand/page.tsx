@@ -1,13 +1,18 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Download, Filter, GraduationCap, Layers, MapPin, RefreshCw, Search, Sparkles, Table as TableIcon, UserRound } from "lucide-react";
 import type { Prodi } from "@prisma/client";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
-import { ScheduleAiMatcher } from "@/components/schedule/ScheduleAiMatcher";
 import { OFFICIAL_PRODI_ROOMS } from "@/lib/schedule/constants";
+
+const ScheduleAiMatcher = dynamic(
+  () => import("@/components/schedule/ScheduleAiMatcher").then((m) => m.ScheduleAiMatcher),
+  { ssr: false }
+);
 
 interface ScheduleItem {
   id: string;

@@ -3,6 +3,7 @@
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -21,16 +22,19 @@ import {
   WifiOff,
 } from "lucide-react";
 
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useRole } from "@/hooks/useRole";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { useExamMode } from "@/hooks/useExamMode";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ExamScheduleSyncPanel } from "@/components/schedule/ExamScheduleSyncPanel";
 import { RoomLocationBadge } from "@/components/schedule/RoomLocationBadge";
-import {
-  WhatsAppBroadcastModal,
-  type BroadcastModalTarget,
-} from "@/components/schedule/WhatsAppBroadcastModal";
+import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const WhatsAppBroadcastModal = dynamic(
+  () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
+  { ssr: false }
+);
 import { formatExamDuration } from "@/lib/schedule/exam/constants";
 import type { ExamSchedule, ExamType, Kelas, Prodi } from "@/types";
 
@@ -54,7 +58,7 @@ export default function ExamSchedulePage() {
     user?.semester ? String(user.semester) : "1",
   );
   const [selectedKelas, setSelectedKelas] = useState<string>(user?.kelas ?? "A");
-  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
+  const [selectedAgama, handleAgamaChange] = useAgamaPreference();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [broadcastTarget, setBroadcastTarget] = useState<BroadcastModalTarget | null>(null);
@@ -78,28 +82,6 @@ export default function ExamSchedulePage() {
     if (user?.semester) setSelectedSemester(String(user.semester));
     if (user?.kelas) setSelectedKelas(user.kelas);
   }, [user?.semester, user?.kelas]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("fatisda_agama_preference");
-      if (saved) setSelectedAgama(saved);
-
-      const handleStorageUpdate = () => {
-        const updated = localStorage.getItem("fatisda_agama_preference");
-        if (updated) setSelectedAgama(updated);
-      };
-      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
-      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
-    }
-  }, []);
-
-  const handleAgamaChange = (val: string) => {
-    setSelectedAgama(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("fatisda_agama_preference", val);
-      window.dispatchEvent(new Event("fatisda_agama_change"));
-    }
-  };
 
   const prodi: Prodi = user?.prodi ?? "INFORMATIKA";
   const isAdmin = user?.roles?.some((r) => ["ADMIN", "OWNER"].includes(r));
@@ -785,10 +767,12 @@ export default function ExamSchedulePage() {
         )}
       </div>
 
-      <WhatsAppBroadcastModal
-        target={broadcastTarget}
-        onClose={() => setBroadcastTarget(null)}
-      />
+      {broadcastTarget && (
+        <WhatsAppBroadcastModal
+          target={broadcastTarget}
+          onClose={() => setBroadcastTarget(null)}
+        />
+      )}
     </DashboardFrame>
   );
 }

@@ -3,6 +3,7 @@
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   Calendar,
@@ -15,6 +16,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useSchedule } from "@/hooks/useSchedule";
 import { useExamMode } from "@/hooks/useExamMode";
 import { useRole } from "@/hooks/useRole";
@@ -23,13 +25,21 @@ import { getTodayDay, sortSchedules } from "@/lib/schedule-utils";
 
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { ScheduleSyncPanel } from "@/components/schedule/ScheduleSyncPanel";
-import { ScheduleExportModal } from "@/components/schedule/ScheduleExportModal";
-import { ScheduleAiMatcher } from "@/components/schedule/ScheduleAiMatcher";
 import { RoomLocationBadge } from "@/components/schedule/RoomLocationBadge";
-import {
-  WhatsAppBroadcastModal,
-  type BroadcastModalTarget,
-} from "@/components/schedule/WhatsAppBroadcastModal";
+import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const ScheduleExportModal = dynamic(
+  () => import("@/components/schedule/ScheduleExportModal").then((m) => m.ScheduleExportModal),
+  { ssr: false }
+);
+const ScheduleAiMatcher = dynamic(
+  () => import("@/components/schedule/ScheduleAiMatcher").then((m) => m.ScheduleAiMatcher),
+  { ssr: false }
+);
+const WhatsAppBroadcastModal = dynamic(
+  () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
+  { ssr: false }
+);
 
 const DAYS = [
   { value: 1, label: "Senin" },
@@ -67,30 +77,8 @@ export default function SchedulePage() {
   const { examMode } = useExamMode();
 
   const [selectedSemester, setSelectedSemester] = useState<number>(user?.semester ?? 1);
-  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
+  const [selectedAgama, handleAgamaChange] = useAgamaPreference();
   const [broadcastTarget, setBroadcastTarget] = useState<BroadcastModalTarget | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("fatisda_agama_preference");
-      if (saved) setSelectedAgama(saved);
-
-      const handleStorageUpdate = () => {
-        const updated = localStorage.getItem("fatisda_agama_preference");
-        if (updated) setSelectedAgama(updated);
-      };
-      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
-      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
-    }
-  }, []);
-
-  const handleAgamaChange = (val: string) => {
-    setSelectedAgama(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("fatisda_agama_preference", val);
-      window.dispatchEvent(new Event("fatisda_agama_change"));
-    }
-  };
 
   useEffect(() => {
     if (user?.semester) {
@@ -282,13 +270,15 @@ export default function SchedulePage() {
         </section>
 
         {/* Export Modal */}
-        <ScheduleExportModal
-          open={exportModalOpen}
-          schedules={schedules}
-          semester={selectedSemester}
-          kelas={user?.kelas}
-          onClose={() => setExportModalOpen(false)}
-        />
+        {exportModalOpen && (
+          <ScheduleExportModal
+            open={exportModalOpen}
+            schedules={schedules}
+            semester={selectedSemester}
+            kelas={user?.kelas}
+            onClose={() => setExportModalOpen(false)}
+          />
+        )}
 
         {isAdmin && user?.prodi && user?.kelas && <ScheduleSyncPanel />}
 
@@ -466,10 +456,12 @@ export default function SchedulePage() {
         </section>
       </div>
 
-      <WhatsAppBroadcastModal
-        target={broadcastTarget}
-        onClose={() => setBroadcastTarget(null)}
-      />
+      {broadcastTarget && (
+        <WhatsAppBroadcastModal
+          target={broadcastTarget}
+          onClose={() => setBroadcastTarget(null)}
+        />
+      )}
     </DashboardFrame>
   );
 }

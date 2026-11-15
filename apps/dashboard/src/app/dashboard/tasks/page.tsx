@@ -3,10 +3,19 @@
 import { useMemo, useState } from "react";
 import { ClipboardList, Filter, FlaskConical, Plus, Search, UserRound } from "lucide-react";
 
+import dynamic from "next/dynamic";
+
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
-import { TaskNotificationTestModal } from "@/components/dashboard/TaskNotificationTestModal";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
-import { NewTaskModal } from "@/components/kanban/NewTaskModal";
+
+const TaskNotificationTestModal = dynamic(
+  () => import("@/components/dashboard/TaskNotificationTestModal").then((m) => m.TaskNotificationTestModal),
+  { ssr: false }
+);
+const NewTaskModal = dynamic(
+  () => import("@/components/kanban/NewTaskModal").then((m) => m.NewTaskModal),
+  { ssr: false }
+);
 
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useCourses } from "@/hooks/useCourses";
@@ -285,10 +294,14 @@ export default function TasksPage() {
       </div>
 
       {/* Create Task */}
-      <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
+      {createOpen && (
+        <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
+      )}
 
       {/* Admin Testing Environment: Notifikasi Discord */}
-      {canTestNotify && <TaskNotificationTestModal open={testOpen} onClose={() => setTestOpen(false)} currentUser={user} />}
+      {canTestNotify && testOpen && (
+        <TaskNotificationTestModal open={testOpen} onClose={() => setTestOpen(false)} currentUser={user} />
+      )}
     </DashboardFrame>
   );
 }

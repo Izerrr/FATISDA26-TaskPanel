@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { useGuild } from "@/components/providers/GuildProvider";
 import { useRole } from "@/hooks/useRole";
@@ -11,15 +12,26 @@ import { useSchedule } from "@/hooks/useSchedule";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { Overview } from "@/components/dashboard/Overview";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
-import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
-import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
 import { AnnouncementToast } from "@/components/dashboard/AnnouncementToast";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
+import { useSessionManager } from "@/components/providers/SessionManager";
 import { SlidersHorizontal, Link2, CheckCircle2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 import type { Course } from "@/types";
 
-import { NewTaskModal } from "@/components/kanban/NewTaskModal";
+const NewTaskModal = dynamic(
+  () => import("@/components/kanban/NewTaskModal").then((m) => m.NewTaskModal),
+  { ssr: false }
+);
+const ClassSelectorModal = dynamic(
+  () => import("@/components/dashboard/ClassSelectorModal").then((m) => m.ClassSelectorModal),
+  { ssr: false }
+);
+const AccountLinkingModal = dynamic(
+  () => import("@/components/dashboard/AccountLinkingModal").then((m) => m.AccountLinkingModal),
+  { ssr: false }
+);
 
 export function DashboardShell() {
   const { selectedGuild } = useGuild();
@@ -40,22 +52,8 @@ export function DashboardShell() {
   const [createOpen, setCreateOpen] = useState(false);
   const [classModalOpen, setClassModalOpen] = useState(false);
   const [linkingModalOpen, setLinkingModalOpen] = useState(false);
-  const [agamaPref, setAgamaPref] = useState<string>("islam");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("fatisda_agama_preference");
-        if (saved) setAgamaPref(saved);
-        const handleStorageUpdate = () => {
-          const updated = localStorage.getItem("fatisda_agama_preference");
-          if (updated) setAgamaPref(updated);
-        };
-        window.addEventListener("fatisda_agama_change", handleStorageUpdate);
-        return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
-      } catch {}
-    }
-  }, []);
+  const [agamaPref] = useAgamaPreference();
+  const { triggerSync } = useSessionManager();
 
   const visibleTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -228,24 +226,30 @@ export function DashboardShell() {
         </>
       )}
 
-      <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles.map((role) => String(role))} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
+      {createOpen && (
+        <NewTaskModal open={createOpen} guildId={selectedGuild || ""} courses={courses} roles={roles.map((role) => String(role))} user={user} userId={user?.id} onClose={() => setCreateOpen(false)} onCreated={() => void mutate()} />
+      )}
 
-      <ClassSelectorModal
-        open={classModalOpen}
-        initialProdi={user?.prodi}
-        initialKelas={user?.kelas}
-        initialSemester={user?.semester}
-        onClose={() => setClassModalOpen(false)}
-        onSaved={() => {
-          window.location.reload();
-        }}
-      />
+      {classModalOpen && (
+        <ClassSelectorModal
+          open={classModalOpen}
+          initialProdi={user?.prodi}
+          initialKelas={user?.kelas}
+          initialSemester={user?.semester}
+          onClose={() => setClassModalOpen(false)}
+          onSaved={() => {
+            void triggerSync("Menyegarkan data kelas...", true);
+          }}
+        />
+      )}
 
-      <AccountLinkingModal
-        open={linkingModalOpen}
-        user={user}
-        onClose={() => setLinkingModalOpen(false)}
-      />
+      {linkingModalOpen && (
+        <AccountLinkingModal
+          open={linkingModalOpen}
+          user={user}
+          onClose={() => setLinkingModalOpen(false)}
+        />
+      )}
     </DashboardFrame>
   );
 }

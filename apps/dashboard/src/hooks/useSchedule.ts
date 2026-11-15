@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import type { Schedule } from "@/types";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useRole } from "@/hooks/useRole";
 
 interface ScheduleResponse {
@@ -30,26 +31,7 @@ interface UseScheduleOptions {
 
 export function useSchedule(options: UseScheduleOptions = {}) {
   const { user } = useRole();
-
-  const [prefAgama, setPrefAgama] = useState<string>("islam");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const saved = localStorage.getItem("fatisda_agama_preference");
-      if (saved) setPrefAgama(saved);
-
-      const handleAgamaChange = () => {
-        const updated = localStorage.getItem("fatisda_agama_preference");
-        if (updated) setPrefAgama(updated);
-      };
-
-      window.addEventListener("fatisda_agama_change", handleAgamaChange);
-      return () => window.removeEventListener("fatisda_agama_change", handleAgamaChange);
-    } catch {
-      // Ignore localStorage security exceptions
-    }
-  }, []);
+  const [prefAgama] = useAgamaPreference();
 
   const prodi = options.prodi ?? user?.prodi;
   const kelas = options.kelas ?? user?.kelas;

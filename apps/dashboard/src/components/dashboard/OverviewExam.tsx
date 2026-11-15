@@ -2,7 +2,8 @@
 
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -14,14 +15,17 @@ import {
 } from "lucide-react";
 import type { Prodi } from "@/types";
 import { formatExamDuration } from "@/lib/schedule/exam/constants";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useExamSchedule } from "@/hooks/useExamSchedule";
 import { useExamMode } from "@/hooks/useExamMode";
 import { useRole } from "@/hooks/useRole";
 import { RoomLocationBadge } from "@/components/schedule/RoomLocationBadge";
-import {
-  WhatsAppBroadcastModal,
-  type BroadcastModalTarget,
-} from "@/components/schedule/WhatsAppBroadcastModal";
+import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const WhatsAppBroadcastModal = dynamic(
+  () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
+  { ssr: false }
+);
 
 interface OverviewExamProps {
   semester?: number | null;
@@ -39,30 +43,8 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
   const currentKelas = kelas ?? user?.kelas ?? "A";
   const currentProdi: Prodi = prodi ?? user?.prodi ?? "INFORMATIKA";
 
-  const [selectedAgama, setSelectedAgama] = useState<string>("islam");
+  const [selectedAgama, handleAgamaChange] = useAgamaPreference();
   const [broadcastTarget, setBroadcastTarget] = useState<BroadcastModalTarget | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("fatisda_agama_preference");
-      if (saved) setSelectedAgama(saved);
-
-      const handleStorageUpdate = () => {
-        const updated = localStorage.getItem("fatisda_agama_preference");
-        if (updated) setSelectedAgama(updated);
-      };
-      window.addEventListener("fatisda_agama_change", handleStorageUpdate);
-      return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
-    }
-  }, []);
-
-  const handleAgamaChange = (val: string) => {
-    setSelectedAgama(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("fatisda_agama_preference", val);
-      window.dispatchEvent(new Event("fatisda_agama_change"));
-    }
-  };
 
   const activeExamType = examMode.activeType ?? "UTS";
 
@@ -328,10 +310,12 @@ export function OverviewExam({ semester, kelas, prodi }: OverviewExamProps) {
         </div>
       </section>
 
-      <WhatsAppBroadcastModal
-        target={broadcastTarget}
-        onClose={() => setBroadcastTarget(null)}
-      />
+      {broadcastTarget && (
+        <WhatsAppBroadcastModal
+          target={broadcastTarget}
+          onClose={() => setBroadcastTarget(null)}
+        />
+      )}
     </>
   );
 }

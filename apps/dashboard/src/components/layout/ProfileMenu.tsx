@@ -4,8 +4,13 @@ import { LogOut, UserRound, ChevronRight, Link2, ShieldCheck, MessageSquare, Spa
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRole } from "@/hooks/useRole";
-import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
+
+const FeedbackModal = dynamic(
+  () => import("@/components/dashboard/FeedbackModal").then((m) => m.FeedbackModal),
+  { ssr: false }
+);
 
 export function ProfileMenu() {
   const { data: session } = useSession();
@@ -146,7 +151,9 @@ export function ProfileMenu() {
         )}
       </div>
 
-      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      {feedbackOpen && (
+        <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      )}
     </>
   );
 }

@@ -22,49 +22,51 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ tasks: [], courses: [] });
     }
 
+    const userKey = userId as string;
+    const visibilityConditions: any[] = [
+      { scope: "PERSONAL", createdById: userKey },
+      { scope: "PERSONAL", assignedTo: userKey },
+      {
+        scope: "GROUP",
+        OR: [{ createdById: userKey }, { members: { some: { userId: userKey } } }],
+      },
+    ];
+
+    if (prodi && kelas) {
+      visibilityConditions.push({ scope: "CLASS", prodi, kelas });
+    }
+
     const tasksWhere: any = {
       AND: [
         {
           OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } }
-          ]
-        }
-      ]
+            { title: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        { OR: visibilityConditions },
+      ],
     };
 
-    if (prodi && kelas) {
-      tasksWhere.AND.push({
-        OR: [
-          { scope: 'PERSONAL', createdById: userId as string },
-          { scope: 'CLASS', prodi, kelas }
-        ]
-      });
-    } else {
-      tasksWhere.AND.push({ scope: 'PERSONAL', createdById: userId as string });
-    }
-
-    const tasks = await prisma.task.findMany({
-      where: tasksWhere,
-      take: 5,
-      include: { course: true }
-    });
-
-    let coursesWhere: any = {
+    const coursesWhere: any = {
       OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { code: { contains: q, mode: 'insensitive' } }
-      ]
+        { name: { contains: q, mode: "insensitive" } },
+        { code: { contains: q, mode: "insensitive" } },
+      ],
+      ...(prodi ? { AND: [{ prodi }] } : {}),
     };
 
-    if (prodi) {
-      coursesWhere.AND = [{ prodi }];
-    }
-
-    const courses = await prisma.course.findMany({
-      where: coursesWhere,
-      take: 5
-    });
+    const [tasks, courses] = await Promise.all([
+      prisma.task.findMany({
+        where: tasksWhere,
+        take: 5,
+        include: { course: true },
+      }),
+      prisma.course.findMany({
+        where: coursesWhere,
+        take: 5,
+      }),
+    ]);
 
     return NextResponse.json({ tasks, courses });
   } catch (error) {

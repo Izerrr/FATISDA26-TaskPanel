@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import useSWR from "swr";
 import type { Course } from "@/types";
 import { matchesAgamaFilter } from "@/lib/schedule/constants";
@@ -31,25 +32,7 @@ export function useCourses(options?: number | UseCoursesOptions) {
   const parsedOptions: UseCoursesOptions =
     typeof options === "number" ? { semester: options } : options ?? {};
 
-  const [prefAgama, setPrefAgama] = useState<string>("islam");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const saved = localStorage.getItem("fatisda_agama_preference");
-      if (saved) setPrefAgama(saved);
-
-      const handleAgamaChange = () => {
-        const updated = localStorage.getItem("fatisda_agama_preference");
-        if (updated) setPrefAgama(updated);
-      };
-
-      window.addEventListener("fatisda_agama_change", handleAgamaChange);
-      return () => window.removeEventListener("fatisda_agama_change", handleAgamaChange);
-    } catch {
-      // Ignore storage exception
-    }
-  }, []);
+  const [prefAgama] = useAgamaPreference();
 
   const effectiveAgama = parsedOptions.all ? "all" : (parsedOptions.agama ?? prefAgama);
 

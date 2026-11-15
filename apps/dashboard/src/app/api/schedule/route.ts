@@ -158,40 +158,56 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const schedules = await prisma.schedule.findMany({
-      where: whereClause,
-      orderBy: [
-        {
-          day: "asc",
-        },
-        {
-          startTime: "asc",
-        },
-      ],
-      select: {
-        id: true,
-        prodi: true,
-        kelas: true,
-        semester: true,
-        courseId: true,
-        courseName: true,
-        course: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
+    const [schedules, refreshedSync] = await Promise.all([
+      prisma.schedule.findMany({
+        where: whereClause,
+        orderBy: [
+          {
+            day: "asc",
           },
+          {
+            startTime: "asc",
+          },
+        ],
+        select: {
+          id: true,
+          prodi: true,
+          kelas: true,
+          semester: true,
+          courseId: true,
+          courseName: true,
+          course: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          day: true,
+          startTime: true,
+          endTime: true,
+          room: true,
+          lecturer: true,
+          rawClassCode: true,
+          markers: true,
+          sourceSlots: true,
         },
-        day: true,
-        startTime: true,
-        endTime: true,
-        room: true,
-        lecturer: true,
-        rawClassCode: true,
-        markers: true,
-        sourceSlots: true,
-      },
-    });
+      }),
+      isStale
+        ? prisma.scheduleSync.findUnique({
+            where: {
+              prodi_spreadsheetId_sheetGid: {
+                prodi,
+                spreadsheetId: source.spreadsheetId,
+                sheetGid: source.gid,
+              },
+            },
+            select: {
+              lastSyncedAt: true,
+            },
+          })
+        : Promise.resolve(scheduleSync),
+    ]);
 
     // Filter agama jika dipilih (default: "islam")
     const filteredSchedules = schedules.filter((s) => matchesAgamaFilter(s.courseName, agamaParam));
@@ -231,21 +247,7 @@ export async function GET(request: NextRequest) {
       },
       rooms: distinctRooms,
       sync: {
-        lastSyncedAt:
-          (
-            await prisma.scheduleSync.findUnique({
-              where: {
-                prodi_spreadsheetId_sheetGid: {
-                  prodi,
-                  spreadsheetId: source.spreadsheetId,
-                  sheetGid: source.gid,
-                },
-              },
-              select: {
-                lastSyncedAt: true,
-              },
-            })
-          )?.lastSyncedAt ?? null,
+        lastSyncedAt: refreshedSync?.lastSyncedAt ?? scheduleSync?.lastSyncedAt ?? null,
         staleBeforeMs: STALE_AFTER_MS,
       },
       total: uniqueSchedules.length,

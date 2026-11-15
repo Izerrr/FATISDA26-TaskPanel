@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { BarChart3, BookOpen, CalendarDays, ClipboardList, FolderGit2, GraduationCap, LayoutDashboard, LogOut, MessageSquare, RefreshCw, Settings2, Sparkles, UserRound, Users, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -10,10 +11,15 @@ import type { Course, User } from "@/types";
 
 import { SidebarInstallButton } from "@/components/pwa/InstallPrompt";
 import { useSessionManager } from "@/components/providers/SessionManager";
-import { FeedbackModal } from "@/components/dashboard/FeedbackModal";
 import { TaskPanelLogo } from "@/components/ui/TaskPanelLogo";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useExamMode } from "@/hooks/useExamMode";
 import { matchesAgamaFilter } from "@/lib/schedule/constants";
+
+const FeedbackModal = dynamic(
+  () => import("@/components/dashboard/FeedbackModal").then((m) => m.FeedbackModal),
+  { ssr: false }
+);
 
 interface SidebarProps {
   courses: Course[];
@@ -114,24 +120,7 @@ function getRoleLabels(user: User | null) {
 }
 
 export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }: SidebarProps) {
-  const [prefAgama, setPrefAgama] = useState<string>("islam");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("fatisda_agama_preference");
-        if (saved) setPrefAgama(saved);
-
-        const handleAgamaChange = () => {
-          const updated = localStorage.getItem("fatisda_agama_preference");
-          if (updated) setPrefAgama(updated);
-        };
-
-        window.addEventListener("fatisda_agama_change", handleAgamaChange);
-        return () => window.removeEventListener("fatisda_agama_change", handleAgamaChange);
-      } catch {}
-    }
-  }, []);
+  const [prefAgama] = useAgamaPreference();
 
   const visibleCourses = useMemo(() => {
     if (prefAgama === "all" || prefAgama === "semua") return courses;
@@ -175,7 +164,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         body: JSON.stringify({ kelas: newKelas }),
       });
       if (res.ok) {
-        window.location.reload();
+        await triggerSync("Menyegarkan data kelas...", true);
       }
     } catch (e) {
       console.error(e);
@@ -219,7 +208,7 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         setSyncMessage("Profil diperbarui dari Discord.");
       }
 
-      window.location.reload();
+      await triggerSync("Menyegarkan data profil...", true);
     } catch (error) {
       setSyncMessage(error instanceof Error ? error.message : "Sinkronisasi gagal.");
     } finally {
@@ -509,7 +498,9 @@ export function Sidebar({ courses, user, guildId, mobileOpen = false, onClose }:
         <div className={`sidebar-drawer relative z-10 h-full w-72 max-w-[85vw] shadow-2xl transform transition-transform duration-300 ease-out bg-white dark:bg-slate-900 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{sidebarContent}</div>
       </div>
 
-      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      {feedbackOpen && (
+        <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      )}
     </>
   );
 }

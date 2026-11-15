@@ -45,17 +45,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 });
     }
 
-    // Perbarui status akses aplikasi dan aktivitas terakhir
-    try {
-      await (prisma.user as any).update({
-        where: { id: user.id },
-        data: {
-          hasAccessedApp: true,
-          lastActiveAt: new Date(),
-        },
-      });
-    } catch (activeErr) {
-      console.warn("[GET /api/me] Gagal update lastActiveAt:", activeErr);
+    // Perbarui status akses aplikasi dan aktivitas terakhir (throttled tiap 5 menit)
+    const LAST_ACTIVE_THROTTLE_MS = 5 * 60 * 1000;
+    const needsActiveUpdate =
+      !user.hasAccessedApp ||
+      !user.lastActiveAt ||
+      Date.now() - new Date(user.lastActiveAt).getTime() > LAST_ACTIVE_THROTTLE_MS;
+
+    if (needsActiveUpdate) {
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            hasAccessedApp: true,
+            lastActiveAt: new Date(),
+          },
+        });
+      } catch (activeErr) {
+        console.warn("[GET /api/me] Gagal update lastActiveAt:", activeErr);
+      }
     }
 
     return NextResponse.json({

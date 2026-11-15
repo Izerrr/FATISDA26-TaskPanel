@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { 
@@ -20,14 +21,25 @@ import {
   FileText,
   ExternalLink
 } from "lucide-react";
+import { useAgamaPreference } from "@/hooks/useAgamaPreference";
 import { useRole } from "@/hooks/useRole";
 import { useTasks } from "@/hooks/useTasks";
 import { useGuild } from "@/components/providers/GuildProvider";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
-import { ClassSelectorModal } from "@/components/dashboard/ClassSelectorModal";
-import { AccountLinkingModal } from "@/components/dashboard/AccountLinkingModal";
-import { EditProfileModal } from "@/components/dashboard/EditProfileModal";
 import { AGAMA_OPTIONS } from "@/lib/schedule/constants";
+
+const ClassSelectorModal = dynamic(
+  () => import("@/components/dashboard/ClassSelectorModal").then((m) => m.ClassSelectorModal),
+  { ssr: false }
+);
+const AccountLinkingModal = dynamic(
+  () => import("@/components/dashboard/AccountLinkingModal").then((m) => m.AccountLinkingModal),
+  { ssr: false }
+);
+const EditProfileModal = dynamic(
+  () => import("@/components/dashboard/EditProfileModal").then((m) => m.EditProfileModal),
+  { ssr: false }
+);
 
 export default function ProfilePage() {
   const { user, roles, isGoogle, mutate: mutateMe } = useRole();
@@ -39,34 +51,13 @@ export default function ProfilePage() {
   const [linkingModalOpen, setLinkingModalOpen] = useState(false);
   const [savingSemester, setSavingSemester] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [agamaPref, setAgamaPref] = useState<string>("islam");
+  const [agamaPref, setAgamaPref] = useAgamaPreference();
   const [agamaSaveSuccess, setAgamaSaveSuccess] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("fatisda_agama_preference");
-        if (saved) setAgamaPref(saved);
-        const handleStorageUpdate = () => {
-          const updated = localStorage.getItem("fatisda_agama_preference");
-          if (updated) setAgamaPref(updated);
-        };
-        window.addEventListener("fatisda_agama_change", handleStorageUpdate);
-        return () => window.removeEventListener("fatisda_agama_change", handleStorageUpdate);
-      } catch {}
-    }
-  }, []);
 
   function handleAgamaChange(val: string) {
     setAgamaPref(val);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("fatisda_agama_preference", val);
-        window.dispatchEvent(new Event("fatisda_agama_change"));
-        setAgamaSaveSuccess(true);
-        setTimeout(() => setAgamaSaveSuccess(false), 2000);
-      } catch {}
-    }
+    setAgamaSaveSuccess(true);
+    setTimeout(() => setAgamaSaveSuccess(false), 2000);
   }
 
   // Stats calculation
@@ -454,36 +445,42 @@ export default function ProfilePage() {
         </section>
       </div>
 
-      <EditProfileModal
-        open={editProfileOpen}
-        user={user}
-        onClose={() => setEditProfileOpen(false)}
-        onSaved={() => {
-          mutateMe?.();
-          setEditProfileOpen(false);
-        }}
-      />
+      {editProfileOpen && (
+        <EditProfileModal
+          open={editProfileOpen}
+          user={user}
+          onClose={() => setEditProfileOpen(false)}
+          onSaved={() => {
+            mutateMe?.();
+            setEditProfileOpen(false);
+          }}
+        />
+      )}
 
-      <ClassSelectorModal
-        open={classModalOpen}
-        initialProdi={user?.prodi}
-        initialKelas={user?.kelas}
-        initialSemester={user?.semester}
-        onClose={() => setClassModalOpen(false)}
-        onSaved={() => {
-          mutateMe?.();
-          setClassModalOpen(false);
-        }}
-      />
+      {classModalOpen && (
+        <ClassSelectorModal
+          open={classModalOpen}
+          initialProdi={user?.prodi}
+          initialKelas={user?.kelas}
+          initialSemester={user?.semester}
+          onClose={() => setClassModalOpen(false)}
+          onSaved={() => {
+            mutateMe?.();
+            setClassModalOpen(false);
+          }}
+        />
+      )}
 
-      <AccountLinkingModal
-        open={linkingModalOpen}
-        user={user}
-        onClose={() => {
-          setLinkingModalOpen(false);
-          mutateMe?.();
-        }}
-      />
+      {linkingModalOpen && (
+        <AccountLinkingModal
+          open={linkingModalOpen}
+          user={user}
+          onClose={() => {
+            setLinkingModalOpen(false);
+            mutateMe?.();
+          }}
+        />
+      )}
     </DashboardFrame>
   );
 }

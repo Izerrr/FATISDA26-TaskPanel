@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, BookOpen, CalendarDays, ClipboardList, MessageSquare } from "lucide-react";
 import { useMemo } from "react";
 import { useCourses } from "@/hooks/useCourses";
-import { useMe } from "@/hooks/useMe";
+import { useRole } from "@/hooks/useRole";
 import { DashboardFrame } from "@/components/dashboard/DashboardFrame";
 import { CourseMaterialSection } from "@/components/courses/CourseMaterialSection";
 
 export default function CourseDetailPage() {
   const params = useParams();
-  const { user } = useMe();
+  const { user } = useRole();
   const { courses, isLoading, isError } = useCourses();
 
   const courseId = typeof params.id === "string" ? params.id : "";

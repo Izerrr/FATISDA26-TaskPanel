@@ -1,14 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { ArrowRight, Calendar, CalendarDays, Clock3, Columns2, LayoutList, MapPin, MessageSquareShare, UserRound } from "lucide-react";
 import Link from "next/link";
 
 import type { Schedule } from "@/types";
 import { getDayLabel, getNextSchedules, getCurrentLiveClassStatus, sortSchedules } from "@/lib/schedule-utils";
 import { ScheduleInteractiveCalendar } from "@/components/schedule/ScheduleInteractiveCalendar";
-import {
-  WhatsAppBroadcastModal,
-  type BroadcastModalTarget,
-} from "@/components/schedule/WhatsAppBroadcastModal";
+import type { BroadcastModalTarget } from "@/components/schedule/WhatsAppBroadcastModal";
+
+const WhatsAppBroadcastModal = dynamic(
+  () => import("@/components/schedule/WhatsAppBroadcastModal").then((m) => m.WhatsAppBroadcastModal),
+  { ssr: false }
+);
 
 type ScheduleViewMode = "card" | "calendar" | "both";
 
@@ -314,10 +317,12 @@ export function OverviewSchedule({ schedules }: OverviewScheduleProps) {
         </div>
       </section>
 
-      <WhatsAppBroadcastModal
-        target={broadcastTarget}
-        onClose={() => setBroadcastTarget(null)}
-      />
+      {broadcastTarget && (
+        <WhatsAppBroadcastModal
+          target={broadcastTarget}
+          onClose={() => setBroadcastTarget(null)}
+        />
+      )}
     </>
   );
 }

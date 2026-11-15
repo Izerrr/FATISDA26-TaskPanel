@@ -60,58 +60,55 @@ export async function GET(req: NextRequest) {
     const targetKelas = user.kelas;
 
     /*
-     * Ambil courses resmi dari tabel Course
+     * Ambil courses resmi dan jadwal aktif semester ini secara paralel
      */
-    const dbCourses = await prisma.course.findMany({
-      where: {
-        prodi: targetProdi,
-        ...(targetKelas
-          ? {
-              OR: [{ kelas: targetKelas }, { kelas: null }, { name: { contains: "Olahraga", mode: "insensitive" } }, { name: { contains: "Agama", mode: "insensitive" } }],
-            }
-          : {}),
-      },
-      include: {
-        schedules: {
-          where: {
-            semester: targetSemester,
-          },
-          select: {
-            day: true,
-            startTime: true,
-            endTime: true,
-            room: true,
-            lecturer: true,
+    const [dbCourses, activeSchedules] = await Promise.all([
+      prisma.course.findMany({
+        where: {
+          prodi: targetProdi,
+          ...(targetKelas
+            ? {
+                OR: [{ kelas: targetKelas }, { kelas: null }, { name: { contains: "Olahraga", mode: "insensitive" } }, { name: { contains: "Agama", mode: "insensitive" } }],
+              }
+            : {}),
+        },
+        include: {
+          schedules: {
+            where: {
+              semester: targetSemester,
+            },
+            select: {
+              day: true,
+              startTime: true,
+              endTime: true,
+              room: true,
+              lecturer: true,
+            },
           },
         },
-      },
-      orderBy: [{ code: "asc" }, { name: "asc" }],
-    });
-
-    /*
-     * Jika tabel Course masih sedikit, sinkronkan juga dengan
-     * daftar mata kuliah unik yang ada di tabel Schedule untuk semester ini.
-     */
-    const activeSchedules = await prisma.schedule.findMany({
-      where: {
-        prodi: targetProdi,
-        semester: targetSemester,
-        ...(targetKelas
-          ? {
-              OR: [{ kelas: targetKelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
-            }
-          : {}),
-      },
-      select: {
-        courseId: true,
-        courseName: true,
-        room: true,
-        lecturer: true,
-        day: true,
-        startTime: true,
-        endTime: true,
-      },
-    });
+        orderBy: [{ code: "asc" }, { name: "asc" }],
+      }),
+      prisma.schedule.findMany({
+        where: {
+          prodi: targetProdi,
+          semester: targetSemester,
+          ...(targetKelas
+            ? {
+                OR: [{ kelas: targetKelas }, { courseName: { contains: "Olahraga", mode: "insensitive" } }, { courseName: { contains: "Agama", mode: "insensitive" } }],
+              }
+            : {}),
+        },
+        select: {
+          courseId: true,
+          courseName: true,
+          room: true,
+          lecturer: true,
+          day: true,
+          startTime: true,
+          endTime: true,
+        },
+      }),
+    ]);
 
     // Buat map agar unik per nama mata kuliah
     const combinedCourses = [...dbCourses];
