@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { LayoutGrid, List, Sparkles, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { LayoutGrid, List, CalendarDays, Sparkles, PanelRightClose, PanelRightOpen } from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import dynamic from "next/dynamic";
 import { useCourses } from "@/hooks/useCourses";
@@ -12,6 +12,10 @@ import { KANBAN_COLUMNS, KANBAN_META } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskListView } from "./TaskListView";
 
+const TaskCalendarView = dynamic(
+  () => import("./TaskCalendarView").then((m) => m.TaskCalendarView),
+  { ssr: false }
+);
 const EditTaskModal = dynamic(
   () => import("@/components/tasks/EditTaskModal").then((m) => m.EditTaskModal),
   { ssr: false }
@@ -35,7 +39,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   const { courses } = useCourses();
   const { roles, user } = useRole();
 
-  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
+  const [viewMode, setViewMode] = useState<"kanban" | "list" | "calendar">("kanban");
   const [items, setItems] = useState<Task[]>(tasks);
   const [isDragging, setIsDragging] = useState(false);
   const [justMovedTaskId, setJustMovedTaskId] = useState<string | null>(null);
@@ -62,7 +66,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("fatisda_task_view");
-      if (saved === "list" || saved === "kanban") {
+      if (saved === "list" || saved === "kanban" || saved === "calendar") {
         setViewMode(saved);
       }
       const savedDoneCollapse = localStorage.getItem("fatisda_kanban_done_collapsed");
@@ -97,7 +101,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
     }, 1800);
   }
 
-  const handleToggleView = (mode: "kanban" | "list") => {
+  const handleToggleView = (mode: "kanban" | "list" | "calendar") => {
     setViewMode(mode);
     try {
       localStorage.setItem("fatisda_task_view", mode);
@@ -106,6 +110,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
 
   useEffect(() => {
     setItems(tasks);
+    setDetailTask((prev) => (prev ? tasks.find((t) => t.id === prev.id) ?? prev : null));
   }, [tasks]);
 
   function handleDragStart() {
@@ -158,8 +163,66 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
   function canModifyTask(task: Task): boolean {
     if (!user) return false;
     if (task.createdById === user.id) return true;
+    if (task.scope === "GROUP" && Boolean(task.members?.some((m) => m.userId === user.id))) return true;
     if (task.scope === "CLASS" && canManageClassTasks) return true;
     return false;
+  }
+
+  async function handleBulkStatusChange(selectedTasks: Task[], newStatus: TaskStatus) {
+    const targets = selectedTasks.filter((t) => t.status !== newStatus);
+    if (targets.length === 0) return;
+
+    const targetIds = new Set(targets.map((t) => t.id));
+    const previous = items;
+    setItems((current) => current.map((t) => (targetIds.has(t.id) ? { ...t, status: newStatus } : t)));
+    if (newStatus === "DONE") {
+      triggerDoneCelebration(`${targets.length} tugas`);
+    }
+
+    try {
+      const results = await Promise.all(
+        targets.map((t) =>
+          fetch(`/api/tasks/${t.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus }),
+          })
+        )
+      );
+      if (results.some((res) => !res.ok)) {
+        setItems(previous);
+      }
+      onMutated?.();
+    } catch (error) {
+      console.error("[Kanban] bulk status update error", error);
+      setItems(previous);
+    }
+  }
+
+  async function handleBulkDelete(selectedTasks: Task[]) {
+    const deletable = selectedTasks.filter((t) => canModifyTask(t));
+    if (deletable.length === 0) return;
+
+    const deleteIds = new Set(deletable.map((t) => t.id));
+    const previous = items;
+    setItems((current) => current.filter((t) => !deleteIds.has(t.id)));
+
+    try {
+      const results = await Promise.all(
+        deletable.map((t) =>
+          fetch(`/api/tasks/${t.id}`, {
+            method: "DELETE",
+          })
+        )
+      );
+      if (results.some((res) => !res.ok)) {
+        setItems(previous);
+      }
+      onMutated?.();
+    } catch (error) {
+      console.error("[Kanban] bulk delete error", error);
+      setItems(previous);
+    }
   }
 
   async function handleConfirmDelete(task: Task) {
@@ -254,13 +317,13 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* View Mode Toggle: Kanban vs List */}
+      {/* View Mode Toggle: Kanban vs List vs Calendar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 p-1 shadow-2xs">
+        <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/80 p-1 shadow-2xs overflow-x-auto max-w-full no-scrollbar">
           <button
             type="button"
             onClick={() => handleToggleView("kanban")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
               viewMode === "kanban"
                 ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -272,7 +335,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           <button
             type="button"
             onClick={() => handleToggleView("list")}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
               viewMode === "list"
                 ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs"
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -280,6 +343,18 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           >
             <List className="h-3.5 w-3.5" />
             <span>Daftar / Tabel</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleToggleView("calendar")}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+              viewMode === "calendar"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            <span>Kalender</span>
           </button>
         </div>
 
@@ -295,7 +370,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
             </button>
           )}
           <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 hidden sm:block">
-            Tampilan: {viewMode === "kanban" ? "Papan 5 Kolom" : "Daftar Terurut"}
+            Tampilan: {viewMode === "kanban" ? "Papan 5 Kolom" : viewMode === "list" ? "Daftar Terurut" : "Kalender Deadline"}
           </div>
         </div>
       </div>
@@ -315,7 +390,16 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
           onMoveStatus={handleMoveTask}
           onEdit={(task) => (canModifyTask(task) ? setEditingTask(task) : undefined)}
           onDelete={(task) => (canModifyTask(task) ? setDeletingTask(task) : undefined)}
+          canModifyTask={canModifyTask}
+          onBulkStatusChange={handleBulkStatusChange}
+          onBulkDelete={handleBulkDelete}
           justMovedTaskId={justMovedTaskId}
+        />
+      ) : viewMode === "calendar" ? (
+        <TaskCalendarView
+          tasks={items}
+          onSelect={(task) => setDetailTask(task)}
+          onMoveStatus={handleMoveTask}
         />
       ) : (
         <>
@@ -425,6 +509,7 @@ export function KanbanBoard({ tasks, isLoading = false, onMutated }: Props) {
             await handleMoveTask(task, newStatus);
             setDetailTask((prev) => (prev ? { ...prev, status: newStatus } : null));
           }}
+          onSubtasksMutated={() => onMutated?.()}
         />
       )}
 

@@ -5,6 +5,8 @@ import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { formatWib, parseWibDateInput } from "@/lib/datetime";
 import { getAuthSecret } from "@/lib/auth-secret";
+import { isMissingTableError } from "@/lib/task-access";
+import type { Prisma } from "@prisma/client";
 type TaskScope = "PERSONAL" | "CLASS" | "GROUP";
 type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
@@ -74,57 +76,81 @@ export async function GET(req: NextRequest) {
     const candidateGuildIds = Array.from(new Set([targetGuildId, configuredGuildId, "1547427568599302287", "1509522755928985622", "882584293409456139"].filter(Boolean) as string[]));
     const guildCondition = { in: candidateGuildIds };
 
-    const rawTasks = await prisma.task.findMany({
-      where: {
-        guildId: guildCondition,
-        OR: [
-          classTaskFilter,
-          { scope: "PERSONAL", createdById: userId },
-          { scope: "PERSONAL", assignedTo: userId },
-          { scope: "GROUP", OR: [{ createdById: userId }, { members: { some: { userId } } }] },
-        ],
+    const buildTaskInclude = (includeSubtasks: boolean) => ({
+      createdBy: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatar: true,
+        },
       },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-          },
+      assignee: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatar: true,
         },
-        assignee: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                nim: true,
-                avatar: true,
-              },
+      },
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              nim: true,
+              avatar: true,
             },
           },
-          orderBy: { createdAt: "asc" },
         },
-        course: true,
-        userProgress: {
-          where: { userId },
-          select: { status: true },
-        },
+        orderBy: { createdAt: "asc" as const },
       },
-      orderBy: {
-        createdAt: "desc",
+      ...(includeSubtasks
+        ? {
+            subtasks: {
+              include: {
+                assignee: {
+                  select: { id: true, name: true, username: true, avatar: true },
+                },
+              },
+              orderBy: [{ order: "asc" as const }, { createdAt: "asc" as const }],
+            },
+          }
+        : {}),
+      course: true,
+      userProgress: {
+        where: { userId },
+        select: { status: true },
       },
     });
+
+    const queryWhere: Prisma.TaskWhereInput = {
+      guildId: guildCondition,
+      OR: [
+        classTaskFilter,
+        { scope: "PERSONAL", createdById: userId },
+        { scope: "PERSONAL", assignedTo: userId },
+        { scope: "GROUP", OR: [{ createdById: userId }, { members: { some: { userId } } }] },
+      ],
+    };
+
+    let rawTasks;
+    try {
+      rawTasks = await prisma.task.findMany({
+        where: queryWhere,
+        include: buildTaskInclude(true),
+        orderBy: { createdAt: "desc" },
+      });
+    } catch (err) {
+      if (!isMissingTableError(err)) throw err;
+      rawTasks = await prisma.task.findMany({
+        where: queryWhere,
+        include: buildTaskInclude(false),
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     const tasks = rawTasks.map((t) => {
       const personalStatus = t.userProgress?.[0]?.status;
@@ -132,6 +158,7 @@ export async function GET(req: NextRequest) {
       const { userProgress: _unused, ...rest } = t;
       return {
         ...rest,
+        subtasks: "subtasks" in rest && Array.isArray(rest.subtasks) ? rest.subtasks : [],
         status: effectiveStatus,
       };
     });
@@ -160,7 +187,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId, memberIds } = body;
+    const { guildId, title, description, assignedTo, dueDate, status, scope, prodi, kelas, courseId, memberIds, subtasks } = body;
 
     const configuredGuildId = process.env.DISCORD_GUILD_ID || "1547427568599302287";
     const targetGuildId = (typeof guildId === "string" && guildId.trim() ? guildId.trim() : null) || configuredGuildId;
@@ -216,6 +243,24 @@ export async function POST(req: NextRequest) {
     // Safely resolve courseId (handles DB courses, schedule synthetic IDs, and prevents constraint conflicts)
     const validCourseId = await resolveCourseId(courseId, targetProdi ?? "INFORMATIKA", targetKelas ?? null);
 
+    const validMemberIdSet = new Set([user.id, ...cleanMemberIds]);
+    const cleanSubtasks = Array.isArray(subtasks)
+      ? subtasks
+          .filter(
+            (s): s is { title: string; assigneeId?: unknown } =>
+              Boolean(s && typeof s.title === "string" && s.title.trim().length > 0),
+          )
+          .slice(0, 50)
+          .map((s, idx) => {
+            const rawAssignee = typeof s.assigneeId === "string" && s.assigneeId.trim() ? s.assigneeId.trim() : null;
+            return {
+              title: s.title.trim().slice(0, 160),
+              assigneeId: rawAssignee && validMemberIdSet.has(rawAssignee) ? rawAssignee : null,
+              order: idx,
+            };
+          })
+      : [];
+
     const task = await prisma.task.create({
       data: {
         guildId: targetGuildId,
@@ -238,6 +283,7 @@ export async function POST(req: NextRequest) {
                 ],
               }
             : undefined,
+        subtasks: cleanSubtasks.length > 0 ? { create: cleanSubtasks } : undefined,
       },
 
       include: {
@@ -271,6 +317,18 @@ export async function POST(req: NextRequest) {
           },
           orderBy: { createdAt: "asc" },
         },
+        ...(cleanSubtasks.length > 0
+          ? {
+              subtasks: {
+                include: {
+                  assignee: {
+                    select: { id: true, name: true, username: true, avatar: true },
+                  },
+                },
+                orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+              },
+            }
+          : {}),
         course: true,
       },
     });

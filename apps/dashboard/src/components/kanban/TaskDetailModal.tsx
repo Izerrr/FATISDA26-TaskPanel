@@ -4,11 +4,15 @@ import {
   CalendarClock, 
   Check,
   CheckCircle2, 
+  CheckSquare,
   Clock3, 
   User, 
   BookOpen, 
   Link2,
+  ListChecks,
   Pencil, 
+  Plus,
+  Sparkles,
   Trash2, 
   MessageSquare, 
   History, 
@@ -16,8 +20,9 @@ import {
   ArrowRight,
   Loader2
 } from "lucide-react";
-import type { Task, TaskStatus, Course, Role } from "@/types";
+import type { Task, TaskStatus, TaskSubtask, Course, Role } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
+import { canManageTaskSubtasks } from "@/lib/task-access";
 import { formatWib } from "@/lib/datetime";
 import { TaskCommentSection } from "./TaskCommentSection";
 import useSWR from "swr";
@@ -31,6 +36,7 @@ interface TaskDetailModalProps {
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
   onStatusChange?: (task: Task, newStatus: TaskStatus) => Promise<void> | void;
+  onSubtasksMutated?: () => void;
 }
 
 interface ActivityItem {
@@ -65,10 +71,21 @@ export function TaskDetailModal({
   onEdit,
   onDelete,
   onStatusChange,
+  onSubtasksMutated,
 }: TaskDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"comments" | "activity">("comments");
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [subtasks, setSubtasks] = useState<TaskSubtask[]>(task?.subtasks ?? []);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const [newSubtaskAssignee, setNewSubtaskAssignee] = useState("");
+  const [subtaskLoading, setSubtaskLoading] = useState(false);
+
+  useEffect(() => {
+    setSubtasks(task?.subtasks ?? []);
+    setNewSubtaskTitle("");
+    setNewSubtaskAssignee("");
+  }, [task?.id, task?.subtasks]);
 
   function handleCopyLink() {
     if (!task || typeof window === "undefined") return;
@@ -101,6 +118,96 @@ export function TaskDetailModal({
   const isOwner = task.createdById === userId;
   const isGroupMember = task.scope === "GROUP" && (isOwner || Boolean(task.members?.some((m) => m.userId === userId)));
   const canModify = isOwner || isGroupMember || (task.scope === "CLASS" && canManageClass);
+
+  const canManageSubtasks = userId ? canManageTaskSubtasks(task, userId, roles.map(String)) : false;
+  const doneSubtasks = subtasks.filter((s) => s.isDone).length;
+  const subtaskPct = subtasks.length > 0 ? Math.round((doneSubtasks / subtasks.length) * 100) : 0;
+
+  async function handleAddSubtask(e: React.FormEvent) {
+    e.preventDefault();
+    if (!task || !newSubtaskTitle.trim() || subtaskLoading) return;
+    setSubtaskLoading(true);
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/subtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newSubtaskTitle.trim(),
+          assigneeId: newSubtaskAssignee || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const added: TaskSubtask[] = Array.isArray(data.subtasks) ? data.subtasks : data.subtask ? [data.subtask] : [];
+        setSubtasks((prev) => [...prev, ...added]);
+        setNewSubtaskTitle("");
+        setNewSubtaskAssignee("");
+        onSubtasksMutated?.();
+      }
+    } finally {
+      setSubtaskLoading(false);
+    }
+  }
+
+  async function handleAutoSplitGroupSubtasks() {
+    if (!task || !task.members || task.members.length === 0 || subtaskLoading) return;
+    setSubtaskLoading(true);
+    try {
+      const items = task.members.map((m) => ({
+        title: `Bagian ${m.user.name || m.user.username}`,
+        assigneeId: m.userId,
+      }));
+      const res = await fetch(`/api/tasks/${task.id}/subtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const added: TaskSubtask[] = Array.isArray(data.subtasks) ? data.subtasks : [];
+        setSubtasks((prev) => [...prev, ...added]);
+        onSubtasksMutated?.();
+      }
+    } finally {
+      setSubtaskLoading(false);
+    }
+  }
+
+  async function handleToggleSubtask(sub: TaskSubtask) {
+    if (!task || !canManageSubtasks) return;
+    const nextDone = !sub.isDone;
+    setSubtasks((prev) => prev.map((s) => (s.id === sub.id ? { ...s, isDone: nextDone } : s)));
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/subtasks/${sub.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isDone: nextDone }),
+      });
+      if (res.ok) {
+        onSubtasksMutated?.();
+      } else {
+        setSubtasks((prev) => prev.map((s) => (s.id === sub.id ? sub : s)));
+      }
+    } catch {
+      setSubtasks((prev) => prev.map((s) => (s.id === sub.id ? sub : s)));
+    }
+  }
+
+  async function handleDeleteSubtask(subId: string) {
+    if (!task || !canManageSubtasks) return;
+    const prevList = subtasks;
+    setSubtasks((prev) => prev.filter((s) => s.id !== subId));
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/subtasks/${subId}`, { method: "DELETE" });
+      if (res.ok) {
+        onSubtasksMutated?.();
+      } else {
+        setSubtasks(prevList);
+      }
+    } catch {
+      setSubtasks(prevList);
+    }
+  }
 
   async function handleQuickStatus(newStatus: TaskStatus) {
     if (!task || task.status === newStatus || statusUpdating) return;
@@ -344,6 +451,136 @@ export function TaskDetailModal({
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Subtasks / Pembagian Kerja Checklist */}
+          {(subtasks.length > 0 || canManageSubtasks) && (
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 sm:p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-liquid-accent dark:text-sky-400" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    Checklist / Sub-tugas
+                  </span>
+                  {subtasks.length > 0 && (
+                    <span className="rounded-full bg-liquid-accent/10 px-2 py-0.5 text-[10px] font-bold text-liquid-accent dark:bg-sky-500/20 dark:text-sky-300">
+                      {doneSubtasks}/{subtasks.length} ({subtaskPct}%)
+                    </span>
+                  )}
+                </div>
+
+                {task.scope === "GROUP" && task.members && task.members.length > 1 && subtasks.length === 0 && canManageSubtasks && (
+                  <button
+                    type="button"
+                    onClick={handleAutoSplitGroupSubtasks}
+                    disabled={subtaskLoading}
+                    className="inline-flex items-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50 dark:border-indigo-800/60 dark:bg-indigo-950/60 dark:text-indigo-300"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span>Bagi Rata per Anggota</span>
+                  </button>
+                )}
+              </div>
+
+              {subtasks.length > 0 && (
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${subtaskPct === 100 ? "bg-emerald-500" : "bg-liquid-accent"}`}
+                    style={{ width: `${subtaskPct}%` }}
+                  />
+                </div>
+              )}
+
+              {subtasks.length > 0 && (
+                <ul className="space-y-1.5">
+                  {subtasks.map((sub) => (
+                    <li
+                      key={sub.id}
+                      className="group flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-white px-2.5 py-2 text-xs transition dark:border-slate-800 dark:bg-slate-900"
+                    >
+                      <button
+                        type="button"
+                        disabled={!canManageSubtasks}
+                        onClick={() => void handleToggleSubtask(sub)}
+                        className="flex min-w-0 flex-1 items-center gap-2.5 text-left disabled:cursor-default"
+                      >
+                        <span
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition ${
+                            sub.isDone
+                              ? "border-emerald-500 bg-emerald-500 text-white"
+                              : "border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800"
+                          }`}
+                        >
+                          {sub.isDone && <Check className="h-3 w-3" />}
+                        </span>
+                        <span className={`truncate font-medium ${sub.isDone ? "text-slate-400 line-through" : "text-slate-800 dark:text-slate-100"}`}>
+                          {sub.title}
+                        </span>
+                      </button>
+
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        {sub.assignee && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
+                            title={sub.assignee.name || sub.assignee.username}
+                          >
+                            {sub.assignee.name || sub.assignee.username}
+                          </span>
+                        )}
+                        {canManageSubtasks && (
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteSubtask(sub.id)}
+                            className="rounded-lg p-1 text-slate-400 opacity-70 transition hover:bg-rose-50 hover:text-rose-600 hover:opacity-100 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
+                            title="Hapus sub-tugas"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {canManageSubtasks && (
+                <form onSubmit={handleAddSubtask} className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    value={newSubtaskTitle}
+                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                    placeholder="Tambah langkah atau bagian kerja..."
+                    className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none transition focus:border-liquid-accent dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  />
+                  {task.scope === "GROUP" && task.members && task.members.length > 0 && (
+                    <select
+                      value={newSubtaskAssignee}
+                      onChange={(e) => setNewSubtaskAssignee(e.target.value)}
+                      className="rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    >
+                      <option value="">Siapa saja</option>
+                      {task.members.map((m) => (
+                        <option key={m.userId} value={m.userId}>
+                          {m.user.name || m.user.username}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={subtaskLoading || !newSubtaskTitle.trim()}
+                    className="inline-flex items-center justify-center gap-1 rounded-xl bg-liquid-accent px-3 py-2 text-xs font-bold text-white transition hover:brightness-95 disabled:opacity-50"
+                  >
+                    {subtaskLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                    <span>Tambah</span>
+                  </button>
+                </form>
+              )}
+
+              {task.scope === "CLASS" && !canManageSubtasks && subtasks.length > 0 && (
+                <p className="text-[10px] text-slate-400">Checklist kelas ini dikelola oleh PJ Kelas / Pengurus.</p>
+              )}
             </div>
           )}
 

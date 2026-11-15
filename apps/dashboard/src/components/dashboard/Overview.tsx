@@ -306,6 +306,7 @@ export function Overview({ tasks, schedules, courses = [], roles = [], userId, o
           roles={roles}
           userId={userId}
           onClose={() => setSelectedTask(null)}
+          onSubtasksMutated={onTaskMutate}
           onStatusChange={async (t, newStatus) => {
             try {
               await fetch(`/api/tasks/${t.id}`, {

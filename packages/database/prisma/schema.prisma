@@ -82,10 +82,11 @@ model User {
   roles        Role[]   @default([STUDENT])
   discordRoles String[] @default([])
 
-  createdTasks  Task[] @relation("CreatedTasks")
-  assignedTasks Task[] @relation("AssignedTasks")
-  taskProgress  TaskUserProgress[]
-  taskMembers   TaskMember[] @relation("TaskMembers")
+  createdTasks     Task[] @relation("CreatedTasks")
+  assignedTasks    Task[] @relation("AssignedTasks")
+  taskProgress     TaskUserProgress[]
+  taskMembers      TaskMember[] @relation("TaskMembers")
+  assignedSubtasks TaskSubtask[] @relation("SubtaskAssignee")
 
   updatedVaults CourseVault[]
 
@@ -237,6 +238,7 @@ model Task {
   activities   TaskActivity[]
   userProgress TaskUserProgress[]
   members      TaskMember[]
+  subtasks     TaskSubtask[]
 
   guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
@@ -266,6 +268,22 @@ model TaskMember {
   @@unique([taskId, userId])
   @@index([taskId])
   @@index([userId])
+}
+
+model TaskSubtask {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title      String
+  isDone     Boolean  @default(false)
+  assigneeId String?
+  assignee   User?    @relation("SubtaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([taskId, order])
+  @@index([assigneeId])
 }
 
 model TaskUserProgress {

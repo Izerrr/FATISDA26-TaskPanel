@@ -104,6 +104,23 @@ export interface TaskMember {
   };
 }
 
+export interface TaskSubtask {
+  id: string;
+  taskId: string;
+  title: string;
+  isDone: boolean;
+  assigneeId: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  assignee?: {
+    id: string;
+    name?: string | null;
+    username: string;
+    avatar: string | null;
+  } | null;
+}
+
 export interface Task {
   id: string;
   guildId: string;
@@ -135,6 +152,7 @@ export interface Task {
   } | null;
 
   members?: TaskMember[];
+  subtasks?: TaskSubtask[];
 
   course: Course | null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, CalendarClock, CheckCircle2, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2, MessageSquare } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, CheckSquare, Clock3, GripVertical, MoreHorizontal, Pencil, Trash2, MessageSquare } from "lucide-react";
 
 import type { Task, TaskStatus } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
@@ -250,6 +250,27 @@ export function KanbanTaskCard({ task, index, isDragging = false, isJustMoved = 
             {commentCount}
           </span>
         )}
+
+        {task.subtasks && task.subtasks.length > 0 && (() => {
+          const doneCount = task.subtasks.filter((s) => s.isDone).length;
+          const totalCount = task.subtasks.length;
+          const allDone = doneCount === totalCount;
+          return (
+            <span
+              className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${
+                allDone
+                  ? "border-emerald-200/70 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300"
+                  : "border-slate-200/60 bg-slate-100/80 text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-400"
+              }`}
+              title={`${doneCount} dari ${totalCount} sub-tugas selesai`}
+            >
+              <CheckSquare className="h-3 w-3 shrink-0" />
+              <span>
+                {doneCount}/{totalCount}
+              </span>
+            </span>
+          );
+        })()}
       </div>
 
       {/* Mobile-Friendly Quick Move Bar (1-tap transition on phone) */}

@@ -6,6 +6,7 @@ import { sendDiscordNotification } from "@/lib/discord";
 import { resolveCourseId } from "@/lib/course-resolver";
 import { parseWibDateInput } from "@/lib/datetime";
 import { getAuthSecret } from "@/lib/auth-secret";
+import { isMissingTableError } from "@/lib/task-access";
 type TaskStatus = "TODO" | "WAITING" | "IN_PROGRESS" | "NEED_REVIEW" | "DONE";
 const VALID_TASK_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -200,7 +201,7 @@ export async function PATCH(
       }
     }
 
-    const taskInclude = {
+    const buildTaskInclude = (includeSubtasks: boolean) => ({
       createdBy: {
         select: {
           id: true,
@@ -231,22 +232,40 @@ export async function PATCH(
         },
         orderBy: { createdAt: "asc" as const },
       },
-      course: true,
-    };
-
-    const task =
-      Object.keys(updateData).length > 0
-        ? await prisma.task.update({
-            where: {
-              id: params.id,
+      ...(includeSubtasks
+        ? {
+            subtasks: {
+              include: {
+                assignee: {
+                  select: { id: true, name: true, username: true, avatar: true },
+                },
+              },
+              orderBy: [{ order: "asc" as const }, { createdAt: "asc" as const }],
             },
-            data: updateData,
-            include: taskInclude,
-          })
-        : await prisma.task.findUniqueOrThrow({
+          }
+        : {}),
+      course: true,
+    });
+
+    const runUpdateOrFetch = async (includeSubtasks: boolean) =>
+      Object.keys(updateData).length > 0
+        ? prisma.task.update({
             where: { id: params.id },
-            include: taskInclude,
+            data: updateData,
+            include: buildTaskInclude(includeSubtasks),
+          })
+        : prisma.task.findUniqueOrThrow({
+            where: { id: params.id },
+            include: buildTaskInclude(includeSubtasks),
           });
+
+    let task;
+    try {
+      task = await runUpdateOrFetch(true);
+    } catch (err) {
+      if (!isMissingTableError(err)) throw err;
+      task = await runUpdateOrFetch(false);
+    }
 
     const effectiveStatus = isClassTask ? ((status as TaskStatus | undefined) ?? previousUserStatus) : (task.status as TaskStatus);
 

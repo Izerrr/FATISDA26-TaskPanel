@@ -1,5 +1,20 @@
 import { useMemo, useState, useEffect } from "react";
-import { CheckCircle2, Circle, Clock3, CalendarClock, AlertCircle, Pencil, Trash2, ChevronRight, ChevronDown, ChevronUp, ClipboardList, Sparkles, Flame } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  Clock3,
+  AlertCircle,
+  Pencil,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  Flame,
+  CheckSquare,
+  ListChecks,
+  X,
+} from "lucide-react";
 import type { Task, TaskStatus } from "@/types";
 import { formatDueDate, getUrgency } from "@/lib/due-date";
 
@@ -9,6 +24,9 @@ interface TaskListViewProps {
   onMoveStatus: (task: Task, newStatus: TaskStatus) => Promise<void>;
   onEdit?: (task: Task) => void;
   onDelete?: (task: Task) => void;
+  canModifyTask?: (task: Task) => boolean;
+  onBulkStatusChange?: (tasks: Task[], newStatus: TaskStatus) => Promise<void>;
+  onBulkDelete?: (tasks: Task[]) => Promise<void>;
   justMovedTaskId?: string | null;
 }
 
@@ -20,9 +38,37 @@ const statusOptions: { value: TaskStatus; label: string; bg: string; text: strin
   { value: "DONE", label: "Done", bg: "bg-emerald-50 dark:bg-emerald-950/60", text: "text-emerald-700 dark:text-emerald-300" },
 ];
 
-export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, justMovedTaskId }: TaskListViewProps) {
+export function TaskListView({
+  tasks,
+  onSelect,
+  onMoveStatus,
+  onEdit,
+  onDelete,
+  canModifyTask,
+  onBulkStatusChange,
+  onBulkDelete,
+  justMovedTaskId,
+}: TaskListViewProps) {
   const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "DONE">("ALL");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+
+  // Drop selected IDs that are no longer present in the filtered/current task list
+  useEffect(() => {
+    const validIds = new Set(tasks.map((t) => t.id));
+    setSelectedIds((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (validIds.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [tasks]);
 
   const filteredTasks = useMemo(() => {
     let list = [...tasks];
@@ -64,10 +110,70 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
 
   const activeCount = tasks.filter((t) => t.status !== "DONE").length;
   const doneCount = tasks.filter((t) => t.status === "DONE").length;
+  const supportsBulk = Boolean(onBulkStatusChange || onBulkDelete);
+
+  const selectedTasks = useMemo(() => tasks.filter((t) => selectedIds.has(t.id)), [tasks, selectedIds]);
+  const deletableSelected = useMemo(
+    () => (canModifyTask ? selectedTasks.filter((t) => canModifyTask(t)) : selectedTasks),
+    [selectedTasks, canModifyTask]
+  );
+
+  const allVisibleSelected = visibleTasks.length > 0 && visibleTasks.every((t) => selectedIds.has(t.id));
+
+  const toggleSelectId = (taskId: string) => {
+    setConfirmBulkDelete(false);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+
+  const toggleSelectVisible = () => {
+    setConfirmBulkDelete(false);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        visibleTasks.forEach((t) => next.delete(t.id));
+      } else {
+        visibleTasks.forEach((t) => next.add(t.id));
+      }
+      return next;
+    });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+    setConfirmBulkDelete(false);
+  };
+
+  const handleBulkStatus = async (status: TaskStatus) => {
+    if (!onBulkStatusChange || selectedTasks.length === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    try {
+      await onBulkStatusChange(selectedTasks, status);
+      exitSelectionMode();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!onBulkDelete || deletableSelected.length === 0 || bulkBusy) return;
+    setBulkBusy(true);
+    try {
+      await onBulkDelete(deletableSelected);
+      exitSelectionMode();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      {/* List Sub-filter Tabs */}
+      {/* List Sub-filter Tabs + Multi-select toggle */}
       <div className="flex items-center justify-between gap-2 flex-wrap pb-1">
         <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-1 backdrop-blur-sm overflow-x-auto max-w-full no-scrollbar">
           <button
@@ -94,8 +200,108 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
           </button>
         </div>
 
-        <p className="text-[11px] text-slate-400 dark:text-slate-500">Diurutkan berdasarkan tenggat waktu terdekat</p>
+        <div className="flex items-center gap-2.5">
+          {supportsBulk && filteredTasks.length > 0 && (
+            <button
+              type="button"
+              onClick={() => (selectionMode ? exitSelectionMode() : setSelectionMode(true))}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                selectionMode
+                  ? "border-liquid-accent bg-liquid-accent/10 text-liquid-accent dark:text-sky-300"
+                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <ListChecks className="h-3.5 w-3.5" />
+              <span>{selectionMode ? "Tutup Pilih" : "Pilih Banyak"}</span>
+            </button>
+          )}
+          <p className="hidden md:block text-[11px] text-slate-400 dark:text-slate-500">Diurutkan berdasarkan tenggat waktu terdekat</p>
+        </div>
       </div>
+
+      {/* Bulk Action Bar */}
+      {selectionMode && filteredTasks.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-liquid-accent/25 bg-sky-50/70 dark:bg-sky-950/30 px-3 py-2.5 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={toggleSelectVisible}
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+            >
+              {allVisibleSelected ? "Batal Pilih Semua" : "Pilih Semua Tampil"}
+            </button>
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+              {selectedTasks.length} tugas dipilih
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {onBulkStatusChange && (
+              <>
+                <button
+                  type="button"
+                  disabled={selectedTasks.length === 0 || bulkBusy}
+                  onClick={() => void handleBulkStatus("DONE")}
+                  className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-45 px-2.5 py-1.5 text-[11px] font-bold text-white transition cursor-pointer"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Selesai Semua</span>
+                </button>
+                <select
+                  disabled={selectedTasks.length === 0 || bulkBusy}
+                  value=""
+                  onChange={(e) => {
+                    const val = e.target.value as TaskStatus | "";
+                    if (val) void handleBulkStatus(val);
+                  }}
+                  aria-label="Pindah status tugas terpilih"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 outline-none disabled:opacity-45 cursor-pointer"
+                >
+                  <option value="">Pindah status...</option>
+                  {statusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            {onBulkDelete && deletableSelected.length > 0 && (
+              confirmBulkDelete ? (
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void handleBulkDelete()}
+                  className="inline-flex items-center gap-1 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-45 px-2.5 py-1.5 text-[11px] font-bold text-white transition cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>{bulkBusy ? "Menghapus..." : `Konfirmasi Hapus (${deletableSelected.length})`}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => setConfirmBulkDelete(true)}
+                  className="inline-flex items-center gap-1 rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 px-2.5 py-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-300 transition cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Hapus ({deletableSelected.length})</span>
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              onClick={exitSelectionMode}
+              title="Batal pilih banyak"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-white/80 dark:hover:bg-slate-800 hover:text-slate-600 transition cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {filteredTasks.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 p-10 text-center">
@@ -111,11 +317,33 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
             const isDone = task.status === "DONE";
             const urgency = getUrgency(task.dueDate, task.status);
             const isHighlighted = justMovedTaskId === task.id;
+            const isSelected = selectedIds.has(task.id);
+            const canEditOrDelete = canModifyTask ? canModifyTask(task) : true;
+            const subtasks = task.subtasks ?? [];
+            const doneSubtasks = subtasks.filter((s) => s.isDone).length;
 
             return (
-              <div key={task.id} className={`group flex items-center justify-between gap-3 p-3.5 sm:p-4 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50 ${isHighlighted ? "bg-emerald-50/40 dark:bg-emerald-950/30" : ""}`}>
+              <div
+                key={task.id}
+                className={`group flex items-center justify-between gap-3 p-3.5 sm:p-4 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50 ${
+                  isSelected
+                    ? "bg-sky-50/60 dark:bg-sky-950/25"
+                    : isHighlighted
+                      ? "bg-emerald-50/40 dark:bg-emerald-950/30"
+                      : ""
+                }`}
+              >
                 {/* Checkbox & Main Info */}
                 <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {selectionMode && (
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelectId(task.id)}
+                      aria-label={`Pilih tugas ${task.title}`}
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 text-liquid-accent focus:ring-liquid-accent cursor-pointer"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -154,7 +382,7 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                       </span>
                     </div>
 
-                    {/* Metadata line: Due date & Course name */}
+                    {/* Metadata line: Due date, Course name & Subtask progress */}
                     <div className="mt-1 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                       {task.course?.name && <span className="truncate max-w-[220px]">{task.course.name}</span>}
 
@@ -168,6 +396,21 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                           <span>
                             {urgency === "overdue" ? "Terlewat: " : ""}
                             {formatDueDate(task.dueDate)}
+                          </span>
+                        </span>
+                      )}
+
+                      {subtasks.length > 0 && (
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
+                            doneSubtasks === subtasks.length
+                              ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
+                          <CheckSquare className="h-3 w-3" />
+                          <span>
+                            {doneSubtasks}/{subtasks.length}
                           </span>
                         </span>
                       )}
@@ -193,7 +436,7 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                   </select>
 
                   {/* Edit action */}
-                  {onEdit && (
+                  {onEdit && canEditOrDelete && (
                     <button
                       type="button"
                       onClick={() => onEdit(task)}
@@ -205,7 +448,7 @@ export function TaskListView({ tasks, onSelect, onMoveStatus, onEdit, onDelete, 
                   )}
 
                   {/* Delete action */}
-                  {onDelete && (
+                  {onDelete && canEditOrDelete && (
                     <button
                       type="button"
                       onClick={() => onDelete(task)}
