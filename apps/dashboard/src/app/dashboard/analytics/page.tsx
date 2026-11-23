@@ -853,7 +853,7 @@ export default function AdminAnalyticsPage() {
                           </div>
                         </div>
                         <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                          {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Baru saja"}
+                          {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Belum tercatat"}
                         </span>
                       </div>
 
@@ -1004,7 +1004,7 @@ export default function AdminAnalyticsPage() {
 
                           {/* Terakhir Aktif */}
                           <td className="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                            {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Baru saja"}
+                            {u.lastActiveAt ? formatDate(u.lastActiveAt) : "Belum tercatat"}
                           </td>
 
                           {/* Waktu Bergabung */}

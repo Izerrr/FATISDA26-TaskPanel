@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Kelas, Prodi } from "@prisma/client";
+import { partitionDiscordGuildMembers } from "@/lib/analytics-filters";
 
 export type TaskPanelRole = "STUDENT" | "PJ_KELAS" | "PJ_MATKUL" | "KETUA_ANGKATAN" | "ADMIN" | "OWNER";
 
@@ -10,6 +11,7 @@ export interface DiscordMember {
     global_name?: string | null;
     avatar: string | null;
     discriminator?: string;
+    bot?: boolean;
   };
   nick: string | null;
   roles: string[];
@@ -321,7 +323,38 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
     return members;
   }
 
-  const memberIds = members.map((m) => m.user.id);
+  const { humanMembers, botIds } = partitionDiscordGuildMembers(members);
+
+  // Best-effort cleanup of previously synced Discord bot records that have no web activity or references
+  if (botIds.length > 0) {
+    try {
+      await prisma.user.deleteMany({
+        where: {
+          OR: [{ id: { in: botIds } }, { discordId: { in: botIds } }],
+          hasAccessedApp: false,
+          googleId: null,
+          email: null,
+          createdTasks: { none: {} },
+          assignedTasks: { none: {} },
+          updatedVaults: { none: {} },
+          taskComments: { none: {} },
+          taskActivities: { none: {} },
+          announcements: { none: {} },
+          courseDiscussions: { none: {} },
+          discussionReplies: { none: {} },
+          feedbacks: { none: {} },
+        },
+      });
+    } catch (cleanupErr) {
+      console.warn("[Discord] Lewati cleanup bot sync:", cleanupErr);
+    }
+  }
+
+  if (humanMembers.length === 0) {
+    return humanMembers;
+  }
+
+  const memberIds = humanMembers.map((m) => m.user.id);
   const existingUsers = await prisma.user.findMany({
     where: {
       OR: [{ id: { in: memberIds } }, { discordId: { in: memberIds } }],
@@ -345,8 +378,8 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
   );
 
   const CHUNK_SIZE = 20;
-  for (let i = 0; i < members.length; i += CHUNK_SIZE) {
-    const chunk = members.slice(i, i + CHUNK_SIZE);
+  for (let i = 0; i < humanMembers.length; i += CHUNK_SIZE) {
+    const chunk = humanMembers.slice(i, i + CHUNK_SIZE);
     await Promise.all(
       chunk.map(async (member) => {
         const discordRoles = member.roles ?? [];
@@ -404,7 +437,7 @@ export async function syncGuildMembers(guildId: string): Promise<DiscordMember[]
     );
   }
 
-  return members;
+  return humanMembers;
 }
 
 export interface DiscordNotificationOptions {

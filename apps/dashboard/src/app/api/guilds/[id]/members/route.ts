@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json({
       members: members
-        .filter((m) => !!m.user)
+        .filter((m) => !!m.user && !m.user.bot)
         .map((m) => ({
           id: m.user.id,
           username: m.nick ?? m.user.username,

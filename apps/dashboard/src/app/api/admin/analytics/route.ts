@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { ACCESSED_USER_WHERE } from "@/lib/analytics-filters";
 import { getWibParts, wibDate } from "@/lib/datetime";
 import { getAuthSecret } from "@/lib/auth-secret";
 
@@ -47,17 +47,8 @@ export async function GET(req: NextRequest) {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // Filter KHUSUS: Hanya mahasiswa yang pernah mengakses / login / menggunakan web TaskPanel
-    // Tidak menyertakan anggota Discord mentah yang hanya disinkronkan oleh bot
-    const accessedUserWhere: Prisma.UserWhereInput = {
-      OR: [
-        { hasAccessedApp: true },
-        { lastActiveAt: { not: null } },
-        { lastLoginAt: { not: null } },
-        { googleId: { not: null } },
-        { discordId: { not: null } },
-        { email: { not: null } },
-      ],
-    };
+    // Tidak menyertakan anggota Discord mentah (termasuk bot) yang hanya disinkronkan dari guild
+    const accessedUserWhere = ACCESSED_USER_WHERE;
 
     // Jalankan semua query agregasi secara paralel
     const [
@@ -136,7 +127,7 @@ export async function GET(req: NextRequest) {
       prisma.user.findMany({
         where: accessedUserWhere,
         take: 15,
-        orderBy: [{ lastActiveAt: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ lastActiveAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
         select: {
           id: true,
           username: true,
