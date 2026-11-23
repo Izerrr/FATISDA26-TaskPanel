@@ -10,11 +10,18 @@ out/
 dist/
 *.tsbuildinfo
 
-# Environment Variables (SANGAT RAHASIA!)
+# Environment Variables & PM2 Runtime Configs (SANGAT RAHASIA!)
 .env
 .env.local
 .env.production
 *.env
+.env*
+!.env.example
+ecosystem.config.cjs
+ecosystem.config.js
+ecosystem.config.local.*
+*.pem
+*.key
 
 # Logs
 npm-debug.log*
@@ -27,4 +34,3 @@ pm2.log
 .DS_Store
 Thumbs.db
 .vercel
-.env*
