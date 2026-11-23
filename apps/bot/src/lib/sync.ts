@@ -11,6 +11,15 @@ function hasRole(discordRoles: string[], targetRoleId: string | null): boolean {
   return Boolean(targetRoleId && discordRoles.includes(targetRoleId));
 }
 
+export function hasRoleMappingsConfigured(): boolean {
+  return Boolean(
+    getRoleId("DISCORD_ROLE_ADMIN") ||
+      getRoleId("DISCORD_ROLE_KETUA_ANGKATAN") ||
+      getRoleId("DISCORD_ROLE_PJ_KELAS") ||
+      getRoleId("DISCORD_ROLE_PJ_MATKUL"),
+  );
+}
+
 export function mappedRoles(discordRoles: string[], isGuildOwner: boolean): TaskPanelRole[] {
   const roles: TaskPanelRole[] = [];
 
@@ -129,6 +138,7 @@ async function upsertSyncedMember(member: GuildMember, existingUser: ExistingSyn
   const defaultDisplayName = member.nickname ?? member.user.globalName ?? member.user.username;
   const nextProdi = mappedProdi(discordRoles);
   const nextKelas = mappedKelas(discordRoles);
+  const shouldSyncRoles = hasRoleMappingsConfigured();
   const nextRoles = mappedRoles(discordRoles, isGuildOwner);
 
   if (existingUser) {
@@ -144,7 +154,7 @@ async function upsertSyncedMember(member: GuildMember, existingUser: ExistingSyn
         username: existingUser.username || discordHandle,
         avatar: useDiscordAvatar ? (avatar ?? existingUser.avatar) : existingUser.avatar,
         discordRoles,
-        roles: nextRoles as any,
+        ...(shouldSyncRoles ? { roles: nextRoles as any } : {}),
         ...(nextProdi !== null ? { prodi: nextProdi as any } : {}),
         ...(nextKelas !== null ? { kelas: nextKelas as any } : {}),
       },
