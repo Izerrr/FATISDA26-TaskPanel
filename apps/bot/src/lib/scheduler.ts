@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, TextChannel } from "discord.js";
-import { prisma } from "./prisma.js";
+import { isMissingTableError, prisma } from "./prisma.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "./constants.js";
 import { Kelas, Prodi, TaskStatus } from "../types.js";
 import { formatRoomWithLocation } from "./campusBuildings.js";
@@ -168,23 +168,40 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
         orderBy: { startTime: "asc" },
       });
 
-      const tasksDueSoon = await prisma.task.findMany({
-        where: {
-          scope: "CLASS",
-          status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
-          prodi: target.prodi,
-          OR: [{ kelas: target.kelas }, { kelas: null }],
-          dueDate: {
-            gte: startOfDay,
-            lte: endOfTomorrow,
-          },
-        },
-        include: {
-          course: true,
-          subtasks: { select: { isDone: true } },
-        },
-        orderBy: { dueDate: "asc" },
-      });
+      const fetchTasksDueSoon = async (includeSubtasks: boolean): Promise<Array<{
+        id: string;
+        title: string;
+        dueDate: Date | null;
+        course: { code: string; name: string } | null;
+        subtasks?: Array<{ isDone: boolean }>;
+      }>> => {
+        try {
+          return await prisma.task.findMany({
+            where: {
+              scope: "CLASS",
+              status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+              prodi: target.prodi,
+              OR: [{ kelas: target.kelas }, { kelas: null }],
+              dueDate: {
+                gte: startOfDay,
+                lte: endOfTomorrow,
+              },
+            },
+            include: {
+              course: true,
+              ...(includeSubtasks ? { subtasks: { select: { isDone: true } } } : {}),
+            },
+            orderBy: { dueDate: "asc" },
+          });
+        } catch (err) {
+          if (includeSubtasks && isMissingTableError(err)) {
+            return fetchTasksDueSoon(false);
+          }
+          throw err;
+        }
+      };
+
+      const tasksDueSoon = await fetchTasksDueSoon(true);
 
       if (schedules.length === 0 && tasksDueSoon.length === 0 && todayExams.length === 0) {
         console.log(`[Scheduler] Tidak ada jadwal atau tugas untuk ${target.prodi} Kelas ${target.kelas}. Lewati.`);
@@ -242,8 +259,9 @@ export async function sendDailyMorningBriefing(client: Client, customTargets?: {
               })
             : "-";
           const course = t.course ? `[${t.course.code}] ` : "";
-          const totalSub = t.subtasks.length;
-          const doneSub = totalSub > 0 ? t.subtasks.filter((s) => s.isDone).length : 0;
+          const subtasks = t.subtasks ?? [];
+          const totalSub = subtasks.length;
+          const doneSub = totalSub > 0 ? subtasks.filter((s) => s.isDone).length : 0;
           const subTag = totalSub > 0 ? ` · ${doneSub}/${totalSub} subtugas` : "";
           return `📌 **${t.title}**\n   ${course}Tenggat: **${dueStr} WIB**${subTag}`;
         });
@@ -288,19 +306,39 @@ export async function checkApproachingDeadlines(client: Client) {
   const now = new Date();
 
   try {
-    const activeTasks = await prisma.task.findMany({
-      where: {
-        scope: "CLASS",
-        status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
-        dueDate: {
-          gte: now,
-        },
-      },
-      include: {
-        course: true,
-        subtasks: { select: { isDone: true } },
-      },
-    });
+    const fetchActiveTasks = async (includeSubtasks: boolean): Promise<Array<{
+      id: string;
+      title: string;
+      description: string | null;
+      prodi: Prodi | null;
+      kelas: Kelas | null;
+      dueDate: Date | null;
+      course: { code: string; name: string } | null;
+      subtasks?: Array<{ isDone: boolean }>;
+    }>> => {
+      try {
+        return await prisma.task.findMany({
+          where: {
+            scope: "CLASS",
+            status: { in: ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW"] as TaskStatus[] },
+            dueDate: {
+              gte: now,
+            },
+          },
+          include: {
+            course: true,
+            ...(includeSubtasks ? { subtasks: { select: { isDone: true } } } : {}),
+          },
+        });
+      } catch (err) {
+        if (includeSubtasks && isMissingTableError(err)) {
+          return fetchActiveTasks(false);
+        }
+        throw err;
+      }
+    };
+
+    const activeTasks = await fetchActiveTasks(true);
 
     for (const task of activeTasks) {
       if (!task.dueDate) continue;
@@ -341,8 +379,9 @@ export async function checkApproachingDeadlines(client: Client) {
         minute: "2-digit",
       });
 
-      const totalSub = task.subtasks.length;
-      const doneSub = totalSub > 0 ? task.subtasks.filter((s) => s.isDone).length : 0;
+      const subtasks = task.subtasks ?? [];
+      const totalSub = subtasks.length;
+      const doneSub = totalSub > 0 ? subtasks.filter((s) => s.isDone).length : 0;
 
       const embed = new EmbedBuilder()
         .setColor(alertTier === "H-6" ? 0xef4444 : 0xf59e0b)

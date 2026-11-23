@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashComman
 import { Command, Kelas, TaskScope, TaskStatus } from "../../types.js";
 import { isSlash, reply } from "../../lib/context.js";
 import { BRAND_COLOR, FOOTER_TEXT, FOOTER_ICON, APP_URL } from "../../lib/constants.js";
-import { prisma } from "../../lib/prisma.js";
+import { isMissingTableError, prisma } from "../../lib/prisma.js";
 
 const VALID_STATUSES: TaskStatus[] = ["TODO", "WAITING", "IN_PROGRESS", "NEED_REVIEW", "DONE"];
 
@@ -54,6 +54,10 @@ const command: Command = {
     const selectedStatus = isSlash(context) ? (context.options.getString("status") ?? "ACTIVE") : "ACTIVE";
     const selectedScope = isSlash(context) ? (context.options.getString("scope") ?? "ALL") : "ALL";
 
+    if (isSlash(context) && !context.deferred && !context.replied) {
+      await context.deferReply().catch(() => {});
+    }
+
     try {
       if (!selectedKelas) {
         const dbUser = await prisma.user.findUnique({ where: { id: authorId } });
@@ -97,19 +101,43 @@ const command: Command = {
         whereClause.OR = [classFilter, groupFilter, personalFilter];
       }
 
-      const tasks = await prisma.task.findMany({
-        where: whereClause,
-        include: {
-          course: true,
-          createdBy: true,
-          members: { select: { id: true } },
-          subtasks: { select: { isDone: true } },
-        },
-        orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
-        take: 12,
-      });
+      type BotTaskRow = {
+        id: string;
+        title: string;
+        status: string;
+        scope: string;
+        kelas: string | null;
+        dueDate: Date | null;
+        course: { code: string; name: string } | null;
+        members?: Array<{ id: string }>;
+        subtasks?: Array<{ isDone: boolean }>;
+      };
 
-      const totalCount = await prisma.task.count({ where: whereClause });
+      const fetchTasks = async (includeSubtasks: boolean): Promise<BotTaskRow[]> => {
+        try {
+          return await prisma.task.findMany({
+            where: whereClause,
+            include: {
+              course: true,
+              createdBy: true,
+              members: { select: { id: true } },
+              ...(includeSubtasks ? { subtasks: { select: { isDone: true } } } : {}),
+            },
+            orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+            take: 12,
+          });
+        } catch (err) {
+          if (includeSubtasks && isMissingTableError(err)) {
+            return fetchTasks(false);
+          }
+          throw err;
+        }
+      };
+
+      const [tasks, totalCount] = await Promise.all([
+        fetchTasks(true),
+        prisma.task.count({ where: whereClause }),
+      ]);
 
       const linkButton = new ButtonBuilder().setLabel("Buka TaskPanel Web").setStyle(ButtonStyle.Link).setURL(APP_URL);
 
@@ -153,14 +181,15 @@ const command: Command = {
           t.scope === "CLASS"
             ? `Kelas ${t.kelas ?? "Semua"}`
             : t.scope === "GROUP"
-              ? `Kelompok (${t.members.length} anggota)`
+              ? `Kelompok (${t.members?.length ?? 0} anggota)`
               : "Personal";
-        const totalSubtasks = t.subtasks.length;
-        const doneSubtasks = totalSubtasks > 0 ? t.subtasks.filter((s) => s.isDone).length : 0;
+        const subtasks = t.subtasks ?? [];
+        const totalSubtasks = subtasks.length;
+        const doneSubtasks = totalSubtasks > 0 ? subtasks.filter((s) => s.isDone).length : 0;
         const subtaskLine = totalSubtasks > 0 ? `\n☑️ **Subtugas:** ${doneSubtasks}/${totalSubtasks} selesai` : "";
 
         embed.addFields({
-          name: `${icon} ${t.title}`,
+          name: `${icon} ${t.title}`.slice(0, 250),
           value: `📚 **Matkul:** ${courseStr}\n⏰ **Deadline:** ${deadlineStr}\n🏷️ **Tipe:** ${scopeStr} | **Status:** \`${t.status}\`${subtaskLine}`,
           inline: false,
         });

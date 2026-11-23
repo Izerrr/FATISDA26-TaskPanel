@@ -35,6 +35,13 @@ export async function reply(
   payload: BaseMessageOptions & { content?: string; ephemeral?: boolean }
 ) {
   if (isSlash(context)) {
+    if (context.deferred) {
+      const { ephemeral: _ephemeral, ...editPayload } = payload;
+      return context.editReply(editPayload);
+    }
+    if (context.replied) {
+      return context.followUp(payload);
+    }
     return context.reply(payload);
   }
   const { ephemeral: _ephemeral, ...messagePayload } = payload;
